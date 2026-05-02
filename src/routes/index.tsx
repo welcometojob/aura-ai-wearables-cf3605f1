@@ -14,8 +14,24 @@ import {
   Printer,
   Truck,
   MapPin,
+  MessageCircle,
+  Search,
+  Instagram,
+  Youtube,
+  HelpCircle,
+  Plus,
+  Minus,
+  X,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 import tshirt1 from "@/assets/tshirt-hero-1.jpg";
 import tshirt2 from "@/assets/tshirt-hero-2.jpg";
 import tshirt3 from "@/assets/tshirt-hero-3.jpg";
@@ -45,6 +61,9 @@ function Nav() {
             <a href="#how" className="hover:text-foreground transition">How it works</a>
             <a href="#features" className="hover:text-foreground transition">Features</a>
             <a href="#trending" className="hover:text-foreground transition">Trending</a>
+            <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
+            <a href="#track" className="hover:text-foreground transition">Track</a>
+            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
           </nav>
           <Button variant="hero" size="sm">
