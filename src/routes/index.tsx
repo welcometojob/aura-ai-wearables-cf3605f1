@@ -19,8 +19,6 @@ import {
   Instagram,
   Youtube,
   HelpCircle,
-  Plus,
-  Minus,
   X,
   Send,
 } from "lucide-react";
