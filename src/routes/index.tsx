@@ -21,6 +21,11 @@ import {
   HelpCircle,
   X,
   Send,
+  Sun,
+  Moon,
+  Apple,
+  Smartphone,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
