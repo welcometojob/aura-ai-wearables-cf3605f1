@@ -14,8 +14,22 @@ import {
   Printer,
   Truck,
   MapPin,
+  MessageCircle,
+  Search,
+  Instagram,
+  Youtube,
+  HelpCircle,
+  X,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 import tshirt1 from "@/assets/tshirt-hero-1.jpg";
 import tshirt2 from "@/assets/tshirt-hero-2.jpg";
 import tshirt3 from "@/assets/tshirt-hero-3.jpg";
@@ -45,6 +59,9 @@ function Nav() {
             <a href="#how" className="hover:text-foreground transition">How it works</a>
             <a href="#features" className="hover:text-foreground transition">Features</a>
             <a href="#trending" className="hover:text-foreground transition">Trending</a>
+            <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
+            <a href="#track" className="hover:text-foreground transition">Track</a>
+            <a href="#faq" className="hover:text-foreground transition">FAQ</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
           </nav>
           <Button variant="hero" size="sm">
@@ -384,6 +401,196 @@ function Pricing() {
 }
 
 function CTASection() {
+  return _CTASection();
+}
+
+function Shipping() {
+  const zones = [
+    { code: "UK", region: "United Kingdom", time: "3–5 business days", color: "from-primary/30 to-accent/10" },
+    { code: "EU", region: "Europe", time: "5–8 business days", color: "from-accent/30 to-primary/10" },
+    { code: "USA", region: "United States", time: "3–5 business days", color: "from-primary/30 to-accent/20" },
+    { code: "INTL", region: "International", time: "15–30 business days", color: "from-accent/20 to-primary/20" },
+  ];
+  return (
+    <section id="shipping" className="py-24">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">Shipping</p>
+          <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
+            Worldwide delivery, <span className="text-gradient">on time</span>
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            We ship from our partner facilities to over 120 countries. Estimated delivery times below.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {zones.map((z) => (
+            <div
+              key={z.code}
+              className="group relative overflow-hidden glass rounded-2xl p-6 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className={`absolute -top-16 -right-16 h-40 w-40 rounded-full bg-gradient-to-br ${z.color} blur-3xl opacity-60`} />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-primary/30 grid place-items-center">
+                    <Truck className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-2xl font-extrabold tracking-tight text-gradient">{z.code}</span>
+                </div>
+                <h3 className="mt-5 font-semibold text-lg">{z.region}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{z.time}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function OrderTracking() {
+  const [orderId, setOrderId] = useState("");
+  const [status, setStatus] = useState<null | { id: string; stage: number }>(null);
+  const stages = ["Order placed", "In production", "Shipped", "Out for delivery", "Delivered"];
+
+  const onTrack = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderId.trim()) return;
+    // demo: derive a stage from the id length
+    const stage = Math.min(4, Math.max(0, orderId.trim().length % 5));
+    setStatus({ id: orderId.trim(), stage });
+  };
+
+  return (
+    <section id="track" className="py-24">
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">Order Tracking</p>
+          <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
+            Track your <span className="text-gradient">Aura order</span>
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            Enter your order ID to see real-time shipping progress and estimated delivery.
+          </p>
+        </div>
+        <div className="glass rounded-3xl p-8 md:p-10">
+          <form onSubmit={onTrack} className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={orderId}
+                onChange={(e) => setOrderId(e.target.value)}
+                placeholder="e.g. AURA-2026-XXXX"
+                className="h-12 pl-9 bg-background/40 border-border/60"
+              />
+            </div>
+            <Button type="submit" variant="hero" size="lg">
+              Track Order
+            </Button>
+          </form>
+
+          {status && (
+            <div className="mt-10 animate-fade-up">
+              <div className="flex items-center justify-between mb-4 text-sm">
+                <div className="text-muted-foreground">
+                  Order <span className="text-foreground font-semibold">#{status.id}</span>
+                </div>
+                <div className="text-primary font-medium">{stages[status.stage]}</div>
+              </div>
+              <div className="relative h-2 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-accent transition-all duration-700"
+                  style={{ width: `${((status.stage + 1) / stages.length) * 100}%` }}
+                />
+              </div>
+              <ol className="mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                {stages.map((s, i) => (
+                  <li
+                    key={s}
+                    className={`rounded-lg px-3 py-2 text-center border ${
+                      i <= status.stage
+                        ? "border-primary/40 bg-primary/10 text-foreground"
+                        : "border-border/60 text-muted-foreground"
+                    }`}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQ() {
+  const items = [
+    {
+      q: "How does the AI design generator work?",
+      a: "Just describe what you imagine — a phrase, mood, or style. Our AI creates a unique, print-ready design in seconds. You can refine, regenerate, or upload your own image at any time.",
+    },
+    {
+      q: "What apparel do you print on?",
+      a: "Premium cotton and cotton-blend t-shirts, hoodies, sweatshirts and more. Every piece is printed with high-quality DTG/DTF for sharp details and vibrant colors that last wash after wash.",
+    },
+    {
+      q: "How long does shipping take?",
+      a: "USA & UK: 3–5 business days. EU: 5–8 business days. International: 15–30 business days. You'll get a tracking link the moment your order ships.",
+    },
+    {
+      q: "Can I use my own photo or logo?",
+      a: "Yes — use the Upload a Photo feature to print any image. Our one-click background remover makes it easy to isolate logos, portraits, or product shots.",
+    },
+    {
+      q: "What is your return policy?",
+      a: "Because every item is custom-made for you, we accept returns only for defects or printing errors. Reach out within 14 days of delivery and we'll make it right.",
+    },
+    {
+      q: "Do you offer commercial / POD licensing?",
+      a: "Absolutely. Our Business plan includes a commercial license, bulk export, and API access — perfect for print-on-demand sellers and small brands.",
+    },
+  ];
+  return (
+    <section id="faq" className="py-24">
+      <div className="mx-auto max-w-4xl px-6">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">FAQ</p>
+          <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
+            Frequently asked <span className="text-gradient">questions</span>
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            Everything you need to know before creating your first AI design.
+          </p>
+        </div>
+        <div className="glass rounded-3xl p-4 sm:p-6">
+          <Accordion type="single" collapsible className="w-full">
+            {items.map((it, i) => (
+              <AccordionItem
+                key={it.q}
+                value={`item-${i}`}
+                className="border-b border-border/60 last:border-b-0 px-3"
+              >
+                <AccordionTrigger className="text-left text-base font-medium hover:no-underline py-5">
+                  <span className="flex items-start gap-3">
+                    <HelpCircle className="h-4 w-4 text-primary mt-1 shrink-0" />
+                    {it.q}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pl-7">
+                  {it.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function _CTASection() {
   return (
     <section className="py-24">
       <div className="mx-auto max-w-5xl px-6">
@@ -409,11 +616,13 @@ function CTASection() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border/60 py-12 mt-12">
-      <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-4 gap-10">
-        <div className="md:col-span-2">
+    <footer className="relative mt-24 border-t border-border/60">
+      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <div className="mx-auto max-w-7xl px-6 pt-16 pb-10 grid lg:grid-cols-12 gap-10">
+        {/* Brand + live chat card */}
+        <div className="lg:col-span-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-bold text-lg">Aura Wear</span>
@@ -421,29 +630,175 @@ function Footer() {
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
             AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
           </p>
+
+          <div className="mt-6 glass rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <div className="relative">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 grid place-items-center ring-1 ring-primary/40">
+                  <MessageCircle className="h-5 w-5 text-primary" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Live chat</div>
+                <div className="text-xs text-muted-foreground">Support team · online now</div>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("aura:open-chat"))}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  Live chat with agent <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3">
+            <a
+              href="#"
+              aria-label="Instagram"
+              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
+            >
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a
+              href="#"
+              aria-label="YouTube"
+              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
+            >
+              <Youtube className="h-4 w-4" />
+            </a>
+          </div>
         </div>
-        <div>
-          <div className="text-sm font-semibold mb-3">Product</div>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#how" className="hover:text-foreground transition">How it works</a></li>
-            <li><a href="#features" className="hover:text-foreground transition">Features</a></li>
-            <li><a href="#pricing" className="hover:text-foreground transition">Pricing</a></li>
-          </ul>
-        </div>
-        <div>
-          <div className="text-sm font-semibold mb-3">Company</div>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#" className="hover:text-foreground transition">Terms</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Privacy</a></li>
+
+        <div className="lg:col-span-2">
+          <div className="text-sm font-semibold mb-4">Help</div>
+          <ul className="space-y-2.5 text-sm text-muted-foreground">
+            <li><a href="#" className="hover:text-foreground transition">About Us</a></li>
             <li><a href="#" className="hover:text-foreground transition">Contact Us</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Terms &amp; Conditions</a></li>
           </ul>
+        </div>
+
+        <div className="lg:col-span-3">
+          <div className="text-sm font-semibold mb-4">Useful Links</div>
+          <ul className="space-y-2.5 text-sm text-muted-foreground">
+            <li><a href="#features" className="hover:text-foreground transition">Our AI generator</a></li>
+            <li><a href="#track" className="hover:text-foreground transition">Order Tracking</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Returns Policy</a></li>
+            <li><a href="#shipping" className="hover:text-foreground transition">Shipping Policy</a></li>
+            <li>
+              <span className="inline-flex items-center gap-2">
+                App
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                  coming
+                </span>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="lg:col-span-3">
+          <div className="text-sm font-semibold mb-4">Stay in the loop</div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Get drops, AI prompt tips, and exclusive credits — straight to your inbox.
+          </p>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <Input
+              type="email"
+              placeholder="you@email.com"
+              className="h-10 bg-background/40 border-border/60"
+            />
+            <Button type="submit" variant="hero" size="sm" className="h-10 px-4">
+              Join
+            </Button>
+          </form>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-6 mt-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
+
+      <div className="mx-auto max-w-7xl px-6 pb-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
         <div>© {new Date().getFullYear()} Aura Wear. All rights reserved.</div>
         <div>Crafted with AI, shipped worldwide.</div>
       </div>
     </footer>
+  );
+}
+
+function LiveChatWidget() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("aura:open-chat", handler);
+    return () => window.removeEventListener("aura:open-chat", handler);
+  }, []);
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Open live chat"
+        onClick={() => setOpen((v) => !v)}
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_0_40px_oklch(0.85_0.18_210/0.55)] grid place-items-center hover:scale-110 transition active:scale-95"
+      >
+        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
+        {!open && (
+          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+        )}
+      </button>
+
+      {open && (
+        <div className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-sm rounded-2xl glass shadow-[0_20px_60px_-10px_oklch(0_0_0/0.6)] overflow-hidden animate-fade-up">
+          <div className="flex items-center gap-3 p-4 border-b border-border/60 bg-gradient-to-r from-primary/15 to-accent/10">
+            <div className="relative">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center">
+                <Sparkles className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Aura Support</div>
+              <div className="text-[11px] text-muted-foreground">Typically replies in a few minutes</div>
+            </div>
+            <button
+              type="button"
+              aria-label="Close chat"
+              onClick={() => setOpen(false)}
+              className="h-8 w-8 grid place-items-center rounded-lg hover:bg-secondary transition"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
+            <div className="flex gap-2">
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-accent shrink-0" />
+              <div className="rounded-2xl rounded-tl-sm bg-secondary/60 px-3 py-2 text-sm max-w-[80%]">
+                Hey! 👋 How can we help you with your Aura design today?
+              </div>
+            </div>
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="p-3 border-t border-border/60 flex items-center gap-2"
+          >
+            <Input
+              placeholder="Type your message…"
+              className="h-10 bg-background/40 border-border/60"
+            />
+            <Button type="submit" size="icon" variant="hero" className="h-10 w-10 rounded-xl">
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -457,9 +812,13 @@ function Landing() {
         <Features />
         <Trending />
         <Pricing />
+        <Shipping />
+        <OrderTracking />
+        <FAQ />
         <CTASection />
       </main>
       <Footer />
+      <LiveChatWidget />
     </div>
   );
 }
