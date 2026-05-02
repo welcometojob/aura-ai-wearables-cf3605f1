@@ -185,26 +185,44 @@ function Features() {
     <section id="features" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="text-primary text-sm font-semibold tracking-widest uppercase">Features</p>
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">Our Features</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Everything you need to <span className="text-gradient">create & sell</span>
+            Everything you need, <span className="text-gradient">beautifully crafted</span>
           </h2>
+          <p className="mt-4 text-muted-foreground">
+            Six powerful tools that take you from idea to delivery — without breaking a sweat.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[220px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <FeatureCard
-            className="md:col-span-2 md:row-span-2"
-            icon={Scissors}
-            title="AI Background Remover"
-            desc="Clean, print-ready designs with one click. Our AI isolates your subject with pixel-perfect edges."
-            big
+            icon={Wand2}
+            title="Generate with AI"
+            desc="Simply describe the design you want using text, and our advanced AI system will create a high-quality, unique design tailored exactly to your vision."
           />
-          <FeatureCard icon={Leaf} title="Premium Quality" desc="100% Organic Cotton and high-end DTG printing." />
-          <FeatureCard icon={Globe} title="Global Shipping" desc="Fast worldwide delivery. Tracked, insured, on time." />
           <FeatureCard
-            className="md:col-span-2"
-            icon={Upload}
-            title="Custom Uploads"
-            desc="Bring your own logos, photos, or sketches — combine them with AI prompts for hybrid designs."
+            icon={ImageIcon}
+            title="Upload a Photo"
+            desc="With this feature, you can upload any image and easily place a custom order using your own photo."
+          />
+          <FeatureCard
+            icon={Scissors}
+            title="Background Removal"
+            desc="Remove the background from your created design or uploaded image with just one click — fast, simple, and precise."
+          />
+          <FeatureCard
+            icon={Printer}
+            title="Print Quality"
+            desc="We offer premium-quality printing with sharp details and vibrant colors. Our goal is to ensure every product delivers 100% customer satisfaction."
+          />
+          <FeatureCard
+            icon={Truck}
+            title="Shipping Subscription"
+            desc="We ship to USA, UK, EU, and International destinations. Choose from three subscription plans to enjoy free shipping and fast delivery with ease."
+          />
+          <FeatureCard
+            icon={MapPin}
+            title="Order Tracking"
+            desc="Track your order effortlessly and stay updated on shipping status and delivery progress — all in one place."
           />
         </div>
       </div>
@@ -217,28 +235,25 @@ function FeatureCard({
   title,
   desc,
   className = "",
-  big = false,
 }: {
   icon: React.ElementType;
   title: string;
   desc: string;
   className?: string;
-  big?: boolean;
 }) {
   return (
-    <div className={`group relative overflow-hidden glass rounded-2xl p-6 hover:border-primary/40 transition ${className}`}>
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+    <div className={`group relative overflow-hidden glass rounded-2xl p-7 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 ${className}`}>
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+      <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/10 blur-3xl opacity-0 group-hover:opacity-100 transition" />
       <div className="relative h-full flex flex-col">
-        <div className="h-11 w-11 rounded-xl bg-secondary/60 grid place-items-center mb-4 group-hover:bg-primary/10 transition">
+        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-primary/30 grid place-items-center mb-5 group-hover:scale-110 group-hover:ring-primary/60 transition">
           <Icon className="h-5 w-5 text-primary" />
         </div>
-        <h3 className={`font-semibold ${big ? "text-2xl" : "text-lg"}`}>{title}</h3>
-        <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-md">{desc}</p>
-        {big && (
-          <div className="mt-auto pt-6 flex items-center gap-2 text-sm text-primary">
-            Try it free <ArrowRight className="h-4 w-4" />
-          </div>
-        )}
+        <h3 className="font-semibold text-lg">{title}</h3>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{desc}</p>
+        <div className="mt-5 flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition">
+          Learn more <ArrowRight className="h-3.5 w-3.5" />
+        </div>
       </div>
     </div>
   );
