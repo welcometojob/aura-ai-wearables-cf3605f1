@@ -618,11 +618,13 @@ function _CTASection() {
 
 function Footer() {
   return (
-    <footer className="border-t border-border/60 py-12 mt-12">
-      <div className="mx-auto max-w-7xl px-6 grid md:grid-cols-4 gap-10">
-        <div className="md:col-span-2">
+    <footer className="relative mt-24 border-t border-border/60">
+      <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <div className="mx-auto max-w-7xl px-6 pt-16 pb-10 grid lg:grid-cols-12 gap-10">
+        {/* Brand + live chat card */}
+        <div className="lg:col-span-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-bold text-lg">Aura Wear</span>
@@ -630,29 +632,175 @@ function Footer() {
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
             AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
           </p>
+
+          <div className="mt-6 glass rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <div className="relative">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 grid place-items-center ring-1 ring-primary/40">
+                  <MessageCircle className="h-5 w-5 text-primary" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Live chat</div>
+                <div className="text-xs text-muted-foreground">Support team · online now</div>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("aura:open-chat"))}
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  Live chat with agent <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3">
+            <a
+              href="#"
+              aria-label="Instagram"
+              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
+            >
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a
+              href="#"
+              aria-label="YouTube"
+              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
+            >
+              <Youtube className="h-4 w-4" />
+            </a>
+          </div>
         </div>
-        <div>
-          <div className="text-sm font-semibold mb-3">Product</div>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#how" className="hover:text-foreground transition">How it works</a></li>
-            <li><a href="#features" className="hover:text-foreground transition">Features</a></li>
-            <li><a href="#pricing" className="hover:text-foreground transition">Pricing</a></li>
-          </ul>
-        </div>
-        <div>
-          <div className="text-sm font-semibold mb-3">Company</div>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#" className="hover:text-foreground transition">Terms</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Privacy</a></li>
+
+        <div className="lg:col-span-2">
+          <div className="text-sm font-semibold mb-4">Help</div>
+          <ul className="space-y-2.5 text-sm text-muted-foreground">
+            <li><a href="#" className="hover:text-foreground transition">About Us</a></li>
             <li><a href="#" className="hover:text-foreground transition">Contact Us</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Terms &amp; Conditions</a></li>
           </ul>
+        </div>
+
+        <div className="lg:col-span-3">
+          <div className="text-sm font-semibold mb-4">Useful Links</div>
+          <ul className="space-y-2.5 text-sm text-muted-foreground">
+            <li><a href="#features" className="hover:text-foreground transition">Our AI generator</a></li>
+            <li><a href="#track" className="hover:text-foreground transition">Order Tracking</a></li>
+            <li><a href="#" className="hover:text-foreground transition">Returns Policy</a></li>
+            <li><a href="#shipping" className="hover:text-foreground transition">Shipping Policy</a></li>
+            <li>
+              <span className="inline-flex items-center gap-2">
+                App
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                  coming
+                </span>
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="lg:col-span-3">
+          <div className="text-sm font-semibold mb-4">Stay in the loop</div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Get drops, AI prompt tips, and exclusive credits — straight to your inbox.
+          </p>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <Input
+              type="email"
+              placeholder="you@email.com"
+              className="h-10 bg-background/40 border-border/60"
+            />
+            <Button type="submit" variant="hero" size="sm" className="h-10 px-4">
+              Join
+            </Button>
+          </form>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-6 mt-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
+
+      <div className="mx-auto max-w-7xl px-6 pb-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
         <div>© {new Date().getFullYear()} Aura Wear. All rights reserved.</div>
         <div>Crafted with AI, shipped worldwide.</div>
       </div>
     </footer>
+  );
+}
+
+function LiveChatWidget() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("aura:open-chat", handler);
+    return () => window.removeEventListener("aura:open-chat", handler);
+  }, []);
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="Open live chat"
+        onClick={() => setOpen((v) => !v)}
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_0_40px_oklch(0.85_0.18_210/0.55)] grid place-items-center hover:scale-110 transition active:scale-95"
+      >
+        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
+        {!open && (
+          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+        )}
+      </button>
+
+      {open && (
+        <div className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-sm rounded-2xl glass shadow-[0_20px_60px_-10px_oklch(0_0_0/0.6)] overflow-hidden animate-fade-up">
+          <div className="flex items-center gap-3 p-4 border-b border-border/60 bg-gradient-to-r from-primary/15 to-accent/10">
+            <div className="relative">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center">
+                <Sparkles className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Aura Support</div>
+              <div className="text-[11px] text-muted-foreground">Typically replies in a few minutes</div>
+            </div>
+            <button
+              type="button"
+              aria-label="Close chat"
+              onClick={() => setOpen(false)}
+              className="h-8 w-8 grid place-items-center rounded-lg hover:bg-secondary transition"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
+            <div className="flex gap-2">
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-accent shrink-0" />
+              <div className="rounded-2xl rounded-tl-sm bg-secondary/60 px-3 py-2 text-sm max-w-[80%]">
+                Hey! 👋 How can we help you with your Aura design today?
+              </div>
+            </div>
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="p-3 border-t border-border/60 flex items-center gap-2"
+          >
+            <Input
+              placeholder="Type your message…"
+              className="h-10 bg-background/40 border-border/60"
+            />
+            <Button type="submit" size="icon" variant="hero" className="h-10 w-10 rounded-xl">
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -666,9 +814,13 @@ function Landing() {
         <Features />
         <Trending />
         <Pricing />
+        <Shipping />
+        <OrderTracking />
+        <FAQ />
         <CTASection />
       </main>
       <Footer />
+      <LiveChatWidget />
     </div>
   );
 }
