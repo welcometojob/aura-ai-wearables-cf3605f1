@@ -50,6 +50,26 @@ export const Route = createFileRoute("/")({
 const heroMockups = [tshirt1, tshirt2, tshirt3];
 
 function Nav() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  useEffect(() => {
+    const saved = (typeof localStorage !== "undefined" && localStorage.getItem("aura-theme")) as
+      | "dark"
+      | "light"
+      | null;
+    const initial = saved ?? "dark";
+    setTheme(initial);
+    document.documentElement.classList.toggle("light", initial === "light");
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("light", next === "light");
+    document.documentElement.classList.toggle("dark", next === "dark");
+    try {
+      localStorage.setItem("aura-theme", next);
+    } catch {}
+  };
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 py-4">
@@ -62,16 +82,24 @@ function Nav() {
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
-            <a href="#features" className="hover:text-foreground transition">Features</a>
-            <a href="#trending" className="hover:text-foreground transition">Trending</a>
             <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
             <a href="#track" className="hover:text-foreground transition">Track</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
           </nav>
-          <Button variant="hero" size="sm">
-            Start Designing
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              className="h-9 w-9 grid place-items-center rounded-lg border border-border/60 bg-background/40 hover:border-primary/60 hover:text-primary transition"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <Button variant="hero" size="sm">
+              Start Designing
+            </Button>
+          </div>
         </div>
       </div>
     </header>
