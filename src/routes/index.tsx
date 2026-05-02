@@ -6,12 +6,14 @@ import {
   Eye,
   Package,
   Scissors,
-  Leaf,
-  Globe,
   Upload,
   ArrowRight,
   Check,
   Zap,
+  Image as ImageIcon,
+  Printer,
+  Truck,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import tshirt1 from "@/assets/tshirt-hero-1.jpg";
