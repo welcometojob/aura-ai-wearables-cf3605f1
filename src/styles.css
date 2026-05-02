@@ -72,6 +72,36 @@
   --foreground: oklch(0.97 0.01 240);
 }
 
+/* Light mode overrides — keeps neon cyan accent, swaps surfaces to light */
+html.light {
+  --background: oklch(0.985 0.004 240);
+  --foreground: oklch(0.18 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.03 260);
+  --primary: oklch(0.62 0.16 220);
+  --primary-foreground: oklch(0.99 0.01 240);
+  --secondary: oklch(0.95 0.01 240);
+  --secondary-foreground: oklch(0.18 0.03 260);
+  --muted: oklch(0.95 0.01 240);
+  --muted-foreground: oklch(0.45 0.02 260);
+  --accent: oklch(0.6 0.2 320);
+  --accent-foreground: oklch(0.99 0.01 240);
+  --border: oklch(0.85 0.02 260 / 0.8);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.62 0.16 220);
+}
+html.light body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.62 0.16 220 / 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 30%, oklch(0.6 0.2 320 / 0.08), transparent);
+}
+html.light .glass {
+  background: oklch(1 0 0 / 0.65);
+  border-color: oklch(0.62 0.16 220 / 0.18);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
