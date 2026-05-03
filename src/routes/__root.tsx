@@ -32,11 +32,15 @@ export const Route = createRootRoute({
       { title: "Aura Wear — Design Your Identity with AI" },
       { name: "description", content: "Aura Wear turns your prompts into premium AI-designed apparel. No design skills required — just imagination." },
       { name: "author", content: "Aura Wear" },
-      { property: "og:title", content: "Aura Wear — AI-Powered Custom Apparel" },
-      { property: "og:description", content: "Transform your wildest thoughts into premium wearable art in seconds." },
+      { property: "og:title", content: "Aura Wear — Design Your Identity with AI" },
+      { property: "og:description", content: "Aura Wear turns your prompts into premium AI-designed apparel. No design skills required — just imagination." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Aura Wear — Design Your Identity with AI" },
+      { name: "twitter:description", content: "Aura Wear turns your prompts into premium AI-designed apparel. No design skills required — just imagination." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0d82c2c9-a43e-4462-9c60-0337d0a37cfc/id-preview-0f657c51--8757f51d-38ac-4262-8089-0f4562df9aee.lovable.app-1777827166131.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0d82c2c9-a43e-4462-9c60-0337d0a37cfc/id-preview-0f657c51--8757f51d-38ac-4262-8089-0f4562df9aee.lovable.app-1777827166131.png" },
     ],
     links: [
       {
