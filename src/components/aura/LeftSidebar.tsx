@@ -1,0 +1,215 @@
+import { Sparkles, Upload, Wand2, Scissors, Zap, Trash2, X, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { removeBackground } from "@imgly/background-removal";
+import { STYLE_PRESETS } from "@/lib/aura-config";
+
+type Props = {
+  prompt: string;
+  setPrompt: (p: string) => void;
+  onGenerate: () => void;
+  generating: boolean;
+  selectedStyle: string;
+  setSelectedStyle: (s: string) => void;
+  onUploadImage: (dataUrl: string) => void;
+  artwork: string | null;
+  onDeleteArtwork: () => void;
+  credits: number;
+};
+
+export function LeftSidebar({
+  prompt, setPrompt, onGenerate, generating,
+  selectedStyle, setSelectedStyle,
+  onUploadImage, artwork, onDeleteArtwork, credits,
+}: Props) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploads, setUploads] = useState<string[]>([]);
+  const [removingBg, setRemovingBg] = useState(false);
+
+  const handleRemoveBg = async () => {
+    if (!artwork || removingBg) return;
+    setRemovingBg(true);
+    try {
+      const blob = await removeBackground(artwork, {
+        model: "isnet",
+        output: { format: "image/png", quality: 1 },
+      });
+      const reader = new FileReader();
+      reader.onload = () => onUploadImage(reader.result as string);
+      reader.onerror = () => console.error("Failed to read processed image");
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.error("Background removal failed", err);
+      alert("Background removal failed. Please try a different image.");
+    } finally {
+      setRemovingBg(false);
+    }
+  };
+
+  const handleFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      setUploads((u) => [url, ...u].slice(0, 6));
+      onUploadImage(url);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <aside className="flex h-full w-80 shrink-0 flex-col border-r border-border bg-card/40">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+        <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-accent neon-glow">
+          <Zap className="h-4 w-4 text-primary-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold tracking-tight">Aura Wear</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI Studio</p>
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+        <section>
+          <SectionTitle icon={Sparkles} label="AI Text-to-Image" />
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="A neon koi swimming through clouds, vintage Japanese woodblock style..."
+            className="mt-2 h-24 w-full resize-none rounded-lg border border-border bg-background/60 p-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <button
+            onClick={onGenerate}
+            disabled={generating || !prompt.trim()}
+            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition hover:opacity-90 neon-glow disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Wand2 className={`h-4 w-4 ${generating ? "animate-spin" : ""}`} />
+            {generating ? "Generating…" : "Generate Artwork"}
+          </button>
+
+          {artwork && (
+            <div className="mt-3 group relative aspect-square w-full overflow-hidden rounded-lg border border-primary/40 bg-background/40">
+              <img src={artwork} alt="Current artwork" className="h-full w-full object-contain" />
+              <button
+                onClick={onDeleteArtwork}
+                aria-label="Delete artwork"
+                className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md border border-border bg-background/80 text-muted-foreground backdrop-blur transition hover:border-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+              <span className="absolute bottom-2 left-2 rounded-md bg-background/80 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary backdrop-blur">
+                Current
+              </span>
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionTitle icon={Upload} label="Assets" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="mt-2 flex h-20 w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-background/30 text-xs text-muted-foreground transition hover:border-primary hover:text-primary"
+          >
+            <Upload className="h-4 w-4" />
+            Drop or upload high-res image
+          </button>
+          {uploads.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {uploads.map((u, i) => (
+                <div
+                  key={i}
+                  className="group relative aspect-square overflow-hidden rounded-md border border-border hover:border-primary"
+                >
+                  <button onClick={() => onUploadImage(u)} className="block h-full w-full">
+                    <img src={u} alt="" className="h-full w-full object-cover" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploads((arr) => arr.filter((_, idx) => idx !== i));
+                      if (artwork === u) onDeleteArtwork();
+                    }}
+                    aria-label="Delete upload"
+                    className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition group-hover:opacity-100 hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionTitle icon={Sparkles} label="Style Library" />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {STYLE_PRESETS.map((s) => {
+              const active = selectedStyle === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedStyle(s.id)}
+                  title={s.hint}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${
+                    active
+                      ? "border-primary bg-primary/10 text-primary neon-glow"
+                      : "border-border bg-background/40 text-foreground hover:border-muted-foreground"
+                  }`}
+                >
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle icon={Scissors} label="Background Remover" />
+          <button
+            type="button"
+            onClick={handleRemoveBg}
+            disabled={!artwork || removingBg}
+            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-primary/10 text-xs font-semibold text-primary transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {removingBg ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scissors className="h-4 w-4" />}
+            {removingBg ? "Removing background…" : "Remove Background"}
+          </button>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {artwork ? "Click to isolate subject from current artwork" : "Upload or generate artwork first"}
+          </p>
+        </section>
+      </div>
+
+      <div className="border-t border-border px-5 py-4">
+        <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">AI Credits</p>
+              <p className="mt-0.5 text-lg font-bold text-foreground">{credits.toLocaleString()}</p>
+            </div>
+            <button className="rounded-md border border-primary/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary/10">
+              Top up
+            </button>
+          </div>
+          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-gradient-to-r from-primary to-accent" style={{ width: `${Math.min(100, (credits / 5000) * 100)}%` }} />
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function SectionTitle({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="h-3.5 w-3.5 text-primary" />
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</h3>
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Sparkles,
@@ -96,8 +96,8 @@ function Nav() {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <Button variant="hero" size="sm">
-              Start Designing
+            <Button variant="hero" size="sm" asChild>
+              <Link to="/editor">Start Designing</Link>
             </Button>
           </div>
         </div>
@@ -131,9 +131,11 @@ function Hero() {
             No design skills required.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <Button variant="hero" size="lg" className="group">
-              Start Designing
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Button variant="hero" size="lg" className="group" asChild>
+              <Link to="/editor">
+                Start Designing
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
             <Button variant="ghostNeon" size="lg">
               View Gallery
@@ -637,7 +639,9 @@ function _CTASection() {
               Join 50,000+ creators turning ideas into apparel. Start with 2 free credits — no card required.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Button variant="hero" size="lg">Start Designing</Button>
+              <Button variant="hero" size="lg" asChild>
+                <Link to="/editor">Start Designing</Link>
+              </Button>
               <Button variant="ghostNeon" size="lg">View Gallery</Button>
             </div>
           </div>
