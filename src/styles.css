@@ -151,6 +151,9 @@ html.light .glass {
   .ring-glow {
     box-shadow: 0 0 0 1px oklch(0.85 0.18 210 / 0.4), 0 0 30px oklch(0.85 0.18 210 / 0.25);
   }
+  .neon-glow {
+    box-shadow: 0 0 24px -4px oklch(0.85 0.18 210 / 0.6);
+  }
 }
 
 @keyframes float {
