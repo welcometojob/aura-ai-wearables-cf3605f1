@@ -33,6 +33,9 @@ import {
   Shield,
   Star,
   Quote,
+  Loader2,
+  PenSquare,
+  ArrowDownNarrowWide,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
