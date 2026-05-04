@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import {
   loadAdminProducts,
   type AdminProduct,
 } from "@/lib/admin-products";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
+  const { user, isAdmin, loading } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -33,8 +35,39 @@ function AdminPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setProducts(loadAdminProducts());
-  }, []);
+    if (isAdmin) setProducts(loadAdminProducts());
+  }, [isAdmin]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen grid place-items-center px-6">
+        <div className="glass rounded-3xl p-10 max-w-md text-center">
+          <div className="h-12 w-12 mx-auto rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-primary/40 grid place-items-center mb-4">
+            <Lock className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Admin access only</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {user
+              ? "Your account doesn't have admin privileges. Contact the site owner to be added."
+              : "Please sign in with an admin account to manage products."}
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Button variant="hero" asChild>
+              <Link to={user ? "/" : "/auth"}>{user ? "Back to home" : "Sign in"}</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const onFile = (file: File) => {
     const reader = new FileReader();

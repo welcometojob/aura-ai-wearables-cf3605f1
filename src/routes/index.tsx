@@ -26,6 +26,10 @@ import {
   Apple,
   Smartphone,
   CreditCard,
+  LogOut,
+  User as UserIcon,
+  Coins,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +47,15 @@ import trend2 from "@/assets/trend-2.jpg";
 import trend3 from "@/assets/trend-3.jpg";
 import trend4 from "@/assets/trend-4.jpg";
 import { loadAdminProducts, type AdminProduct } from "@/lib/admin-products";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -51,6 +64,7 @@ export const Route = createFileRoute("/")({
 const heroMockups = [tshirt1, tshirt2, tshirt3];
 
 function Nav() {
+  const { user, profile, isAdmin, signOut } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   useEffect(() => {
     const saved = (typeof localStorage !== "undefined" && localStorage.getItem("aura-theme")) as
@@ -101,6 +115,65 @@ function Nav() {
             <Button variant="hero" size="sm" asChild>
               <Link to="/editor">Start Designing</Link>
             </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="h-9 px-3 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 hover:border-primary/60 transition text-sm"
+                  >
+                    <UserIcon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline max-w-[100px] truncate">
+                      {profile?.display_name || user.email}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="text-sm font-medium truncate">
+                      {profile?.display_name || user.email}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Coins className="h-3.5 w-3.5 text-primary" />
+                      Credits
+                    </span>
+                    <span className="font-semibold text-primary">
+                      {profile?.credits_remaining ?? 0}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center justify-between">
+                    <span>Plan</span>
+                    <span className="text-xs uppercase tracking-wider px-2 py-0.5 rounded-full border border-primary/40 text-primary bg-primary/10">
+                      {profile?.plan ?? "free"}
+                    </span>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                          <Shield className="h-3.5 w-3.5" />
+                          Admin dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => void signOut()} className="cursor-pointer">
+                    <LogOut className="h-3.5 w-3.5" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghostNeon" size="sm" asChild>
+                <Link to="/auth">Sign in</Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
