@@ -25,8 +25,8 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard — Aura Wear" },
-      { name: "description", content: "Manage gallery products for Aura Wear." },
+      { title: "Admin Dashboard — TommyMeow" },
+      { name: "description", content: "Manage gallery products for TommyMeow." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -141,11 +141,9 @@ function AdminPage() {
       <header className="border-b border-border/60">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <img src={brandIcon} alt="TommyMeow" className="h-9 w-9" />
             <div>
-              <div className="font-bold tracking-tight">Aura Admin</div>
+              <div className="font-bold tracking-tight">TommyMeow Admin</div>
               <div className="text-xs text-muted-foreground">Gallery products</div>
             </div>
           </div>
