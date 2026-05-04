@@ -19,6 +19,7 @@ import {
   MessageCircle,
   Search,
   Instagram,
+  Facebook,
   Youtube,
   HelpCircle,
   X,
@@ -1177,43 +1178,65 @@ function Footer() {
             AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
           </p>
 
-          <div className="mt-6 glass rounded-2xl p-5">
-            <div className="flex items-start gap-3">
+          <div className="mt-6 relative overflow-hidden rounded-2xl p-5 border border-primary/30 bg-gradient-to-br from-primary/15 via-background/40 to-accent/15 backdrop-blur-xl">
+            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-accent/30 blur-3xl pointer-events-none" />
+            <div className="relative flex items-start gap-3">
               <div className="relative">
-                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 grid place-items-center ring-1 ring-primary/40">
-                  <MessageCircle className="h-5 w-5 text-primary" />
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-accent grid place-items-center shadow-lg shadow-primary/30">
+                  <MessageCircle className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-background">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                </span>
               </div>
-              <div className="flex-1">
-                <div className="text-sm font-semibold">Live chat</div>
-                <div className="text-xs text-muted-foreground">Support team · online now</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-semibold">Live chat support</div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
+                  </span>
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">Avg. reply in under 2 minutes</div>
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent("aura:open-chat"))}
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  className="group mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-accent px-3.5 py-2 text-xs font-semibold text-primary-foreground shadow-md shadow-primary/30 hover:shadow-primary/50 transition"
                 >
-                  Live chat with agent <ArrowRight className="h-3 w-3" />
+                  Chat with an agent
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex items-center gap-3">
-            <a
-              href="#"
-              aria-label="Instagram"
-              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
-            >
-              <Instagram className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              aria-label="YouTube"
-              className="h-10 w-10 grid place-items-center rounded-xl glass hover:border-primary/60 hover:text-primary transition"
-            >
-              <Youtube className="h-4 w-4" />
-            </a>
+          <div className="mt-6">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-3">Follow us</div>
+            <div className="flex items-center gap-3">
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="group relative h-11 w-11 grid place-items-center rounded-xl overflow-hidden text-white transition-transform hover:-translate-y-0.5"
+                style={{ background: "linear-gradient(135deg,#feda75 0%,#fa7e1e 25%,#d62976 50%,#962fbf 75%,#4f5bd5 100%)" }}
+              >
+                <Instagram className="h-5 w-5 relative z-10" />
+                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
+              </a>
+              <a
+                href="#"
+                aria-label="YouTube"
+                className="group h-11 w-11 grid place-items-center rounded-xl bg-[#FF0000] text-white shadow-md shadow-red-500/30 transition-transform hover:-translate-y-0.5 hover:bg-[#e60000]"
+              >
+                <Youtube className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="group h-11 w-11 grid place-items-center rounded-xl bg-[#1877F2] text-white shadow-md shadow-blue-500/30 transition-transform hover:-translate-y-0.5 hover:bg-[#1467d4]"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
 
