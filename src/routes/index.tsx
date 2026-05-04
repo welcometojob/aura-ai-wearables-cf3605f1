@@ -19,6 +19,7 @@ import {
   MessageCircle,
   Search,
   Instagram,
+  Facebook,
   Youtube,
   HelpCircle,
   X,
