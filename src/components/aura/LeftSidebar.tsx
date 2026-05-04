@@ -1,4 +1,4 @@
-import { Sparkles, Upload, Wand2, Scissors, Zap, Trash2, X, Loader2, WandSparkles } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { STYLE_PRESETS } from "@/lib/aura-config";
