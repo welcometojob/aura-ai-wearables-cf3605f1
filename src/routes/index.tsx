@@ -221,7 +221,7 @@ function Hero() {
               </Link>
             </Button>
             <Button variant="ghostNeon" size="lg" asChild>
-              <a href="#trending">View Gallery</a>
+              <a href="#reviews">Customer Reviews</a>
             </Button>
           </div>
           <div className="mt-10 flex items-center gap-8 text-sm text-muted-foreground">
