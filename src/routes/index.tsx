@@ -82,10 +82,11 @@ function Nav() {
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
+            <a href="#trending" className="hover:text-foreground transition">Gallery</a>
+            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
             <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
             <a href="#track" className="hover:text-foreground transition">Track</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
-            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
           </nav>
           <div className="flex items-center gap-2">
             <button
