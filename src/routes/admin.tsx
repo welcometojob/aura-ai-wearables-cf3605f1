@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   addProduct,
   deleteProduct,
@@ -12,6 +13,13 @@ import {
   uploadProductImage,
   type AdminProduct,
 } from "@/lib/admin-products";
+import {
+  addReadyDesign,
+  deleteReadyDesign,
+  fetchReadyDesigns,
+  uploadReadyDesignImage,
+  type ReadyDesign,
+} from "@/lib/ready-designs";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
@@ -150,7 +158,17 @@ function AdminPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 mt-10 grid lg:grid-cols-5 gap-8">
+      <main className="mx-auto max-w-7xl px-6 mt-8">
+        <Tabs defaultValue="products">
+          <TabsList className="mb-6">
+            <TabsTrigger value="products">
+              <Package className="h-4 w-4" /> Products
+            </TabsTrigger>
+            <TabsTrigger value="designs">
+              <Shirt className="h-4 w-4" /> Ready Designs
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="products" className="grid lg:grid-cols-5 gap-8">
         <section className="lg:col-span-2">
           <div className="glass rounded-2xl p-6">
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -287,7 +305,167 @@ function AdminPage() {
             </div>
           )}
         </section>
+          </TabsContent>
+          <TabsContent value="designs">
+            <ReadyDesignsManager userId={user.id} />
+          </TabsContent>
+        </Tabs>
       </main>
+    </div>
+  );
+}
+
+function ReadyDesignsManager({ userId }: { userId: string }) {
+  const [designs, setDesigns] = useState<ReadyDesign[]>([]);
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [tags, setTags] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchReadyDesigns()
+      .then(setDesigns)
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Failed to load designs"));
+  }, []);
+
+  const onFile = (f: File) => {
+    setFile(f);
+    const reader = new FileReader();
+    reader.onload = () => setPreview(String(reader.result));
+    reader.readAsDataURL(f);
+  };
+
+  const reset = () => {
+    setName(""); setCategory(""); setTags(""); setFile(null); setPreview("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !file) return;
+    setSubmitting(true);
+    try {
+      const image_url = await uploadReadyDesignImage(file, userId);
+      const created = await addReadyDesign({
+        name: name.trim(),
+        category: category.trim(),
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        image_url,
+      });
+      setDesigns((prev) => [created, ...prev]);
+      toast.success("Design uploaded");
+      reset();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to upload design");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onDelete = async (id: string) => {
+    try {
+      await deleteReadyDesign(id);
+      setDesigns((prev) => prev.filter((d) => d.id !== id));
+      toast.success("Deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete");
+    }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-5 gap-8">
+      <section className="lg:col-span-2">
+        <div className="glass rounded-2xl p-6">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Shirt className="h-4 w-4 text-primary" /> Upload ready design
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            PNG with transparent background works best (these appear in the editor's Style Library).
+          </p>
+          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">PNG file</label>
+              <div
+                className="mt-1.5 relative rounded-xl border border-dashed border-border/60 bg-background/40 hover:border-primary/60 transition aspect-square overflow-hidden grid place-items-center cursor-pointer"
+                onClick={() => fileRef.current?.click()}
+              >
+                {preview ? (
+                  <img src={preview} alt="preview" className="h-full w-full object-contain" />
+                ) : (
+                  <div className="text-center text-muted-foreground text-sm">
+                    <Upload className="h-6 w-6 mx-auto mb-2" /> Click to upload PNG
+                  </div>
+                )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/png,image/*"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Name</label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Neon Tiger" className="mt-1.5" required />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Category</label>
+              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Streetwear" className="mt-1.5" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Tags (comma separated)</label>
+              <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="anime, neon, bold" className="mt-1.5" />
+            </div>
+            <Button type="submit" variant="hero" className="w-full" disabled={!file || submitting}>
+              {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> Uploading…</>) : "Upload design"}
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      <section className="lg:col-span-3">
+        <div className="flex items-end justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-semibold">Ready Designs ({designs.length})</h2>
+            <p className="text-xs text-muted-foreground">Visible to all users in the editor's Style Library.</p>
+          </div>
+        </div>
+        {designs.length === 0 ? (
+          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
+            No designs yet. Upload your first PNG on the left.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {designs.map((d) => (
+              <div key={d.id} className="group glass rounded-2xl overflow-hidden">
+                <div className="relative aspect-square overflow-hidden bg-secondary/40">
+                  <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
+                  <button
+                    type="button"
+                    onClick={() => onDelete(d.id)}
+                    aria-label="Delete"
+                    className="absolute top-2 right-2 h-8 w-8 grid place-items-center rounded-lg bg-background/80 backdrop-blur border border-border/60 hover:border-destructive hover:text-destructive transition"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-3">
+                  <div className="font-medium text-sm truncate">{d.name}</div>
+                  {d.category && (
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                      {d.category}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
