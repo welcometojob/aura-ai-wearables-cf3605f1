@@ -672,7 +672,7 @@ function Shipping() {
     { code: "UK", region: "United Kingdom", time: "3–5 business days", color: "from-primary/30 to-accent/10" },
     { code: "EU", region: "Europe", time: "5–8 business days", color: "from-accent/30 to-primary/10" },
     { code: "USA", region: "United States", time: "3–5 business days", color: "from-primary/30 to-accent/20" },
-    { code: "INTL", region: "International", time: "15–30 business days", color: "from-accent/20 to-primary/20" },
+    { code: "International", region: "International", time: "15–30 business days", color: "from-accent/20 to-primary/20" },
   ];
   return (
     <section id="shipping" className="py-24">
