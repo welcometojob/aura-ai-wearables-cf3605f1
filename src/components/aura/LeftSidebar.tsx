@@ -177,6 +177,22 @@ export function LeftSidebar({
         </section>
 
         <section>
+          <SectionTitle icon={Scissors} label="Background Remover" />
+          <button
+            type="button"
+            onClick={handleRemoveBg}
+            disabled={!artwork || removingBg}
+            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/50 bg-primary/10 text-xs font-semibold text-primary transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {removingBg ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scissors className="h-4 w-4" />}
+            {removingBg ? "Removing background…" : "Remove Background"}
+          </button>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            {artwork ? "Click to isolate subject from current artwork" : "Upload or generate artwork first"}
+          </p>
+        </section>
+
+        <section>
           <div className="flex items-center justify-between">
             <SectionTitle icon={Shirt} label="Ready Designs" />
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
