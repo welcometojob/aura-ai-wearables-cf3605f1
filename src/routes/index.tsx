@@ -396,15 +396,15 @@ function Trending() {
   const [expanded, setExpanded] = useState(false);
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   useEffect(() => {
-    const refresh = () => setAdminProducts(loadAdminProducts());
-    refresh();
-    window.addEventListener("aura:products-updated", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("aura:products-updated", refresh);
-      window.removeEventListener("storage", refresh);
+    let cancelled = false;
+    const refresh = () => {
+      fetchProducts()
+        .then((p) => { if (!cancelled) setAdminProducts(p); })
+        .catch(() => {});
     };
-  }, []);
+    refresh();
+    return () => { cancelled = true; };
+  }, [expanded]);
   return (
     <section id="trending" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
