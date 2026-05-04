@@ -1,7 +1,6 @@
 import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { STYLE_PRESETS } from "@/lib/aura-config";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -179,33 +178,7 @@ export function LeftSidebar({
 
         <section>
           <div className="flex items-center justify-between">
-            <SectionTitle icon={Sparkles} label="Style Library" />
-            <div className="flex flex-wrap gap-1">
-              {STYLE_PRESETS.slice(0, 3).map((s) => {
-                const active = selectedStyle === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => setSelectedStyle(s.id)}
-                    title={s.hint}
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium transition ${
-                      active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-background/40 text-muted-foreground hover:border-muted-foreground"
-                    }`}
-                  >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Ready-made designs */}
-          <div className="mt-2 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <Shirt className="h-3 w-3 text-primary" /> Ready Designs
-            </span>
+            <SectionTitle icon={Shirt} label="Ready Designs" />
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
               <SheetTrigger asChild>
                 <button
