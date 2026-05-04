@@ -1,6 +1,5 @@
 import { Sparkles, Upload, Wand2, Scissors, Zap, Trash2, X, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { removeBackground } from "@imgly/background-removal";
 import { STYLE_PRESETS } from "@/lib/aura-config";
 
 type Props = {
@@ -29,6 +28,7 @@ export function LeftSidebar({
     if (!artwork || removingBg) return;
     setRemovingBg(true);
     try {
+      const { removeBackground } = await import("@imgly/background-removal");
       const blob = await removeBackground(artwork, {
         model: "isnet",
         output: { format: "image/png", quality: 1 },
