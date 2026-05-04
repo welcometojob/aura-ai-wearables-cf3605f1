@@ -396,6 +396,16 @@ function Trending() {
   ];
   const [expanded, setExpanded] = useState(false);
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const handleBuy = (productName: string) => {
+    if (!user) {
+      toast.info("Sign in to purchase this product.");
+      navigate({ to: "/auth", search: { redirect: "/#trending", plan: productName } });
+      return;
+    }
+    toast.info(`Checkout for "${productName}" coming soon — payment integration pending.`);
+  };
   useEffect(() => {
     let cancelled = false;
     const refresh = () => {
@@ -436,8 +446,8 @@ function Trending() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
                 <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
-                  <Button variant="hero" size="sm" className="w-full">
-                    Quick view
+                  <Button variant="hero" size="sm" className="w-full" onClick={() => handleBuy(it.name)}>
+                    {user ? "Buy now" : "Sign in to buy"}
                   </Button>
                 </div>
               </div>
@@ -491,6 +501,12 @@ function Trending() {
                           {p.category}
                         </span>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
+                      <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
+                        <Button variant="hero" size="sm" className="w-full" onClick={() => handleBuy(p.name)}>
+                          {user ? "Buy now" : "Sign in to buy"}
+                        </Button>
+                      </div>
                     </div>
                     <div className="relative p-4">
                       <div className="flex items-center justify-between gap-2">
