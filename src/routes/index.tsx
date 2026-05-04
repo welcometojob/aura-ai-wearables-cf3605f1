@@ -103,6 +103,7 @@ function Nav() {
             <a href="#trending" className="hover:text-foreground transition">Gallery</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
             <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
+            <a href="#reviews" className="hover:text-foreground transition">Reviews</a>
             <a href="#track" className="hover:text-foreground transition">Track</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
           </nav>
