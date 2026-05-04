@@ -172,7 +172,7 @@ function Nav() {
               </DropdownMenu>
             ) : (
               <Button variant="ghostNeon" size="sm" asChild>
-                <Link to="/auth">Sign in</Link>
+                <Link to="/auth" search={{ redirect: "/", plan: undefined }}>Sign in</Link>
               </Button>
             )}
           </div>
