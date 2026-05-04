@@ -1,6 +1,8 @@
-import { Sparkles, Upload, Wand2, Scissors, Zap, Trash2, X, Loader2 } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Zap, Trash2, X, Loader2, WandSparkles } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { STYLE_PRESETS } from "@/lib/aura-config";
+import { enhancePrompt } from "@/server/ai.functions";
 
 type Props = {
   prompt: string;
@@ -23,6 +25,22 @@ export function LeftSidebar({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<string[]>([]);
   const [removingBg, setRemovingBg] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+
+  const handleEnhance = async () => {
+    if (!prompt.trim() || enhancing) return;
+    setEnhancing(true);
+    try {
+      const res = await enhancePrompt({ data: { prompt: prompt.trim(), style: selectedStyle } });
+      setPrompt(res.prompt);
+      toast.success("Prompt enhanced with AI");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to enhance prompt";
+      toast.error(msg);
+    } finally {
+      setEnhancing(false);
+    }
+  };
 
   const handleRemoveBg = async () => {
     if (!artwork || removingBg) return;
@@ -69,7 +87,19 @@ export function LeftSidebar({
 
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         <section>
-          <SectionTitle icon={Sparkles} label="AI Text-to-Image" />
+          <div className="flex items-center justify-between">
+            <SectionTitle icon={Sparkles} label="AI Text-to-Image" />
+            <button
+              type="button"
+              onClick={handleEnhance}
+              disabled={!prompt.trim() || enhancing}
+              title="Enhance prompt with AI"
+              aria-label="Enhance prompt with AI"
+              className="grid h-6 w-6 place-items-center rounded-md border border-primary/40 bg-primary/10 text-primary transition hover:bg-primary/20 hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {enhancing ? <Loader2 className="h-3 w-3 animate-spin" /> : <WandSparkles className="h-3 w-3" />}
+            </button>
+          </div>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
