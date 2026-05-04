@@ -1,9 +1,8 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronRight } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 type Props = {
   prompt: string;
@@ -29,7 +28,7 @@ export function LeftSidebar({
   const [enhancing, setEnhancing] = useState(false);
   const [readyDesigns, setReadyDesigns] = useState<ReadyDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [showAllDesigns, setShowAllDesigns] = useState(false);
 
   useEffect(() => {
     fetchReadyDesigns()
@@ -195,52 +194,16 @@ export function LeftSidebar({
         <section>
           <div className="flex items-center justify-between">
             <SectionTitle icon={Shirt} label="Ready Designs" />
-            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline"
-                >
-                  More <ChevronRight className="h-3 w-3" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[420px] sm:max-w-[420px] overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <Shirt className="h-4 w-4 text-primary" /> All Ready Designs
-                  </SheetTitle>
-                </SheetHeader>
-                {readyDesigns.length === 0 ? (
-                  <p className="mt-6 text-sm text-muted-foreground">No ready designs available yet.</p>
-                ) : (
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    {readyDesigns.map((d) => (
-                      <button
-                        key={d.id}
-                        onClick={() => {
-                          onUploadImage(d.image);
-                          setMoreOpen(false);
-                          toast.success(`Applied "${d.name}"`);
-                        }}
-                        className="group overflow-hidden rounded-lg border border-border bg-background/40 transition hover:border-primary"
-                      >
-                        <div className="aspect-square w-full bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-muted/30 to-muted/10">
-                          <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
-                        </div>
-                        <div className="px-2 py-1.5 text-left">
-                          <p className="truncate text-[11px] font-medium">{d.name}</p>
-                          {d.category && (
-                            <p className="truncate text-[9px] uppercase tracking-wider text-muted-foreground">
-                              {d.category}
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </SheetContent>
-            </Sheet>
+            {readyDesigns.length > 6 && (
+              <button
+                type="button"
+                onClick={() => setShowAllDesigns((v) => !v)}
+                className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline"
+              >
+                {showAllDesigns ? "Less" : "More"}
+                <ChevronDown className={`h-3 w-3 transition-transform ${showAllDesigns ? "rotate-180" : ""}`} />
+              </button>
+            )}
           </div>
 
           {loadingDesigns ? (
@@ -251,9 +214,25 @@ export function LeftSidebar({
             <div className="mt-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/30 px-3 text-center text-[10px] text-muted-foreground">
               No ready designs uploaded yet
             </div>
+          ) : showAllDesigns ? (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {readyDesigns.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    onUploadImage(d.image);
+                    toast.success(`Applied "${d.name}"`);
+                  }}
+                  title={d.name}
+                  className="group relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-background/40 transition hover:border-primary"
+                >
+                  <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
+                </button>
+              ))}
+            </div>
           ) : (
             <div className="mt-2 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-              {readyDesigns.slice(0, 12).map((d) => (
+              {readyDesigns.slice(0, 6).map((d) => (
                 <button
                   key={d.id}
                   onClick={() => {
