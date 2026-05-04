@@ -1234,14 +1234,6 @@ function Footer() {
             <li><a href="#track" className="hover:text-foreground transition">Order Tracking</a></li>
             <li><a href="#" className="hover:text-foreground transition">Returns Policy</a></li>
             <li><a href="#shipping" className="hover:text-foreground transition">Shipping Policy</a></li>
-            <li>
-              <span className="inline-flex items-center gap-2">
-                App
-                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
-                  coming
-                </span>
-              </span>
-            </li>
           </ul>
         </div>
 
