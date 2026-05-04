@@ -1114,6 +1114,7 @@ function Landing() {
         <Trending />
         <Pricing />
         <Shipping />
+      <Reviews />
         <OrderTracking />
         <FAQ />
         <CTASection />
