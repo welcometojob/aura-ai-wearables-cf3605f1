@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import brandLogo from "@/assets/tommymeow-logo.png";
 import {
   Sparkles,
