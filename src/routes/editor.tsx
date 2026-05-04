@@ -69,7 +69,7 @@ function Editor() {
     if (!prompt.trim()) return;
     if (!user) {
       toast.error("Please sign in to generate designs.");
-      void navigate({ to: "/auth", search: { redirect: "/editor" } });
+      void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
       return;
     }
     if (credits < 1) {
