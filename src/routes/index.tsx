@@ -99,10 +99,7 @@ function Nav() {
       <div className="mx-auto max-w-7xl px-6 py-4">
         <div className="glass rounded-2xl px-5 py-3 flex items-center justify-between">
           <a href="#" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold tracking-tight text-lg">Aura Wear</span>
+            <img src={brandLogo} alt="TommyMeow" className="h-9 w-auto" />
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
@@ -1169,10 +1166,7 @@ function Footer() {
         {/* Brand + live chat card */}
         <div className="lg:col-span-4">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">Aura Wear</span>
+            <img src={brandLogo} alt="TommyMeow" className="h-10 w-auto" />
           </div>
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
             AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
@@ -1284,7 +1278,7 @@ function Footer() {
       </div>
 
       <div className="mx-auto max-w-7xl px-6 pb-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-        <div>© {new Date().getFullYear()} Aura Wear. All rights reserved.</div>
+        <div>© {new Date().getFullYear()} TommyMeow. All rights reserved.</div>
         <div className="flex items-center gap-2.5">
           <span className="mr-1 hidden sm:inline">Secure payments via Stripe</span>
           <PayBadge label="Visa" />
