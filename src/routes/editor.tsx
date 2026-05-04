@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
 import { Mockup } from "@/components/aura/Mockup";
 import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
 import { ArrowLeft, User } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -40,11 +44,13 @@ function fakeArtwork(prompt: string, style: string) {
 }
 
 function Editor() {
+  const { user, profile, refresh } = useAuth();
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
   const [artwork, setArtwork] = useState<string | null>(null);
-  const [credits, setCredits] = useState(2480);
+  const credits = profile?.credits_remaining ?? 0;
 
   const [view, setView] = useState<View>("front");
   const [fit, setFit] = useState<Fit>("Men");
@@ -56,14 +62,35 @@ function Editor() {
   const artworkFee = artwork ? 4 : 0;
   const total = useMemo(() => (product.price + artworkFee) * quantity, [product.price, artworkFee, quantity]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    if (!user) {
+      toast.error("Please sign in to generate designs.");
+      void navigate({ to: "/auth" });
+      return;
+    }
+    if (credits < 1) {
+      toast.error("Out of credits. Upgrade your plan to keep designing.");
+      return;
+    }
     setGenerating(true);
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.rpc("consume_credit", {
+        _amount: 1,
+        _note: `AI generation: ${prompt.slice(0, 80)}`,
+      });
+      if (error) throw error;
+      await refresh();
+      // Simulated artwork (replace with real AI later)
+      await new Promise((r) => setTimeout(r, 700));
       setArtwork(fakeArtwork(prompt, selectedStyle));
-      setCredits((c) => Math.max(0, c - 25));
+      toast.success("Design generated! 1 credit used.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Generation failed";
+      toast.error(msg);
+    } finally {
       setGenerating(false);
-    }, 900);
+    }
   };
 
   const fabric =
