@@ -1,5 +1,5 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
@@ -29,6 +29,26 @@ export function LeftSidebar({
   const [readyDesigns, setReadyDesigns] = useState<ReadyDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
   const [showAllDesigns, setShowAllDesigns] = useState(false);
+  const [designQuery, setDesignQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    readyDesigns.forEach((d) => d.category && set.add(d.category));
+    return ["All", ...Array.from(set).sort()];
+  }, [readyDesigns]);
+
+  const filteredDesigns = useMemo(() => {
+    const q = designQuery.trim().toLowerCase();
+    return readyDesigns.filter((d) => {
+      if (activeCategory !== "All" && d.category !== activeCategory) return false;
+      if (!q) return true;
+      if (d.name.toLowerCase().includes(q)) return true;
+      if (d.category?.toLowerCase().includes(q)) return true;
+      if (d.tags.some((t) => t.toLowerCase().includes(q))) return true;
+      return false;
+    });
+  }, [readyDesigns, designQuery, activeCategory]);
 
   useEffect(() => {
     fetchReadyDesigns()
