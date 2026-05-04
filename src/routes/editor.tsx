@@ -5,7 +5,7 @@ import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
 import { Mockup } from "@/components/aura/Mockup";
 import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
-import { ArrowLeft, User, Zap } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -101,20 +101,13 @@ function Editor() {
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-accent neon-glow">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-semibold tracking-tight">Aura Wear</p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI Studio</p>
-            </div>
-          </Link>
-          <Link to="/" className="ml-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to home
-          </Link>
-        </div>
+        <Link
+          to="/"
+          className="group inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-primary hover:bg-primary/10 hover:text-primary"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+          Back to home
+        </Link>
         <div className="flex items-center gap-2">
           <button className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground neon-glow hover:opacity-90">
             Checkout · ${total.toFixed(2)}
