@@ -1002,7 +1002,7 @@ function OrderTracking() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Order Tracking</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Track your <span className="text-gradient">Aura order</span>
+            Track your <span className="text-gradient">TommyMeow order</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Enter your order ID to see real-time shipping progress and estimated delivery.
@@ -1015,7 +1015,7 @@ function OrderTracking() {
               <Input
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
-                placeholder="e.g. AURA-2026-XXXX"
+                placeholder="e.g. TM-2026-XXXX"
                 className="h-12 pl-9 bg-background/40 border-border/60"
               />
             </div>
@@ -1249,7 +1249,7 @@ function Footer() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
-            Design and order Aura Wear on the go. Available soon on iOS and Android.
+            Design and order TommyMeow on the go. Available soon on iOS and Android.
           </p>
           <div className="flex flex-col gap-2.5">
             <button
@@ -1336,7 +1336,7 @@ function LiveChatWidget() {
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background" />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-semibold">Aura Support</div>
+              <div className="text-sm font-semibold">TommyMeow Support</div>
               <div className="text-[11px] text-muted-foreground">Typically replies in a few minutes</div>
             </div>
             <button
@@ -1352,7 +1352,7 @@ function LiveChatWidget() {
             <div className="flex gap-2">
               <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-accent shrink-0" />
               <div className="rounded-2xl rounded-tl-sm bg-secondary/60 px-3 py-2 text-sm max-w-[80%]">
-                Hey! 👋 How can we help you with your Aura design today?
+                Hey! 👋 How can we help you with your TommyMeow design today?
               </div>
             </div>
           </div>
