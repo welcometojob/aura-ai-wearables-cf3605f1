@@ -1301,7 +1301,7 @@ function Footer() {
 
 function PayBadge({ brand }: { brand: "visa" | "mastercard" | "amex" | "paypal" | "applepay" | "googlepay" | "stripe" }) {
   const wrap = "inline-flex items-center justify-center h-8 w-12 rounded-md bg-white border border-border/60 shadow-sm overflow-hidden";
-  const map: Record<typeof brand, { label: string; svg: JSX.Element }> = {
+  const map: Record<typeof brand, { label: string; svg: React.ReactNode }> = {
     visa: {
       label: "Visa",
       svg: (
