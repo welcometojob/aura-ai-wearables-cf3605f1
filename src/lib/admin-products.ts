@@ -1,47 +1,87 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type AdminProduct = {
   id: string;
   name: string;
   price: string;
-  description: string;
-  category: string;
+  description: string | null;
+  category: string | null;
   tags: string[];
   image: string;
-  createdAt: number;
+  createdAt: string;
 };
 
-const STORAGE_KEY = "aura-admin-products";
+const BUCKET = "product-images";
 
-export function loadAdminProducts(): AdminProduct[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+type Row = {
+  id: string;
+  name: string;
+  price: string;
+  description: string | null;
+  category: string | null;
+  tags: string[];
+  image_url: string;
+  created_at: string;
+};
+
+const toProduct = (r: Row): AdminProduct => ({
+  id: r.id,
+  name: r.name,
+  price: r.price,
+  description: r.description,
+  category: r.category,
+  tags: r.tags ?? [],
+  image: r.image_url,
+  createdAt: r.created_at,
+});
+
+export async function fetchProducts(): Promise<AdminProduct[]> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,name,price,description,category,tags,image_url,created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as Row[] | null)?.map(toProduct) ?? [];
 }
 
-export function saveAdminProducts(products: AdminProduct[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-    window.dispatchEvent(new CustomEvent("aura:products-updated"));
-  } catch {}
+export async function uploadProductImage(file: File, userId: string): Promise<string> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
 
-export function addAdminProduct(p: Omit<AdminProduct, "id" | "createdAt">) {
-  const all = loadAdminProducts();
-  const next: AdminProduct = {
-    ...p,
-    id: `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    createdAt: Date.now(),
-  };
-  saveAdminProducts([next, ...all]);
-  return next;
+export async function addProduct(input: {
+  name: string;
+  price: string;
+  description?: string;
+  category?: string;
+  tags: string[];
+  image_url: string;
+}): Promise<AdminProduct> {
+  const { data, error } = await supabase
+    .from("products")
+    .insert({
+      name: input.name,
+      price: input.price,
+      description: input.description || null,
+      category: input.category || null,
+      tags: input.tags,
+      image_url: input.image_url,
+    })
+    .select("id,name,price,description,category,tags,image_url,created_at")
+    .single();
+  if (error) throw error;
+  return toProduct(data as Row);
 }
 
-export function deleteAdminProduct(id: string) {
-  saveAdminProducts(loadAdminProducts().filter((p) => p.id !== id));
+export async function deleteProduct(id: string): Promise<void> {
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) throw error;
 }
