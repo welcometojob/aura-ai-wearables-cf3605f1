@@ -75,16 +75,6 @@ export function LeftSidebar({
 
   return (
     <aside className="flex h-full w-80 shrink-0 flex-col border-r border-border bg-card/40">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-4">
-        <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-accent neon-glow">
-          <Zap className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold tracking-tight">Aura Wear</p>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">AI Studio</p>
-        </div>
-      </div>
-
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         <section>
           <div className="flex items-center justify-between">
