@@ -331,20 +331,30 @@ function Trending() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {items.map((it) => (
-            <div key={it.name} className="group relative glass rounded-2xl overflow-hidden hover:border-primary/50 transition">
-              <div className="aspect-[4/5] overflow-hidden bg-secondary">
+            <div
+              key={it.name}
+              className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500"
+            >
+              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-accent/15 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+              <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
                 <img
                   src={it.src}
                   alt={it.name}
                   loading="lazy"
                   width={768}
                   height={896}
-                  className="h-full w-full object-cover group-hover:scale-105 transition duration-700"
+                  className="h-full w-full object-cover group-hover:scale-110 transition duration-700"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
+                <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
+                  <Button variant="hero" size="sm" className="w-full">
+                    Quick view
+                  </Button>
+                </div>
               </div>
-              <div className="p-4 flex items-center justify-between">
+              <div className="relative p-4 flex items-center justify-between">
                 <div>
-                  <div className="font-medium">{it.name}</div>
+                  <div className="font-medium group-hover:text-primary transition">{it.name}</div>
                   <div className="text-xs text-muted-foreground">AI Original</div>
                 </div>
                 <div className="text-primary font-semibold">{it.price}</div>
@@ -358,6 +368,7 @@ function Trending() {
 }
 
 function Pricing() {
+  const [selected, setSelected] = useState("Pro");
   const tiers = [
     {
       name: "Free",
@@ -395,12 +406,14 @@ function Pricing() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {tiers.map((t) => (
-            <div
+            <button
+              type="button"
               key={t.name}
-              className={`relative rounded-3xl p-8 flex flex-col ${
-                t.highlight
-                  ? "glass ring-glow bg-gradient-to-b from-primary/10 to-transparent"
-                  : "glass"
+              onClick={() => setSelected(t.name)}
+              className={`relative text-left rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 ${
+                selected === t.name
+                  ? "glass ring-glow bg-gradient-to-b from-primary/15 to-transparent border-primary/60 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)]"
+                  : "glass hover:border-primary/40"
               }`}
             >
               {t.highlight && (
@@ -408,7 +421,14 @@ function Pricing() {
                   Most Popular
                 </div>
               )}
-              <div className="text-sm text-muted-foreground">{t.name}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">{t.name}</div>
+                {selected === t.name && (
+                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-primary/40 text-primary bg-primary/10">
+                    Selected
+                  </span>
+                )}
+              </div>
               <div className="mt-2 flex items-baseline gap-1">
                 <span className="text-5xl font-extrabold tracking-tight">{t.price}</span>
                 <span className="text-muted-foreground text-sm">/mo</span>
@@ -423,12 +443,12 @@ function Pricing() {
                 ))}
               </ul>
               <Button
-                variant={t.highlight ? "hero" : "ghostNeon"}
+                variant={selected === t.name ? "hero" : "ghostNeon"}
                 className="mt-8 w-full"
               >
-                {t.cta}
+                {selected === t.name ? `Continue with ${t.name}` : t.cta}
               </Button>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -586,6 +606,14 @@ function FAQ() {
     {
       q: "Do you offer commercial / POD licensing?",
       a: "Absolutely. Our Business plan includes a commercial license, bulk export, and API access — perfect for print-on-demand sellers and small brands.",
+    },
+    {
+      q: "How are AI credits counted?",
+      a: "One credit equals one AI generation. Regenerations and variations each consume a credit. Background removal and edits to an existing design are free.",
+    },
+    {
+      q: "Is my design private and owned by me?",
+      a: "Yes. You retain ownership of every design you create. Pro and Business plans include private mode so your prompts and outputs stay off the public gallery.",
     },
   ];
   return (
