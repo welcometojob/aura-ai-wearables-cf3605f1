@@ -1,7 +1,6 @@
 import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { STYLE_PRESETS } from "@/lib/aura-config";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
