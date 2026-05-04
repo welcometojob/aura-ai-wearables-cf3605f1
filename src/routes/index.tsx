@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import {
   Sparkles,
@@ -529,6 +530,28 @@ function Trending() {
 
 function Pricing() {
   const [selected, setSelected] = useState("Pro");
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const handleContinue = (planName: string) => {
+    if (planName === "Free") {
+      if (!user) {
+        navigate({ to: "/auth", search: { redirect: "/", plan: "Free" } });
+        return;
+      }
+      toast.success("You're on the Free plan. Start creating!");
+      navigate({ to: "/editor" });
+      return;
+    }
+    if (planName === "Business") {
+      window.location.href = "mailto:sales@aurawear.app?subject=Business%20plan%20inquiry";
+      return;
+    }
+    if (!user) {
+      navigate({ to: "/auth", search: { redirect: "/#pricing", plan: planName } });
+      return;
+    }
+    toast.info(`Checkout for ${planName} coming soon — payment integration pending.`);
+  };
   const tiers = [
     {
       name: "Free",
@@ -605,6 +628,7 @@ function Pricing() {
               <Button
                 variant={selected === t.name ? "hero" : "ghostNeon"}
                 className="mt-8 w-full"
+                onClick={(e) => { e.stopPropagation(); handleContinue(t.name); }}
               >
                 {selected === t.name ? `Continue with ${t.name}` : t.cta}
               </Button>
