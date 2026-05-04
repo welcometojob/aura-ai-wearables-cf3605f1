@@ -8,6 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : "/",
+    plan: typeof search.plan === "string" ? search.plan : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Aura Wear" },
@@ -21,6 +25,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { redirect, plan } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,9 +34,9 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate({ to: "/" });
+      navigate({ to: redirect, replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, redirect]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +52,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! You're signed in.");
-        navigate({ to: "/" });
+        toast.success(plan ? `Account created! Continue with ${plan}.` : "Account created! You're signed in.");
+        navigate({ to: redirect, replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welcome back!");
-        navigate({ to: "/" });
+        toast.success(plan ? `Welcome back! Continue with ${plan}.` : "Welcome back!");
+        navigate({ to: redirect, replace: true });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Authentication failed";
