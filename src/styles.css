@@ -36,7 +36,7 @@
 
 :root {
   --radius: 0.875rem;
-  /* Aura Wear dark futuristic theme */
+  /* TommyMeow dark futuristic theme */
   --background: oklch(0.16 0.025 260);          /* #0B0F1A */
   --foreground: oklch(0.97 0.01 240);
   --card: oklch(0.20 0.028 260);
