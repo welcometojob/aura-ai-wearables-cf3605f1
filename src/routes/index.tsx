@@ -42,6 +42,7 @@ import trend1 from "@/assets/trend-1.jpg";
 import trend2 from "@/assets/trend-2.jpg";
 import trend3 from "@/assets/trend-3.jpg";
 import trend4 from "@/assets/trend-4.jpg";
+import { loadAdminProducts, type AdminProduct } from "@/lib/admin-products";
 
 export const Route = createFileRoute("/")({
   component: Landing,
