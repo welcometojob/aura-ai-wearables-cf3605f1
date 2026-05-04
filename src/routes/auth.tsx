@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — Aura Wear" },
-      { name: "description", content: "Sign in or create your Aura Wear account." },
+      { title: "Sign in — TommyMeow" },
+      { name: "description", content: "Sign in or create your TommyMeow account." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
