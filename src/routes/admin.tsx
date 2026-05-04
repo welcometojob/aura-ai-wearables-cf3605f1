@@ -13,6 +13,7 @@ import {
   uploadProductImage,
   type AdminProduct,
 } from "@/lib/admin-products";
+import brandIcon from "@/assets/tommymeow-icon.png";
 import {
   addReadyDesign,
   deleteReadyDesign,
