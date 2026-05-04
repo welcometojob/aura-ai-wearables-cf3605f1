@@ -51,8 +51,8 @@ export function Mockup({ view, setView, color, artwork }: Props) {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-grid">
-        <div className="pointer-events-none absolute inset-0 opacity-40">
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-200 dark:via-slate-100 dark:to-slate-300">
+        <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
         </div>
 
@@ -60,14 +60,14 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out"
           style={{ transform: `scale(${zoom})` }}
         >
-          <div className="relative">
+          <div className="relative drop-shadow-[0_25px_45px_rgba(0,0,0,0.25)]">
             <img
               src={src}
               alt={`T-shirt ${view}`}
               width={620}
               height={620}
-              className="h-[min(70vh,620px)] w-auto select-none drop-shadow-2xl"
-              style={{ filter: color.filter }}
+              className="h-[min(70vh,620px)] w-auto select-none"
+              style={{ filter: `${color.filter}${color.id === "black" ? " drop-shadow(0 0 1px rgba(255,255,255,0.4))" : ""}` }}
               draggable={false}
             />
             {artwork && (
