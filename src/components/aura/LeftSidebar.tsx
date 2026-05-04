@@ -14,13 +14,12 @@ type Props = {
   onUploadImage: (dataUrl: string) => void;
   artwork: string | null;
   onDeleteArtwork: () => void;
-  credits: number;
 };
 
 export function LeftSidebar({
   prompt, setPrompt, onGenerate, generating,
   selectedStyle, setSelectedStyle,
-  onUploadImage, artwork, onDeleteArtwork, credits,
+  onUploadImage, artwork, onDeleteArtwork,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<string[]>([]);
