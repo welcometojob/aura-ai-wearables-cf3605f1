@@ -31,6 +31,8 @@ import {
   User as UserIcon,
   Coins,
   Shield,
+  Star,
+  Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -101,6 +103,7 @@ function Nav() {
             <a href="#trending" className="hover:text-foreground transition">Gallery</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
             <a href="#shipping" className="hover:text-foreground transition">Shipping</a>
+            <a href="#reviews" className="hover:text-foreground transition">Reviews</a>
             <a href="#track" className="hover:text-foreground transition">Track</a>
             <a href="#faq" className="hover:text-foreground transition">FAQ</a>
           </nav>
@@ -704,6 +707,161 @@ function Shipping() {
   );
 }
 
+type ReviewItem = {
+  id: string;
+  name: string;
+  text: string;
+  date: string;
+  title: string;
+  rating: number;
+  image?: string;
+  variant: string;
+};
+
+const REVIEWS: ReviewItem[] = [
+  { id: "RF4Q2P3X1QWMF", name: "Olukoya Olowofoyeku", title: "Awesome Product!", text: "Everything is perfect!", date: "April 12, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/81u2GOS46YL.jpg", variant: "Black" },
+  { id: "R3EWJXXV92PFNU", name: "Benjie B", title: "Mysteries along Route 66", text: "Nice shirt with a picture of my book cover. Well done and a sharp clear image.", date: "April 13, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71HBhsHR+6L.jpg", variant: "Team Cardinal · X-Large" },
+  { id: "R33IXIXB2Z0GI2", name: "Gus u.", title: "Quick, no problems, and I'm happy.", text: "At first I was sceptical about the design as I did not see it until received, but when it arrived everything was perfect. The print was good, the design was good, shirt quality was good.", date: "April 10, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71ag8bTBKLL.jpg", variant: "Style #03" },
+  { id: "R3QFHWPW8QXG0L", name: "Amber Stewart", title: "Great wedding gift", text: "This shirt was a hit at our reception. He loved it!", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71TCoxDUFFL.jpg", variant: "Style #97" },
+  { id: "R2Q12F96TCBQ3G", name: "Natalie Harbold", title: "Perfection!", text: "My daughter had a shirt made for her boyfriend for their anniversary, and it is perfect! The graphic is amazing quality and so is the shirt itself!", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71GncjanWgL.jpg", variant: "Style #96" },
+  { id: "R3D6BYRXVXJQDH", name: "Nicole M. Ducksworth", title: "Great Work", text: "Thank You For My Shirt. I Love It.", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71mMFjwarXL.jpg", variant: "White · 4X-Large" },
+  { id: "R1UCRJ5JC5XE8G", name: "Lorena", title: "I loved it!!", text: "I ordered a shirt for the Bruno Mars concert and omg it’s way better than I expected. I loved it!", date: "April 11, 2026", rating: 5, variant: "Style #39" },
+  { id: "R2T1EDTL76VKDB", name: "Nick Howard", title: "Loved it", text: "Got one for me and one for my spouse and it came out incredibly great. No smells, good fabric, great printing quality.", date: "April 11, 2026", rating: 5, variant: "Style #93" },
+  { id: "R12ZBSGCJK9QI3", name: "S. Ratcliffe", title: "Came early, nice print", text: "The tee came a day early, tracking not updated, but nice print!!!! Fits nicely, and is a good deal for a one-off design.", date: "April 12, 2026", rating: 4, image: "https://m.media-amazon.com/images/I/71gQWzVTZCL.jpg", variant: "Black" },
+  { id: "R3PISDSMC570TA", name: "Lindsey M", title: "BEST T-SHIRTS ON AMAZON.", text: "I'd give 10 Stars if I could. You did an AMAZING job. Quick delivery, beautiful cotton, and high quality transfer. I'm beyond thrilled.", date: "March 20, 2026", rating: 5, variant: "Athletic Heather · Large" },
+  { id: "RZYSSMPUOOCW3", name: "Michael", title: "Good print quality", text: "Printing is good quality and feels good while wearing. The print held up great through washing and drying. I'll definitely be using these guys again.", date: "June 19, 2025", rating: 5, variant: "Black · Large" },
+  { id: "R8TCVMPAHDYNQ", name: "Wagner Dias Pereira", title: "Excellent T-shirt", text: "Excellent seller. Educated, he responds quickly, and solves the problems that arise efficiently.", date: "April 10, 2026", rating: 5, variant: "Black" },
+];
+
+function Stars({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-3.5 w-3.5 ${i < Math.round(rating) ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Reviews() {
+  const total = REVIEWS.length;
+  const avg = REVIEWS.reduce((s, r) => s + r.rating, 0) / total;
+  const dist = [5, 4, 3, 2, 1].map((star) => {
+    const count = REVIEWS.filter((r) => Math.round(r.rating) === star).length;
+    return { star, count, pct: Math.round((count / total) * 100) };
+  });
+
+  return (
+    <section id="reviews" className="py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] aspect-square rounded-full bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-3xl pointer-events-none" />
+      <div className="relative mx-auto max-w-7xl px-6">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">Customer Reviews</p>
+          <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
+            Loved by <span className="text-gradient">creators worldwide</span>
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            Real stories from real customers — wearing their AI-crafted designs every day.
+          </p>
+        </div>
+
+        {/* Summary card */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-12">
+          <div className="lg:col-span-1 glass rounded-3xl p-8 ring-glow flex flex-col items-center justify-center text-center">
+            <div className="text-6xl font-extrabold text-gradient leading-none">{avg.toFixed(1)}</div>
+            <div className="mt-3"><Stars rating={avg} /></div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Based on <span className="text-foreground font-semibold">{total.toLocaleString()}+</span> verified reviews
+            </p>
+          </div>
+          <div className="lg:col-span-2 glass rounded-3xl p-8">
+            <div className="space-y-3">
+              {dist.map((d) => (
+                <div key={d.star} className="flex items-center gap-3 text-sm">
+                  <span className="w-8 flex items-center gap-1 text-muted-foreground">
+                    {d.star}<Star className="h-3 w-3 fill-primary text-primary" />
+                  </span>
+                  <div className="flex-1 h-2 rounded-full bg-muted/40 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-accent via-primary to-[#1200FF] transition-all"
+                      style={{ width: `${d.pct}%` }}
+                    />
+                  </div>
+                  <span className="w-10 text-right text-muted-foreground tabular-nums">{d.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Review cards masonry */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
+          {REVIEWS.map((r) => (
+            <article
+              key={r.id}
+              className="group relative break-inside-avoid mb-5 glass rounded-2xl p-6 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/15 via-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+              <Quote className="absolute top-5 right-5 h-6 w-6 text-primary/20 group-hover:text-primary/40 transition" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground text-sm font-bold ring-2 ring-primary/30">
+                    {r.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm truncate">{r.name}</div>
+                    <div className="text-xs text-muted-foreground">{r.date}</div>
+                  </div>
+                </div>
+                <Stars rating={r.rating} />
+                <h3 className="mt-3 font-semibold text-base leading-snug">{r.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+                {r.image && (
+                  <a
+                    href={r.image}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 block overflow-hidden rounded-xl border border-border/60"
+                  >
+                    <img
+                      src={r.image}
+                      alt={`Photo from ${r.name}'s review`}
+                      loading="lazy"
+                      className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </a>
+                )}
+                <div className="mt-4 flex items-center gap-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
+                    Verified
+                  </span>
+                  <span className="text-muted-foreground truncate">{r.variant}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button variant="hero" size="lg" asChild>
+            <Link to="/editor">
+              Create your design
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Join thousands of happy creators wearing their imagination.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function OrderTracking() {
   const [orderId, setOrderId] = useState("");
   const [status, setStatus] = useState<null | { id: string; stage: number }>(null);
@@ -1111,6 +1269,7 @@ function Landing() {
         <Trending />
         <Pricing />
         <Shipping />
+      <Reviews />
         <OrderTracking />
         <FAQ />
         <CTASection />
