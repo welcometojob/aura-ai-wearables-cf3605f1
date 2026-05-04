@@ -8,6 +8,7 @@ import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/au
 import { ArrowLeft, User, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -120,9 +121,7 @@ function Editor() {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <button className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground neon-glow hover:opacity-90">
-            Checkout · ${total.toFixed(2)}
-          </button>
+          <CreditsTopUp credits={credits} />
           <button className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
             <User className="h-4 w-4" />
           </button>
@@ -139,7 +138,6 @@ function Editor() {
         onUploadImage={(u) => setArtwork(u)}
         artwork={artwork}
         onDeleteArtwork={() => setArtwork(null)}
-        credits={credits}
       />
 
       <main className="flex flex-1 flex-col">
