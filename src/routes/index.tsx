@@ -31,6 +31,8 @@ import {
   User as UserIcon,
   Coins,
   Shield,
+  Star,
+  Quote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
