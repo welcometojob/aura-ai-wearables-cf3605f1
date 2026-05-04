@@ -1171,14 +1171,7 @@ function Footer() {
       <div className="mx-auto max-w-7xl px-6 pt-16 pb-10 grid lg:grid-cols-12 gap-10">
         {/* Brand + live chat card */}
         <div className="lg:col-span-4">
-          <div className="flex items-center gap-2">
-            <img src={brandLogo} alt="TommyMeow" className="h-10 w-auto" />
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground max-w-sm">
-            AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
-          </p>
-
-          <div className="mt-6 relative overflow-hidden rounded-2xl p-5 border border-primary/30 bg-gradient-to-br from-primary/15 via-background/40 to-accent/15 backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-2xl p-5 border border-primary/30 bg-gradient-to-br from-primary/15 via-background/40 to-accent/15 backdrop-blur-xl">
             <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
             <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-accent/30 blur-3xl pointer-events-none" />
             <div className="relative flex items-start gap-3">
