@@ -710,32 +710,6 @@ function Shipping() {
   );
 }
 
-type ReviewItem = {
-  id: string;
-  name: string;
-  text: string;
-  date: string;
-  title: string;
-  rating: number;
-  image?: string;
-  variant: string;
-};
-
-const REVIEWS: ReviewItem[] = [
-  { id: "RF4Q2P3X1QWMF", name: "Olukoya Olowofoyeku", title: "Awesome Product!", text: "Everything is perfect!", date: "April 12, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/81u2GOS46YL.jpg", variant: "Black" },
-  { id: "R3EWJXXV92PFNU", name: "Benjie B", title: "Mysteries along Route 66", text: "Nice shirt with a picture of my book cover. Well done and a sharp clear image.", date: "April 13, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71HBhsHR+6L.jpg", variant: "Team Cardinal · X-Large" },
-  { id: "R33IXIXB2Z0GI2", name: "Gus u.", title: "Quick, no problems, and I'm happy.", text: "At first I was sceptical about the design as I did not see it until received, but when it arrived everything was perfect. The print was good, the design was good, shirt quality was good.", date: "April 10, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71ag8bTBKLL.jpg", variant: "Style #03" },
-  { id: "R3QFHWPW8QXG0L", name: "Amber Stewart", title: "Great wedding gift", text: "This shirt was a hit at our reception. He loved it!", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71TCoxDUFFL.jpg", variant: "Style #97" },
-  { id: "R2Q12F96TCBQ3G", name: "Natalie Harbold", title: "Perfection!", text: "My daughter had a shirt made for her boyfriend for their anniversary, and it is perfect! The graphic is amazing quality and so is the shirt itself!", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71GncjanWgL.jpg", variant: "Style #96" },
-  { id: "R3D6BYRXVXJQDH", name: "Nicole M. Ducksworth", title: "Great Work", text: "Thank You For My Shirt. I Love It.", date: "April 7, 2026", rating: 5, image: "https://m.media-amazon.com/images/I/71mMFjwarXL.jpg", variant: "White · 4X-Large" },
-  { id: "R1UCRJ5JC5XE8G", name: "Lorena", title: "I loved it!!", text: "I ordered a shirt for the Bruno Mars concert and omg it’s way better than I expected. I loved it!", date: "April 11, 2026", rating: 5, variant: "Style #39" },
-  { id: "R2T1EDTL76VKDB", name: "Nick Howard", title: "Loved it", text: "Got one for me and one for my spouse and it came out incredibly great. No smells, good fabric, great printing quality.", date: "April 11, 2026", rating: 5, variant: "Style #93" },
-  { id: "R12ZBSGCJK9QI3", name: "S. Ratcliffe", title: "Came early, nice print", text: "The tee came a day early, tracking not updated, but nice print!!!! Fits nicely, and is a good deal for a one-off design.", date: "April 12, 2026", rating: 4, image: "https://m.media-amazon.com/images/I/71gQWzVTZCL.jpg", variant: "Black" },
-  { id: "R3PISDSMC570TA", name: "Lindsey M", title: "BEST T-SHIRTS ON AMAZON.", text: "I'd give 10 Stars if I could. You did an AMAZING job. Quick delivery, beautiful cotton, and high quality transfer. I'm beyond thrilled.", date: "March 20, 2026", rating: 5, variant: "Athletic Heather · Large" },
-  { id: "RZYSSMPUOOCW3", name: "Michael", title: "Good print quality", text: "Printing is good quality and feels good while wearing. The print held up great through washing and drying. I'll definitely be using these guys again.", date: "June 19, 2025", rating: 5, variant: "Black · Large" },
-  { id: "R8TCVMPAHDYNQ", name: "Wagner Dias Pereira", title: "Excellent T-shirt", text: "Excellent seller. Educated, he responds quickly, and solves the problems that arise efficiently.", date: "April 10, 2026", rating: 5, variant: "Black" },
-];
-
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
@@ -749,13 +723,62 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+type SortMode = "newest" | "helpful" | "highest" | "lowest";
+type RatingFilter = 0 | 1 | 2 | 3 | 4 | 5;
+
 function Reviews() {
-  const total = REVIEWS.length;
-  const avg = REVIEWS.reduce((s, r) => s + r.rating, 0) / total;
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<RatingFilter>(0);
+  const [sort, setSort] = useState<SortMode>("newest");
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const refresh = () => {
+    setLoading(true);
+    fetchReviews()
+      .then((r) => {
+        setReviews(r);
+        setError(null);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load reviews"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const total = reviews.length;
+  const avg = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
   const dist = [5, 4, 3, 2, 1].map((star) => {
-    const count = REVIEWS.filter((r) => Math.round(r.rating) === star).length;
-    return { star, count, pct: Math.round((count / total) * 100) };
+    const count = reviews.filter((r) => Math.round(r.rating) === star).length;
+    return { star, count, pct: total ? Math.round((count / total) * 100) : 0 };
   });
+
+  const visible = reviews
+    .filter((r) => (filter === 0 ? true : Math.round(r.rating) === filter))
+    .sort((a, b) => {
+      if (sort === "newest") return +new Date(b.createdAt) - +new Date(a.createdAt);
+      if (sort === "helpful") return b.helpfulCount - a.helpfulCount;
+      if (sort === "highest") return b.rating - a.rating;
+      return a.rating - b.rating;
+    });
+
+  const onWriteReview = () => {
+    if (!user) {
+      toast.info("Sign in to write a review");
+      navigate({ to: "/auth", search: { redirect: "/#reviews", plan: undefined } });
+      return;
+    }
+    setSubmitOpen(true);
+  };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
     <section id="reviews" className="py-24 relative overflow-hidden">
@@ -773,19 +796,32 @@ function Reviews() {
         </div>
 
         {/* Summary card */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid lg:grid-cols-3 gap-6 mb-10">
           <div className="lg:col-span-1 glass rounded-3xl p-8 ring-glow flex flex-col items-center justify-center text-center">
-            <div className="text-6xl font-extrabold text-gradient leading-none">{avg.toFixed(1)}</div>
+            <div className="text-6xl font-extrabold text-gradient leading-none">
+              {total ? avg.toFixed(1) : "—"}
+            </div>
             <div className="mt-3"><Stars rating={avg} /></div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Based on <span className="text-foreground font-semibold">{total.toLocaleString()}+</span> verified reviews
+              Based on <span className="text-foreground font-semibold">{total.toLocaleString()}</span> verified review{total === 1 ? "" : "s"}
             </p>
+            <Button variant="hero" size="sm" onClick={onWriteReview} className="mt-5">
+              <PenSquare className="h-4 w-4" />
+              Write a review
+            </Button>
           </div>
           <div className="lg:col-span-2 glass rounded-3xl p-8">
             <div className="space-y-3">
               {dist.map((d) => (
-                <div key={d.star} className="flex items-center gap-3 text-sm">
-                  <span className="w-8 flex items-center gap-1 text-muted-foreground">
+                <button
+                  key={d.star}
+                  type="button"
+                  onClick={() => setFilter((prev) => (prev === d.star ? 0 : (d.star as RatingFilter)))}
+                  className={`w-full flex items-center gap-3 text-sm rounded-lg p-2 -m-2 transition ${
+                    filter === d.star ? "bg-primary/10" : "hover:bg-muted/30"
+                  }`}
+                >
+                  <span className={`w-10 flex items-center gap-1 ${filter === d.star ? "text-primary font-semibold" : "text-muted-foreground"}`}>
                     {d.star}<Star className="h-3 w-3 fill-primary text-primary" />
                   </span>
                   <div className="flex-1 h-2 rounded-full bg-muted/40 overflow-hidden">
@@ -794,73 +830,154 @@ function Reviews() {
                       style={{ width: `${d.pct}%` }}
                     />
                   </div>
-                  <span className="w-10 text-right text-muted-foreground tabular-nums">{d.pct}%</span>
-                </div>
+                  <span className="w-12 text-right text-muted-foreground tabular-nums text-xs">
+                    {d.count} · {d.pct}%
+                  </span>
+                </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Review cards masonry */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
-          {REVIEWS.map((r) => (
-            <article
-              key={r.id}
-              className="group relative break-inside-avoid mb-5 glass rounded-2xl p-6 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/15 via-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
-              <Quote className="absolute top-5 right-5 h-6 w-6 text-primary/20 group-hover:text-primary/40 transition" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground text-sm font-bold ring-2 ring-primary/30">
-                    {r.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold text-sm truncate">{r.name}</div>
-                    <div className="text-xs text-muted-foreground">{r.date}</div>
-                  </div>
-                </div>
-                <Stars rating={r.rating} />
-                <h3 className="mt-3 font-semibold text-base leading-snug">{r.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
-                {r.image && (
-                  <a
-                    href={r.image}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 block overflow-hidden rounded-xl border border-border/60"
-                  >
-                    <img
-                      src={r.image}
-                      alt={`Photo from ${r.name}'s review`}
-                      loading="lazy"
-                      className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </a>
+        {/* Filter + Sort toolbar */}
+        <div className="glass rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-3 justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider mr-1">Filter:</span>
+            {([0, 5, 4, 3, 2, 1] as RatingFilter[]).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setFilter(n)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1 ${
+                  filter === n
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border/60 text-muted-foreground hover:border-primary/60 hover:text-primary"
+                }`}
+              >
+                {n === 0 ? "All" : (
+                  <>
+                    {n}<Star className="h-3 w-3 fill-current" />
+                  </>
                 )}
-                <div className="mt-4 flex items-center gap-2 text-xs">
-                  <span className="px-2 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
-                    Verified
-                  </span>
-                  <span className="text-muted-foreground truncate">{r.variant}</span>
-                </div>
-              </div>
-            </article>
-          ))}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowDownNarrowWide className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortMode)}
+              className="bg-background/60 border border-border/60 rounded-lg px-3 py-1.5 text-xs hover:border-primary/60 focus:border-primary focus:outline-none transition cursor-pointer"
+              aria-label="Sort reviews"
+            >
+              <option value="newest">Newest first</option>
+              <option value="helpful">Most helpful</option>
+              <option value="highest">Highest rated</option>
+              <option value="lowest">Lowest rated</option>
+            </select>
+          </div>
         </div>
 
+        {/* Reviews grid */}
+        {loading ? (
+          <div className="py-16 grid place-items-center text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="py-16 text-center text-destructive">{error}</div>
+        ) : visible.length === 0 ? (
+          <div className="py-16 text-center text-muted-foreground">
+            No reviews match this filter yet. Be the first to share your experience!
+          </div>
+        ) : (
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-5 [column-fill:_balance]">
+            {visible.map((r) => (
+              <article
+                key={r.id}
+                className="group relative break-inside-avoid mb-5 glass rounded-2xl p-6 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/15 via-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+                <Quote className="absolute top-5 right-5 h-6 w-6 text-primary/20 group-hover:text-primary/40 transition" />
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-primary-foreground text-sm font-bold ring-2 ring-primary/30">
+                      {r.authorName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-sm truncate">{r.authorName}</div>
+                      <div className="text-xs text-muted-foreground">{formatDate(r.createdAt)}</div>
+                    </div>
+                  </div>
+                  <Stars rating={r.rating} />
+                  <h3 className="mt-3 font-semibold text-base leading-snug">{r.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{r.text}</p>
+                  {r.images.length > 0 && (
+                    <div className={`mt-4 grid gap-2 ${r.images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                      {r.images.slice(0, 4).map((src, i) => (
+                        <button
+                          key={src}
+                          type="button"
+                          onClick={() => setLightbox({ images: r.images, index: i })}
+                          className="block overflow-hidden rounded-xl border border-border/60 relative group/img"
+                          aria-label={`View image ${i + 1} from ${r.authorName}'s review`}
+                        >
+                          <img
+                            src={src}
+                            alt={`Photo ${i + 1} from ${r.authorName}'s review`}
+                            loading="lazy"
+                            className="w-full h-32 object-cover group-hover/img:scale-110 transition-transform duration-500"
+                          />
+                          {i === 3 && r.images.length > 4 && (
+                            <div className="absolute inset-0 bg-black/60 grid place-items-center text-white font-semibold">
+                              +{r.images.length - 4}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-4 flex items-center gap-2 text-xs flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
+                      Verified
+                    </span>
+                    {r.variant && <span className="text-muted-foreground truncate">{r.variant}</span>}
+                    {r.helpfulCount > 0 && (
+                      <span className="ml-auto text-muted-foreground">
+                        👍 {r.helpfulCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button variant="hero" size="lg" asChild>
+          <Button variant="hero" size="lg" onClick={onWriteReview}>
+            <PenSquare className="h-4 w-4" />
+            Write a review
+          </Button>
+          <Button variant="ghostNeon" size="lg" asChild>
             <Link to="/editor">
               Create your design
               <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Join thousands of happy creators wearing their imagination.
-          </p>
         </div>
       </div>
+
+      <SubmitReviewDialog
+        open={submitOpen}
+        onOpenChange={setSubmitOpen}
+        onCreated={(r) => setReviews((prev) => [r, ...prev])}
+      />
+      <ImageLightbox
+        open={lightbox !== null}
+        onClose={() => setLightbox(null)}
+        images={(lightbox?.images ?? []).map((src) => ({ src }))}
+        startIndex={lightbox?.index ?? 0}
+      />
     </section>
   );
 }
