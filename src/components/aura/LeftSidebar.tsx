@@ -1,5 +1,5 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
@@ -29,6 +29,26 @@ export function LeftSidebar({
   const [readyDesigns, setReadyDesigns] = useState<ReadyDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
   const [showAllDesigns, setShowAllDesigns] = useState(false);
+  const [designQuery, setDesignQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    readyDesigns.forEach((d) => d.category && set.add(d.category));
+    return ["All", ...Array.from(set).sort()];
+  }, [readyDesigns]);
+
+  const filteredDesigns = useMemo(() => {
+    const q = designQuery.trim().toLowerCase();
+    return readyDesigns.filter((d) => {
+      if (activeCategory !== "All" && d.category !== activeCategory) return false;
+      if (!q) return true;
+      if (d.name.toLowerCase().includes(q)) return true;
+      if (d.category?.toLowerCase().includes(q)) return true;
+      if (d.tags.some((t) => t.toLowerCase().includes(q))) return true;
+      return false;
+    });
+  }, [readyDesigns, designQuery, activeCategory]);
 
   useEffect(() => {
     fetchReadyDesigns()
@@ -194,7 +214,7 @@ export function LeftSidebar({
         <section>
           <div className="flex items-center justify-between">
             <SectionTitle icon={Shirt} label="Ready Designs" />
-            {readyDesigns.length > 6 && (
+            {filteredDesigns.length > 6 && (
               <button
                 type="button"
                 onClick={() => setShowAllDesigns((v) => !v)}
@@ -206,6 +226,52 @@ export function LeftSidebar({
             )}
           </div>
 
+          {readyDesigns.length > 0 && (
+            <>
+              <div className="relative mt-2">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={designQuery}
+                  onChange={(e) => setDesignQuery(e.target.value)}
+                  placeholder="Search designs or tags…"
+                  className="h-8 w-full rounded-md border border-border bg-background/60 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                {designQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setDesignQuery("")}
+                    aria-label="Clear search"
+                    className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+              {categories.length > 1 && (
+                <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 [scrollbar-width:thin]">
+                  {categories.map((c) => {
+                    const active = activeCategory === c;
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setActiveCategory(c)}
+                        className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition ${
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background/40 text-muted-foreground hover:border-muted-foreground"
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
           {loadingDesigns ? (
             <div className="mt-2 flex h-20 items-center justify-center rounded-lg border border-border bg-background/30">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -214,9 +280,13 @@ export function LeftSidebar({
             <div className="mt-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/30 px-3 text-center text-[10px] text-muted-foreground">
               No ready designs uploaded yet
             </div>
+          ) : filteredDesigns.length === 0 ? (
+            <div className="mt-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/30 px-3 text-center text-[10px] text-muted-foreground">
+              No designs match your search
+            </div>
           ) : showAllDesigns ? (
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {readyDesigns.map((d) => (
+              {filteredDesigns.map((d) => (
                 <button
                   key={d.id}
                   onClick={() => {
@@ -232,7 +302,7 @@ export function LeftSidebar({
             </div>
           ) : (
             <div className="mt-2 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-              {readyDesigns.slice(0, 6).map((d) => (
+              {filteredDesigns.slice(0, 6).map((d) => (
                 <button
                   key={d.id}
                   onClick={() => {
