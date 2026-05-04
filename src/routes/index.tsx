@@ -139,8 +139,8 @@ function Hero() {
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button variant="ghostNeon" size="lg">
-              View Gallery
+            <Button variant="ghostNeon" size="lg" asChild>
+              <a href="#trending">View Gallery</a>
             </Button>
           </div>
           <div className="mt-10 flex items-center gap-8 text-sm text-muted-foreground">
@@ -320,6 +320,18 @@ function Trending() {
     { src: trend3, name: "Synthwave Sunset", price: "$32" },
     { src: trend4, name: "Cyber Skull", price: "$38" },
   ];
+  const [expanded, setExpanded] = useState(false);
+  const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
+  useEffect(() => {
+    const refresh = () => setAdminProducts(loadAdminProducts());
+    refresh();
+    window.addEventListener("aura:products-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("aura:products-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
   return (
     <section id="trending" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
@@ -328,7 +340,9 @@ function Trending() {
             <p className="text-primary text-sm font-semibold tracking-widest uppercase">Trending now</p>
             <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">Hot off the AI press</h2>
           </div>
-          <Button variant="ghostNeon">Browse Gallery</Button>
+          <Button variant="ghostNeon" onClick={() => setExpanded((v) => !v)}>
+            {expanded ? "Hide Gallery" : "Browse Gallery"}
+          </Button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {items.map((it) => (
@@ -363,6 +377,78 @@ function Trending() {
             </div>
           ))}
         </div>
+        {expanded && (
+          <div className="mt-12 animate-fade-up">
+            <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
+              <div>
+                <p className="text-primary text-xs font-semibold tracking-widest uppercase">Full Gallery</p>
+                <h3 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">All products</h3>
+              </div>
+              <Link to="/admin" className="text-xs text-muted-foreground hover:text-primary transition">
+                Manage products →
+              </Link>
+            </div>
+            {adminProducts.length === 0 ? (
+              <div className="glass rounded-2xl p-10 text-center">
+                <p className="text-muted-foreground">
+                  No products yet. Add some from the{" "}
+                  <Link to="/admin" className="text-primary hover:underline">
+                    admin dashboard
+                  </Link>
+                  .
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                {adminProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500"
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover group-hover:scale-110 transition duration-700"
+                      />
+                      {p.category && (
+                        <span className="absolute top-3 left-3 text-[10px] uppercase tracking-wider px-2 py-1 rounded-full bg-background/70 backdrop-blur border border-primary/30 text-primary">
+                          {p.category}
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="font-medium group-hover:text-primary transition truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-primary font-semibold shrink-0">{p.price}</div>
+                      </div>
+                      {p.description && (
+                        <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                          {p.description}
+                        </p>
+                      )}
+                      {p.tags.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {p.tags.slice(0, 3).map((t) => (
+                            <span
+                              key={t}
+                              className="text-[10px] px-2 py-0.5 rounded-full border border-border/60 text-muted-foreground"
+                            >
+                              #{t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
