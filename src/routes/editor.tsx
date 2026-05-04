@@ -15,7 +15,7 @@ import { useNavigate } from "@tanstack/react-router";
 export const Route = createFileRoute("/editor")({
   head: () => ({
     meta: [
-      { title: "Aura Wear Studio — AI Design Editor" },
+      { title: "TommyMeow Studio — AI Design Editor" },
       { name: "description", content: "Design your custom apparel with AI. Generate artwork, pick a fit, color, size and check out." },
     ],
   }),
@@ -39,7 +39,7 @@ function fakeArtwork(prompt: string, style: string) {
     <circle cx="200" cy="200" r="80"/>
     <circle cx="200" cy="200" r="40"/>
   </g>
-  <text x="200" y="210" font-family="Inter,sans-serif" font-size="22" font-weight="800" text-anchor="middle" fill="white" letter-spacing="4">AURA</text>
+  <text x="200" y="210" font-family="Inter,sans-serif" font-size="18" font-weight="800" text-anchor="middle" fill="white" letter-spacing="3">TOMMYMEOW</text>
   <text x="200" y="240" font-family="Inter,sans-serif" font-size="10" font-weight="600" text-anchor="middle" fill="white" letter-spacing="6" opacity="0.8">${style.toUpperCase()}</text>
 </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;

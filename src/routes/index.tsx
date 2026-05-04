@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import brandLogo from "@/assets/tommymeow-logo.png";
 import {
   Sparkles,
   Wand2,
@@ -99,10 +100,7 @@ function Nav() {
       <div className="mx-auto max-w-7xl px-6 py-4">
         <div className="glass rounded-2xl px-5 py-3 flex items-center justify-between">
           <a href="#" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold tracking-tight text-lg">Aura Wear</span>
+            <img src={brandLogo} alt="TommyMeow" className="h-9 w-auto" />
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
@@ -1004,7 +1002,7 @@ function OrderTracking() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Order Tracking</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Track your <span className="text-gradient">Aura order</span>
+            Track your <span className="text-gradient">TommyMeow order</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Enter your order ID to see real-time shipping progress and estimated delivery.
@@ -1017,7 +1015,7 @@ function OrderTracking() {
               <Input
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
-                placeholder="e.g. AURA-2026-XXXX"
+                placeholder="e.g. TM-2026-XXXX"
                 className="h-12 pl-9 bg-background/40 border-border/60"
               />
             </div>
@@ -1169,10 +1167,7 @@ function Footer() {
         {/* Brand + live chat card */}
         <div className="lg:col-span-4">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">Aura Wear</span>
+            <img src={brandLogo} alt="TommyMeow" className="h-10 w-auto" />
           </div>
           <p className="mt-4 text-sm text-muted-foreground max-w-sm">
             AI-powered custom apparel. Design, preview, and order premium wearable art in minutes.
@@ -1254,7 +1249,7 @@ function Footer() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
-            Design and order Aura Wear on the go. Available soon on iOS and Android.
+            Design and order TommyMeow on the go. Available soon on iOS and Android.
           </p>
           <div className="flex flex-col gap-2.5">
             <button
@@ -1284,7 +1279,7 @@ function Footer() {
       </div>
 
       <div className="mx-auto max-w-7xl px-6 pb-10 pt-6 border-t border-border/60 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-        <div>© {new Date().getFullYear()} Aura Wear. All rights reserved.</div>
+        <div>© {new Date().getFullYear()} TommyMeow. All rights reserved.</div>
         <div className="flex items-center gap-2.5">
           <span className="mr-1 hidden sm:inline">Secure payments via Stripe</span>
           <PayBadge label="Visa" />
@@ -1341,7 +1336,7 @@ function LiveChatWidget() {
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background" />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-semibold">Aura Support</div>
+              <div className="text-sm font-semibold">TommyMeow Support</div>
               <div className="text-[11px] text-muted-foreground">Typically replies in a few minutes</div>
             </div>
             <button
@@ -1357,7 +1352,7 @@ function LiveChatWidget() {
             <div className="flex gap-2">
               <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-accent shrink-0" />
               <div className="rounded-2xl rounded-tl-sm bg-secondary/60 px-3 py-2 text-sm max-w-[80%]">
-                Hey! 👋 How can we help you with your Aura design today?
+                Hey! 👋 How can we help you with your TommyMeow design today?
               </div>
             </div>
           </div>
