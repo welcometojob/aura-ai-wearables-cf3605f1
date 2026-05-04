@@ -14,13 +14,12 @@ type Props = {
   onUploadImage: (dataUrl: string) => void;
   artwork: string | null;
   onDeleteArtwork: () => void;
-  credits: number;
 };
 
 export function LeftSidebar({
   prompt, setPrompt, onGenerate, generating,
   selectedStyle, setSelectedStyle,
-  onUploadImage, artwork, onDeleteArtwork, credits,
+  onUploadImage, artwork, onDeleteArtwork,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<string[]>([]);
@@ -319,23 +318,6 @@ export function LeftSidebar({
           )}
         </section>
 
-      </div>
-
-      <div className="border-t border-border px-5 py-4">
-        <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">AI Credits</p>
-              <p className="mt-0.5 text-lg font-bold text-foreground">{credits.toLocaleString()}</p>
-            </div>
-            <button className="rounded-md border border-primary/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary/10">
-              Top up
-            </button>
-          </div>
-          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted">
-            <div className="h-full bg-gradient-to-r from-primary to-accent" style={{ width: `${Math.min(100, (credits / 5000) * 100)}%` }} />
-          </div>
-        </div>
       </div>
     </aside>
   );
