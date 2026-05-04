@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import brandLogo from "@/assets/tommymeow-logo.png";
 import {
   Sparkles,
@@ -1286,24 +1286,96 @@ function Footer() {
         <div>© {new Date().getFullYear()} TommyMeow. All rights reserved.</div>
         <div className="flex items-center gap-2.5">
           <span className="mr-1 hidden sm:inline">Secure payments via Stripe</span>
-          <PayBadge label="Visa" />
-          <PayBadge label="Mastercard" />
-          <PayBadge label="Amex" />
-          <PayBadge label="PayPal" />
-          <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border/60 bg-background/40">
-            <CreditCard className="h-3.5 w-3.5 text-primary" />
-            <span className="text-[10px] font-semibold tracking-wide">Stripe</span>
-          </span>
+          <PayBadge brand="visa" />
+          <PayBadge brand="mastercard" />
+          <PayBadge brand="amex" />
+          <PayBadge brand="paypal" />
+          <PayBadge brand="applepay" />
+          <PayBadge brand="googlepay" />
+          <PayBadge brand="stripe" />
         </div>
       </div>
     </footer>
   );
 }
 
-function PayBadge({ label }: { label: string }) {
+function PayBadge({ brand }: { brand: "visa" | "mastercard" | "amex" | "paypal" | "applepay" | "googlepay" | "stripe" }) {
+  const wrap = "inline-flex items-center justify-center h-8 w-12 rounded-md bg-white border border-border/60 shadow-sm overflow-hidden";
+  const map: Record<typeof brand, { label: string; svg: ReactNode }> = {
+    visa: {
+      label: "Visa",
+      svg: (
+        <svg viewBox="0 0 48 16" className="h-3.5 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="13" fontFamily="Arial, sans-serif" fontWeight="900" fontStyle="italic" fontSize="14" fill="#1A1F71" letterSpacing="0.5">VISA</text>
+        </svg>
+      ),
+    },
+    mastercard: {
+      label: "Mastercard",
+      svg: (
+        <svg viewBox="0 0 32 20" className="h-5 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="10" r="8" fill="#EB001B" />
+          <circle cx="20" cy="10" r="8" fill="#F79E1B" />
+          <path d="M16 4.2a8 8 0 010 11.6 8 8 0 010-11.6z" fill="#FF5F00" />
+        </svg>
+      ),
+    },
+    amex: {
+      label: "American Express",
+      svg: (
+        <svg viewBox="0 0 48 20" className="h-4 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="20" rx="2" fill="#1F72CD" />
+          <text x="24" y="9" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="5" fill="#fff" letterSpacing="0.3">AMERICAN</text>
+          <text x="24" y="15" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="5" fill="#fff" letterSpacing="0.3">EXPRESS</text>
+        </svg>
+      ),
+    },
+    paypal: {
+      label: "PayPal",
+      svg: (
+        <svg viewBox="0 0 48 14" className="h-3.5 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="11" fontFamily="Arial, sans-serif" fontWeight="900" fontStyle="italic" fontSize="11" fill="#003087">Pay</text>
+          <text x="17" y="11" fontFamily="Arial, sans-serif" fontWeight="900" fontStyle="italic" fontSize="11" fill="#009CDE">Pal</text>
+        </svg>
+      ),
+    },
+    applepay: {
+      label: "Apple Pay",
+      svg: (
+        <svg viewBox="0 0 48 18" className="h-4 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.5 5.4c.5-.6.8-1.4.7-2.2-.7 0-1.5.4-2 1-.5.5-.9 1.4-.7 2.2.8.1 1.6-.4 2-1zM9.2 6.6c-1.1-.1-2 .6-2.5.6-.5 0-1.3-.6-2.2-.6-1.1 0-2.2.7-2.7 1.7-1.2 2-.3 5 .8 6.6.6.8 1.2 1.7 2.1 1.6.8 0 1.2-.5 2.2-.5s1.3.5 2.2.5c.9 0 1.5-.8 2.1-1.6.7-.9 1-1.8 1-1.9-.1-.1-1.9-.7-1.9-2.9 0-1.8 1.5-2.7 1.6-2.7-.9-1.3-2.2-1.4-2.7-1.4z" fill="#000" />
+          <text x="14" y="13" fontFamily="-apple-system, Helvetica, Arial, sans-serif" fontWeight="600" fontSize="9" fill="#000">Pay</text>
+        </svg>
+      ),
+    },
+    googlepay: {
+      label: "Google Pay",
+      svg: (
+        <svg viewBox="0 0 48 18" className="h-4 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#4285F4">G</text>
+          <text x="6" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#EA4335">o</text>
+          <text x="12" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#FBBC04">o</text>
+          <text x="18" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#4285F4">g</text>
+          <text x="24" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#34A853">l</text>
+          <text x="27" y="13" fontFamily="Arial, sans-serif" fontWeight="500" fontSize="9" fill="#EA4335">e</text>
+          <text x="34" y="13" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="9" fill="#5F6368">Pay</text>
+        </svg>
+      ),
+    },
+    stripe: {
+      label: "Stripe",
+      svg: (
+        <svg viewBox="0 0 48 20" className="h-4 w-auto" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="20" rx="3" fill="#635BFF" />
+          <text x="24" y="14" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="10" fill="#fff" letterSpacing="0.3">stripe</text>
+        </svg>
+      ),
+    },
+  };
+  const item = map[brand];
   return (
-    <span className="inline-flex items-center justify-center h-7 px-2.5 rounded-md border border-border/60 bg-background/60 text-[10px] font-bold tracking-wider text-foreground/80">
-      {label.toUpperCase()}
+    <span className={wrap} title={item.label} aria-label={item.label}>
+      {item.svg}
     </span>
   );
 }
