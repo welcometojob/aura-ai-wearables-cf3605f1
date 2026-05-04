@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Coins, Plus, Loader2 } from "lucide-react";
+import { Coins, Plus, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 type Props = {
   credits: number;
@@ -40,8 +40,8 @@ export function CreditsTopUp({ credits, onTopUp }: Props) {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <button
           type="button"
           aria-label="Credits — top up"
@@ -54,52 +54,99 @@ export function CreditsTopUp({ credits, onTopUp }: Props) {
             <Plus className="h-3 w-3" />
           </span>
         </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-3">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top up credits</p>
-          <span className="text-[10px] text-muted-foreground">Balance: {credits}</span>
-        </div>
-        <p className="mt-1 text-[10px] text-muted-foreground">${PRICE_PER_CREDIT} per credit</p>
-        <div className="mt-2 grid grid-cols-5 gap-1.5">
-          {PRESETS.map((n) => (
-            <button
-              key={n}
-              type="button"
-              disabled={busy}
-              onClick={() => handle(n)}
-              title={`${n} credit${n > 1 ? "s" : ""} · $${n * PRICE_PER_CREDIT}`}
-              className="flex h-10 flex-col items-center justify-center rounded-md border border-border bg-background/40 text-[11px] font-semibold leading-tight transition hover:border-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
-            >
-              <span>{n}</span>
-              <span className="text-[9px] font-normal text-muted-foreground">${n * PRICE_PER_CREDIT}</span>
-            </button>
-          ))}
-        </div>
-        <div className="mt-3">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            Custom amount {custom && Number(custom) > 0 ? `· $${Number(custom) * PRICE_PER_CREDIT}` : ""}
-          </label>
-          <div className="mt-1 flex gap-1.5">
-            <input
-              type="number"
-              min={1}
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-              placeholder="e.g. 25"
-              className="h-8 w-full rounded-md border border-border bg-background/60 px-2 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <button
-              type="button"
-              disabled={busy || !custom}
-              onClick={() => handle(parseInt(custom, 10))}
-              className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-            >
-              {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : "Buy"}
-            </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl overflow-hidden border-border/60 bg-background p-0">
+        {/* Hero */}
+        <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent px-8 py-7">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <Sparkles className="h-3 w-3" />
+                Top up credits
+              </div>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight">Power up your creations</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Each credit generates one AI image. ${PRICE_PER_CREDIT} per credit, no subscription.
+              </p>
+            </div>
+            <div className="shrink-0 rounded-xl border border-border/60 bg-background/70 px-4 py-3 text-right backdrop-blur">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Balance</p>
+              <p className="mt-0.5 flex items-center justify-end gap-1.5 text-xl font-bold tabular-nums">
+                <Coins className="h-4 w-4 text-primary" />
+                {credits.toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+
+        {/* Body */}
+        <div className="px-8 py-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Choose a pack</p>
+          <div className="mt-3 grid grid-cols-5 gap-2">
+            {PRESETS.map((n) => {
+              const popular = n === 5;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => handle(n)}
+                  className={`group relative flex flex-col items-center justify-center rounded-xl border bg-card/40 px-2 py-3 transition hover:-translate-y-0.5 hover:border-primary hover:bg-primary/10 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.5)] disabled:opacity-50 ${
+                    popular ? "border-primary/60 bg-primary/5" : "border-border"
+                  }`}
+                >
+                  {popular && (
+                    <span className="absolute -top-2 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-foreground">
+                      Popular
+                    </span>
+                  )}
+                  <span className="text-lg font-bold tabular-nums">{n}</span>
+                  <span className="text-[10px] text-muted-foreground">credit{n > 1 ? "s" : ""}</span>
+                  <span className="mt-1 text-[11px] font-semibold text-primary">${n * PRICE_PER_CREDIT}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-border/60 bg-card/30 p-4">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Custom amount
+            </label>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="relative flex-1">
+                <Coins className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="number"
+                  min={1}
+                  value={custom}
+                  onChange={(e) => setCustom(e.target.value)}
+                  placeholder="Enter credits (e.g. 25)"
+                  className="h-11 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={busy || !custom || Number(custom) <= 0}
+                onClick={() => handle(parseInt(custom, 10))}
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.6)] transition hover:opacity-90 disabled:opacity-50"
+              >
+                {busy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Buy {custom && Number(custom) > 0 ? `· $${Number(custom) * PRICE_PER_CREDIT}` : ""}
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Secure checkout. Credits are added instantly to your balance.
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
