@@ -1097,7 +1097,7 @@ function FAQ() {
   ];
   return (
     <section id="faq" className="py-24">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="mx-auto max-w-6xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">FAQ</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
@@ -1107,26 +1107,30 @@ function FAQ() {
             Everything you need to know before creating your first AI design.
           </p>
         </div>
-        <div className="glass rounded-3xl p-4 sm:p-6">
-          <Accordion type="single" collapsible className="w-full">
-            {items.map((it, i) => (
-              <AccordionItem
-                key={it.q}
-                value={`item-${i}`}
-                className="border-b border-border/60 last:border-b-0 px-3"
-              >
-                <AccordionTrigger className="text-left text-base font-medium hover:no-underline py-5">
-                  <span className="flex items-start gap-3">
-                    <HelpCircle className="h-4 w-4 text-primary mt-1 shrink-0" />
-                    {it.q}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pl-7">
-                  {it.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+        <div className="grid md:grid-cols-2 gap-5">
+          {[items.slice(0, Math.ceil(items.length / 2)), items.slice(Math.ceil(items.length / 2))].map((col, ci) => (
+            <div key={ci} className="glass rounded-3xl p-4 sm:p-6">
+              <Accordion type="single" collapsible className="w-full">
+                {col.map((it, i) => (
+                  <AccordionItem
+                    key={it.q}
+                    value={`item-${ci}-${i}`}
+                    className="border-b border-border/60 last:border-b-0 px-3"
+                  >
+                    <AccordionTrigger className="text-left text-base font-medium hover:no-underline py-5">
+                      <span className="flex items-start gap-3">
+                        <HelpCircle className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        {it.q}
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground text-sm leading-relaxed pl-7">
+                      {it.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          ))}
         </div>
       </div>
     </section>
