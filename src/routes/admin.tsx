@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  addAdminProduct,
-  deleteAdminProduct,
-  loadAdminProducts,
+  addProduct,
+  deleteProduct,
+  fetchProducts,
+  uploadProductImage,
   type AdminProduct,
 } from "@/lib/admin-products";
 import { useAuth } from "@/hooks/use-auth";
@@ -31,11 +33,16 @@ function AdminPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("T-Shirt");
   const [tags, setTags] = useState("");
-  const [image, setImage] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isAdmin) setProducts(loadAdminProducts());
+    if (!isAdmin) return;
+    fetchProducts()
+      .then(setProducts)
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Failed to load products"));
   }, [isAdmin]);
 
   if (loading) {
@@ -70,8 +77,9 @@ function AdminPage() {
   }
 
   const onFile = (file: File) => {
+    setImageFile(file);
     const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result));
+    reader.onload = () => setImagePreview(String(reader.result));
     reader.readAsDataURL(file);
   };
 
@@ -81,31 +89,43 @@ function AdminPage() {
     setDescription("");
     setCategory("T-Shirt");
     setTags("");
-    setImage("");
+    setImageFile(null);
+    setImagePreview("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !price.trim() || !image) return;
-    addAdminProduct({
-      name: name.trim(),
-      price: price.trim(),
-      description: description.trim(),
-      category: category.trim(),
-      tags: tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-      image,
-    });
-    setProducts(loadAdminProducts());
-    reset();
+    if (!name.trim() || !price.trim() || !imageFile || !user) return;
+    setSubmitting(true);
+    try {
+      const image_url = await uploadProductImage(imageFile, user.id);
+      const created = await addProduct({
+        name: name.trim(),
+        price: price.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        image_url,
+      });
+      setProducts((prev) => [created, ...prev]);
+      toast.success("Product added");
+      reset();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add product");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const onDelete = (id: string) => {
-    deleteAdminProduct(id);
-    setProducts(loadAdminProducts());
+  const onDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete");
+    }
   };
 
   return (
@@ -144,8 +164,8 @@ function AdminPage() {
                   className="mt-1.5 relative rounded-xl border border-dashed border-border/60 bg-background/40 hover:border-primary/60 transition aspect-[4/5] overflow-hidden grid place-items-center cursor-pointer"
                   onClick={() => fileRef.current?.click()}
                 >
-                  {image ? (
-                    <img src={image} alt="preview" className="h-full w-full object-cover" />
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="preview" className="h-full w-full object-cover" />
                   ) : (
                     <div className="text-center text-muted-foreground text-sm">
                       <Upload className="h-6 w-6 mx-auto mb-2" />
@@ -216,8 +236,8 @@ function AdminPage() {
                   className="mt-1.5"
                 />
               </div>
-              <Button type="submit" variant="hero" className="w-full" disabled={!image}>
-                Add product
+              <Button type="submit" variant="hero" className="w-full" disabled={!imageFile || submitting}>
+                {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : "Add product"}
               </Button>
             </form>
           </div>
@@ -228,7 +248,7 @@ function AdminPage() {
             <div>
               <h2 className="text-lg font-semibold">Products ({products.length})</h2>
               <p className="text-xs text-muted-foreground">
-                Stored locally in this browser. Connect a database later for multi-device sync.
+                Synced live to all visitors via Supabase.
               </p>
             </div>
           </div>

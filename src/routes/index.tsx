@@ -46,7 +46,7 @@ import trend1 from "@/assets/trend-1.jpg";
 import trend2 from "@/assets/trend-2.jpg";
 import trend3 from "@/assets/trend-3.jpg";
 import trend4 from "@/assets/trend-4.jpg";
-import { loadAdminProducts, type AdminProduct } from "@/lib/admin-products";
+import { fetchProducts, type AdminProduct } from "@/lib/admin-products";
 import { useAuth } from "@/hooks/use-auth";
 import {
   DropdownMenu,
@@ -396,15 +396,15 @@ function Trending() {
   const [expanded, setExpanded] = useState(false);
   const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
   useEffect(() => {
-    const refresh = () => setAdminProducts(loadAdminProducts());
-    refresh();
-    window.addEventListener("aura:products-updated", refresh);
-    window.addEventListener("storage", refresh);
-    return () => {
-      window.removeEventListener("aura:products-updated", refresh);
-      window.removeEventListener("storage", refresh);
+    let cancelled = false;
+    const refresh = () => {
+      fetchProducts()
+        .then((p) => { if (!cancelled) setAdminProducts(p); })
+        .catch(() => {});
     };
-  }, []);
+    refresh();
+    return () => { cancelled = true; };
+  }, [expanded]);
   return (
     <section id="trending" className="py-24">
       <div className="mx-auto max-w-7xl px-6">
