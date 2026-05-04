@@ -9,6 +9,7 @@ type Props = {
 };
 
 const PRESETS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const PRICE_PER_CREDIT = 3;
 
 export function CreditsTopUp({ credits, onTopUp }: Props) {
   const [open, setOpen] = useState(false);
@@ -25,7 +26,9 @@ export function CreditsTopUp({ credits, onTopUp }: Props) {
       if (onTopUp) {
         await onTopUp(amount);
       } else {
-        toast.success(`Top-up of ${amount} credit${amount > 1 ? "s" : ""} requested`);
+        toast.info(
+          `Checkout for ${amount} credit${amount > 1 ? "s" : ""} ($${amount * PRICE_PER_CREDIT}) — payment integration coming soon.`,
+        );
       }
       setOpen(false);
       setCustom("");
@@ -57,6 +60,7 @@ export function CreditsTopUp({ credits, onTopUp }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top up credits</p>
           <span className="text-[10px] text-muted-foreground">Balance: {credits}</span>
         </div>
+        <p className="mt-1 text-[10px] text-muted-foreground">${PRICE_PER_CREDIT} per credit</p>
         <div className="mt-2 grid grid-cols-5 gap-1.5">
           {PRESETS.map((n) => (
             <button
@@ -64,14 +68,18 @@ export function CreditsTopUp({ credits, onTopUp }: Props) {
               type="button"
               disabled={busy}
               onClick={() => handle(n)}
-              className="h-8 rounded-md border border-border bg-background/40 text-xs font-semibold transition hover:border-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
+              title={`${n} credit${n > 1 ? "s" : ""} · $${n * PRICE_PER_CREDIT}`}
+              className="flex h-10 flex-col items-center justify-center rounded-md border border-border bg-background/40 text-[11px] font-semibold leading-tight transition hover:border-primary hover:bg-primary/10 hover:text-primary disabled:opacity-50"
             >
-              {n}
+              <span>{n}</span>
+              <span className="text-[9px] font-normal text-muted-foreground">${n * PRICE_PER_CREDIT}</span>
             </button>
           ))}
         </div>
         <div className="mt-3">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Custom amount</label>
+          <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            Custom amount {custom && Number(custom) > 0 ? `· $${Number(custom) * PRICE_PER_CREDIT}` : ""}
+          </label>
           <div className="mt-1 flex gap-1.5">
             <input
               type="number"
