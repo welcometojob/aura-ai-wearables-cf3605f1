@@ -54,6 +54,9 @@ import trend3 from "@/assets/trend-3.jpg";
 import trend4 from "@/assets/trend-4.jpg";
 import { fetchProducts, type AdminProduct } from "@/lib/admin-products";
 import { useAuth } from "@/hooks/use-auth";
+import { fetchReviews, type Review } from "@/lib/reviews";
+import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
+import { ImageLightbox } from "@/components/aura/ImageLightbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
