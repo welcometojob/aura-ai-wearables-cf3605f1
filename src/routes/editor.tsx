@@ -5,8 +5,9 @@ import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
 import { Mockup } from "@/components/aura/Mockup";
 import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -46,6 +47,7 @@ function fakeArtwork(prompt: string, style: string) {
 function Editor() {
   const { user, profile, refresh } = useAuth();
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
@@ -109,6 +111,15 @@ function Editor() {
           Back to home
         </Link>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground transition hover:border-primary hover:text-primary"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground neon-glow hover:opacity-90">
             Checkout · ${total.toFixed(2)}
           </button>
