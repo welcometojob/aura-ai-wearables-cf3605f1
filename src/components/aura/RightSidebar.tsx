@@ -1,4 +1,7 @@
 import { Ruler, Check, Minus, Plus, ShoppingCart, Zap, Truck, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 import { COLORS, PRODUCT_STYLES, SIZES, type ColorSwatch, type Fit, type ProductStyle, type Size } from "@/lib/aura-config";
 
 type Props = {
@@ -17,6 +20,32 @@ type Props = {
 export function RightSidebar({
   fit, setFit, product, setProduct, color, setColor, size, setSize, quantity, setQuantity, total,
 }: Props & { setQuantity: (q: number) => void }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const requireAuth = (intent: "cart" | "buy") => {
+    if (!user) {
+      toast.info("Please sign in to continue your purchase.");
+      void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+      return false;
+    }
+    return true;
+  };
+
+  const handleAddToCart = () => {
+    if (!requireAuth("cart")) return;
+    toast.success(
+      `Added to cart: ${fit}'s ${product.name} · ${color.name} · ${size} · ×${quantity}`,
+    );
+  };
+
+  const handleBuyNow = () => {
+    if (!requireAuth("buy")) return;
+    toast.message("Checkout coming soon", {
+      description: `${fit}'s ${product.name} · ${color.name} · ${size} · ×${quantity} — $${total.toFixed(2)}`,
+    });
+  };
+
   return (
     <aside className="flex h-full w-[340px] shrink-0 flex-col border-l border-border bg-card/40">
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
@@ -155,10 +184,18 @@ export function RightSidebar({
           <p className="text-[11px] text-muted-foreground">incl. AI artwork</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-primary bg-transparent text-xs font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/10">
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-primary bg-transparent text-xs font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/10"
+          >
             <ShoppingCart className="h-4 w-4" /> Add to Cart
           </button>
-          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:opacity-90 neon-glow">
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:opacity-90 neon-glow"
+          >
             <Zap className="h-4 w-4" /> Buy Now
           </button>
         </div>
