@@ -387,9 +387,6 @@ function FeatureCard({
         </div>
         <h3 className="font-semibold text-lg">{title}</h3>
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{desc}</p>
-        <div className="mt-5 flex items-center gap-1.5 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition">
-          Learn more <ArrowRight className="h-3.5 w-3.5" />
-        </div>
       </div>
     </div>
   );
