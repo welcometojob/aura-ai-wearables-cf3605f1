@@ -59,6 +59,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { fetchReviews, type Review } from "@/lib/reviews";
 import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
 import { ImageLightbox } from "@/components/aura/ImageLightbox";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -553,7 +554,7 @@ function Pricing() {
   const [selected, setSelected] = useState("Pro");
   const { user } = useAuth();
   const navigate = useNavigate();
-  const handleContinue = (planName: string) => {
+  const handleContinue = async (planName: string) => {
     if (planName === "Free") {
       if (!user) {
         navigate({ to: "/auth", search: { redirect: "/", plan: "Free" } });
@@ -563,15 +564,23 @@ function Pricing() {
       navigate({ to: "/editor" });
       return;
     }
-    if (planName === "Business") {
-      window.location.href = "mailto:sales@aurawear.app?subject=Business%20plan%20inquiry";
-      return;
-    }
     if (!user) {
       navigate({ to: "/auth", search: { redirect: "/#pricing", plan: planName } });
       return;
     }
-    toast.info(`Checkout for ${planName} coming soon — payment integration pending.`);
+    try {
+      toast.loading(`Opening secure checkout for ${planName}…`, { id: "checkout" });
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: planName },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error("No checkout URL returned");
+      toast.dismiss("checkout");
+      window.location.href = data.url;
+    } catch (e) {
+      toast.dismiss("checkout");
+      toast.error((e as Error).message || "Could not start checkout");
+    }
   };
   const tiers = [
     {
