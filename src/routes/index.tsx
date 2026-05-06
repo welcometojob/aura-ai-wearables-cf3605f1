@@ -59,6 +59,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { fetchReviews, type Review } from "@/lib/reviews";
 import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
 import { ImageLightbox } from "@/components/aura/ImageLightbox";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
