@@ -51,11 +51,11 @@ export const generateRunpodArtwork = createServerFn({ method: "POST" })
           input: {
             prompt: styledPrompt,
             negative_prompt: "blurry, low quality, watermark, text, signature, deformed",
-            num_inference_steps: 6,
-            guidance_scale: 2,
-            width: 1024,
-            height: 1024,
-            num_images: 1,
+          num_inference_steps: 6,
+          guidance_scale: 2,
+          width: 512,
+          height: 512,
+          num_images: 1,
           },
         }),
       });
