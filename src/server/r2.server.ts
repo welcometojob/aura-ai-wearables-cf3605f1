@@ -127,7 +127,7 @@ export async function uploadImageObject(opts: {
   const response = await fetch(uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": opts.contentType },
-    body: opts.bytes,
+    body: new Blob([opts.bytes], { type: opts.contentType }),
   });
 
   if (!response.ok) {
