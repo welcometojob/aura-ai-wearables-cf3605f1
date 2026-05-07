@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
+import { generateRunpodArtwork } from "@/server/runpod.functions";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -21,29 +22,6 @@ export const Route = createFileRoute("/editor")({
   }),
   component: Editor,
 });
-
-function fakeArtwork(prompt: string, style: string) {
-  const seed = (prompt + style).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const hue = seed % 360;
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <defs>
-    <radialGradient id="g" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="hsl(${hue},90%,60%)"/>
-      <stop offset="100%" stop-color="hsl(${(hue + 60) % 360},80%,30%)"/>
-    </radialGradient>
-  </defs>
-  <circle cx="200" cy="200" r="160" fill="url(#g)"/>
-  <g fill="none" stroke="white" stroke-width="2" opacity="0.7">
-    <circle cx="200" cy="200" r="120"/>
-    <circle cx="200" cy="200" r="80"/>
-    <circle cx="200" cy="200" r="40"/>
-  </g>
-  <text x="200" y="210" font-family="Inter,sans-serif" font-size="18" font-weight="800" text-anchor="middle" fill="white" letter-spacing="3">TOMMYMEOW</text>
-  <text x="200" y="240" font-family="Inter,sans-serif" font-size="10" font-weight="600" text-anchor="middle" fill="white" letter-spacing="6" opacity="0.8">${style.toUpperCase()}</text>
-</svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
 
 function Editor() {
   const { user, profile, refresh } = useAuth();
@@ -78,15 +56,16 @@ function Editor() {
     }
     setGenerating(true);
     try {
+      const { url } = await generateRunpodArtwork({
+        data: { prompt: prompt.trim(), style: selectedStyle },
+      });
+      setArtwork(url);
       const { error } = await supabase.rpc("consume_credit", {
         _amount: 1,
         _note: `AI generation: ${prompt.slice(0, 80)}`,
       });
-      if (error) throw error;
+      if (error) console.warn("credit consume failed", error);
       await refresh();
-      // Simulated artwork (replace with real AI later)
-      await new Promise((r) => setTimeout(r, 700));
-      setArtwork(fakeArtwork(prompt, selectedStyle));
       toast.success("Design generated! 1 credit used.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Generation failed";
