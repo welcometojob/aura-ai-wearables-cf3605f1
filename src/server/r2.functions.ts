@@ -1,24 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createMiddleware } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createPresignedUpload } from "./r2.server";
 
 const ALLOWED_FOLDERS = ["product-images", "ready-designs", "review-images"] as const;
 
-const attachSupabaseAuth = createMiddleware({ type: "function" }).client(
-  async ({ next }) => {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-    return next({
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-  },
-);
-
 export const getR2UploadUrl = createServerFn({ method: "POST" })
-  .middleware([attachSupabaseAuth, requireSupabaseAuth])
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
       .object({
