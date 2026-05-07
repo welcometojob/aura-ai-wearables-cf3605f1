@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToR2 } from "@/lib/r2-upload";
 
 export type AdminProduct = {
   id: string;
@@ -10,8 +11,6 @@ export type AdminProduct = {
   image: string;
   createdAt: string;
 };
-
-const BUCKET = "product-images";
 
 type Row = {
   id: string;
@@ -44,17 +43,8 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
   return (data as Row[] | null)?.map(toProduct) ?? [];
 }
 
-export async function uploadProductImage(file: File, userId: string): Promise<string> {
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || undefined,
-  });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+export async function uploadProductImage(file: File, _userId: string): Promise<string> {
+  return uploadToR2(file, "product-images");
 }
 
 export async function addProduct(input: {
