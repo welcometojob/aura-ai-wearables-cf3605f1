@@ -124,10 +124,13 @@ export async function uploadImageObject(opts: {
     contentType: opts.contentType,
   });
 
+  const body = new ArrayBuffer(opts.bytes.byteLength);
+  new Uint8Array(body).set(opts.bytes);
+
   const response = await fetch(uploadUrl, {
     method: "PUT",
     headers: { "Content-Type": opts.contentType },
-    body: new Blob([opts.bytes], { type: opts.contentType }),
+    body,
   });
 
   if (!response.ok) {
