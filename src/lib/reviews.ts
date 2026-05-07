@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToR2 } from "@/lib/r2-upload";
 
 export type Review = {
   id: string;
@@ -39,8 +40,6 @@ const toReview = (r: Row): Review => ({
   createdAt: r.created_at,
 });
 
-const BUCKET = "review-images";
-
 export async function fetchReviews(): Promise<Review[]> {
   const { data, error } = await supabase
     .from("reviews")
@@ -52,16 +51,8 @@ export async function fetchReviews(): Promise<Review[]> {
   return (data as Row[] | null)?.map(toReview) ?? [];
 }
 
-export async function uploadReviewImage(file: File, userId: string): Promise<string> {
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || undefined,
-  });
-  if (error) throw error;
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+export async function uploadReviewImage(file: File, _userId: string): Promise<string> {
+  return uploadToR2(file, "review-images");
 }
 
 export async function createReview(input: {
