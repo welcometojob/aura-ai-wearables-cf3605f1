@@ -1,9 +1,15 @@
 import { getR2UploadUrl } from "@/server/r2.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export type R2Folder = "product-images" | "ready-designs" | "review-images";
 
 export async function uploadToR2(file: File, folder: R2Folder): Promise<string> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error("You must be signed in to upload.");
+
   const { uploadUrl, publicUrl } = await getR2UploadUrl({
+    headers: { Authorization: `Bearer ${token}` },
     data: {
       folder,
       filename: file.name,
