@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToR2 } from "@/lib/r2-upload";
 
 export type ReadyDesign = {
   id: string;
@@ -8,8 +9,6 @@ export type ReadyDesign = {
   image: string;
   createdAt: string;
 };
-
-const BUCKET = "ready-designs";
 
 type Row = {
   id: string;
@@ -38,17 +37,8 @@ export async function fetchReadyDesigns(): Promise<ReadyDesign[]> {
   return (data as Row[] | null)?.map(toDesign) ?? [];
 }
 
-export async function uploadReadyDesignImage(file: File, userId: string): Promise<string> {
-  const ext = file.name.split(".").pop() || "png";
-  const path = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || undefined,
-  });
-  if (error) throw error;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+export async function uploadReadyDesignImage(file: File, _userId: string): Promise<string> {
+  return uploadToR2(file, "ready-designs");
 }
 
 export async function addReadyDesign(input: {
