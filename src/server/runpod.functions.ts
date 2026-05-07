@@ -73,8 +73,32 @@ export const generateRunpodArtwork = createServerFn({ method: "POST" })
       clearTimeout(timer);
     }
 
+    // Handle async statuses: poll /status until COMPLETED / FAILED
     if (runpodJson?.status && runpodJson.status !== "COMPLETED") {
-      throw new Error(`RunPod job ${runpodJson.status}: ${JSON.stringify(runpodJson.output ?? {}).slice(0, 200)}`);
+      if (runpodJson.status === "IN_QUEUE" || runpodJson.status === "IN_PROGRESS") {
+        const jobId = runpodJson.id;
+        const deadline = Date.now() + RUNPOD_TIMEOUT_MS;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const s = await fetch(`https://api.runpod.ai/v2/${endpointId}/status/${jobId}`, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          runpodJson = await s.json();
+          if (runpodJson?.status === "COMPLETED") break;
+          if (runpodJson?.status === "FAILED" || runpodJson?.status === "CANCELLED") {
+            throw new Error(
+              `RunPod job ${runpodJson.status}. Full response: ${JSON.stringify(runpodJson).slice(0, 600)}`,
+            );
+          }
+        }
+        if (runpodJson?.status !== "COMPLETED") {
+          throw new Error(`RunPod job did not complete in time (last status: ${runpodJson?.status})`);
+        }
+      } else {
+        throw new Error(
+          `RunPod job ${runpodJson.status}. Full response: ${JSON.stringify(runpodJson).slice(0, 600)}`,
+        );
+      }
     }
 
     // SDXL-turbo serverless workers commonly return one of:
