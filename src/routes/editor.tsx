@@ -56,7 +56,11 @@ function Editor() {
     }
     setGenerating(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Please sign in again.");
       const { url } = await generateRunpodArtwork({
+        headers: { Authorization: `Bearer ${token}` },
         data: { prompt: prompt.trim(), style: selectedStyle },
       });
       setArtwork(url);
