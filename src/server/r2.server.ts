@@ -111,3 +111,32 @@ export async function createPresignedUpload(opts: {
   const publicBase = publicUrl.replace(/\/$/, "");
   return { uploadUrl, key, publicUrl: `${publicBase}/${key}` };
 }
+
+export async function uploadImageObject(opts: {
+  folder: string;
+  filename: string;
+  contentType: string;
+  bytes: Uint8Array;
+}) {
+  const { uploadUrl, publicUrl } = await createPresignedUpload({
+    folder: opts.folder,
+    filename: opts.filename,
+    contentType: opts.contentType,
+  });
+
+  const body = new ArrayBuffer(opts.bytes.byteLength);
+  new Uint8Array(body).set(opts.bytes);
+
+  const response = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": opts.contentType },
+    body,
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`R2 upload failed (${response.status}): ${text || response.statusText}`);
+  }
+
+  return { publicUrl };
+}
