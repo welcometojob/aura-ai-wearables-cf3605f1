@@ -13,8 +13,8 @@ const supabaseAdmin = createClient(
 );
 
 const PRICE_TO_PLAN: Record<string, { plan: "pro" | "business"; credits: number }> = {
-  [Deno.env.get("STRIPE_PRICE_PRO") ?? ""]: { plan: "pro", credits: 50 },
-  [Deno.env.get("STRIPE_PRICE_BUSINESS") ?? ""]: { plan: "business", credits: 500 },
+  [Deno.env.get("STRIPE_PRICE_PRO") ?? ""]: { plan: "pro", credits: 20 },
+  [Deno.env.get("STRIPE_PRICE_BUSINESS") ?? ""]: { plan: "business", credits: 85 },
 };
 
 async function findUserId(opts: { customerId?: string | null; userIdMeta?: string | null; email?: string | null }) {
