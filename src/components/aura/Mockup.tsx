@@ -26,8 +26,6 @@ function ArtworkDecal({ url, view }: { url: string; view: View }) {
       rotation={[0, view === "back" ? Math.PI : 0, 0]}
       scale={0.18}
       map={texture}
-      polygonOffset
-      polygonOffsetFactor={-1}
     />
   );
 }
