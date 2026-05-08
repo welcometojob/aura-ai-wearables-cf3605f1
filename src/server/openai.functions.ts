@@ -24,7 +24,16 @@ export const generateOpenAIArtwork = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("OpenAI is not configured (missing OPENAI_API_KEY).");
-    const { userId } = context;
+    const { userId, supabase } = context;
+
+    // Fetch user's plan to decide image quality
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const plan = (profile?.plan ?? "free") as "free" | "pro" | "business";
+    const quality = plan === "business" ? "high" : plan === "pro" ? "medium" : "low";
 
     const styledPrompt = data.style
       ? `${data.prompt}, ${data.style} style, high detail, vibrant, centered composition, plain background, sticker-style apparel artwork`
@@ -40,6 +49,7 @@ export const generateOpenAIArtwork = createServerFn({ method: "POST" })
         model: "gpt-image-1",
         prompt: styledPrompt,
         size: "1024x1024",
+        quality,
         n: 1,
       }),
     });
