@@ -1,0 +1,127 @@
+import { useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import * as THREE from "three";
+import type { ColorSwatch, View } from "@/lib/aura-config";
+
+type Props = {
+  view: View;
+  setView: (v: View) => void;
+  color: ColorSwatch;
+  artwork: string | null;
+  styleName: string;
+  fabric: string;
+};
+
+function ShirtMockup({ color, artwork, view, zoom }: { color: ColorSwatch; artwork: string | null; view: View; zoom: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const shirtMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color.hex),
+        roughness: 0.82,
+        metalness: 0,
+      }),
+    [color.hex],
+  );
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    const targetY = view === "back" ? Math.PI : 0;
+    groupRef.current.rotation.y += (targetY - groupRef.current.rotation.y) * Math.min(1, delta * 5);
+    groupRef.current.scale.lerp(new THREE.Vector3(zoom, zoom, zoom), Math.min(1, delta * 7));
+  });
+
+  return (
+    <group ref={groupRef} scale={zoom} position={[0, -0.08, 0]}>
+      <mesh material={shirtMaterial} castShadow receiveShadow>
+        <capsuleGeometry args={[0.46, 0.72, 8, 32]} />
+      </mesh>
+      <mesh material={shirtMaterial} position={[-0.52, 0.26, 0]} rotation={[0, 0, -0.74]} castShadow>
+        <capsuleGeometry args={[0.16, 0.55, 8, 24]} />
+      </mesh>
+      <mesh material={shirtMaterial} position={[0.52, 0.26, 0]} rotation={[0, 0, 0.74]} castShadow>
+        <capsuleGeometry args={[0.16, 0.55, 8, 24]} />
+      </mesh>
+      <mesh position={[0, 0.57, 0.012]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.18, 0.035, 16, 40]} />
+        <meshStandardMaterial color={new THREE.Color(color.hex).offsetHSL(0, 0, -0.12)} roughness={0.9} />
+      </mesh>
+      {artwork && <ArtworkPlane artwork={artwork} side={view} />}
+    </group>
+  );
+}
+
+function ArtworkPlane({ artwork, side }: { artwork: string; side: View }) {
+  const texture = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    const tex = loader.load(artwork, undefined, undefined, () => undefined);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    return tex;
+  }, [artwork]);
+
+  return (
+    <mesh position={side === "front" ? [0, 0.08, 0.475] : [0, 0.08, -0.475]} rotation={side === "front" ? [0, 0, 0] : [0, Math.PI, 0]} renderOrder={10}>
+      <planeGeometry args={[0.52, 0.52]} />
+      <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false} side={THREE.FrontSide} />
+    </mesh>
+  );
+}
+
+export function Mockup({ view, setView, color, artwork }: Props) {
+  const [zoom, setZoom] = useState(1);
+  const controlsRef = useRef<any>(null);
+
+  const reset = () => {
+    setZoom(1);
+    controlsRef.current?.reset?.();
+  };
+
+  return (
+    <div className="relative flex h-full w-full flex-col">
+      <div className="relative flex items-center justify-center gap-3 px-2 pb-4">
+        <div className="inline-flex rounded-full border border-border bg-card p-1">
+          {(["front", "back"] as View[]).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-all ${
+                view === v ? "bg-primary text-primary-foreground neon-glow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {v} View
+            </button>
+          ))}
+        </div>
+        <div className="absolute right-2 flex items-center gap-1">
+          <button onClick={() => setZoom((z) => Math.min(1.45, z + 0.1))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom in">
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <button onClick={() => setZoom((z) => Math.max(0.75, z - 0.1))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom out">
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          <button onClick={reset} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Reset view">
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
+        <Canvas shadows camera={{ position: [0, 0, 3.1], fov: 30 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
+          <ambientLight intensity={0.75} />
+          <directionalLight position={[2.5, 4, 4]} intensity={1.2} castShadow />
+          <directionalLight position={[-3, 2, 2]} intensity={0.45} />
+          <ShirtMockup color={color} artwork={artwork} view={view} zoom={zoom} />
+          <OrbitControls ref={controlsRef} enablePan={false} enableZoom minDistance={2.1} maxDistance={4.2} minPolarAngle={Math.PI / 2.7} maxPolarAngle={Math.PI / 1.75} rotateSpeed={0.8} />
+        </Canvas>
+
+        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+          Drag or scroll to view
+        </div>
+      </div>
+    </div>
+  );
+}
