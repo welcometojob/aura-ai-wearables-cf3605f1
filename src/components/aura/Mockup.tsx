@@ -32,10 +32,12 @@ function Shirt({
   color,
   artwork,
   view,
+  zoom,
 }: {
   color: ColorSwatch;
   artwork: string | null;
   view: View;
+  zoom: number;
 }) {
   const { nodes, materials } = useGLTF(SHIRT_URL) as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -67,12 +69,15 @@ function Shirt({
     const cur = groupRef.current.rotation.y;
     // smooth toward target without overriding user drag too aggressively
     groupRef.current.rotation.y = cur + (targetY - cur) * Math.min(1, delta * 4);
+    const curScale = groupRef.current.scale.x;
+    const next = curScale + (zoom - curScale) * Math.min(1, delta * 6);
+    groupRef.current.scale.setScalar(next);
   });
 
   if (!meshNode) return null;
 
   return (
-    <group ref={groupRef} dispose={null}>
+    <group ref={groupRef} dispose={null} scale={zoom}>
       <Center>
         <mesh
           castShadow
