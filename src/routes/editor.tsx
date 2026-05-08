@@ -11,7 +11,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
-import { generateRunpodArtwork } from "@/server/runpod.functions";
+import { generateOpenAIArtwork } from "@/server/openai.functions";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -59,7 +59,7 @@ function Editor() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       if (!token) throw new Error("Please sign in again.");
-      const { url } = await generateRunpodArtwork({
+      const { url } = await generateOpenAIArtwork({
         headers: { Authorization: `Bearer ${token}` },
         data: { prompt: prompt.trim(), style: selectedStyle },
       });
