@@ -1,4 +1,4 @@
-import { useId, useState, type WheelEvent } from "react";
+import { useEffect, useId, useState, type WheelEvent } from "react";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
 
@@ -51,6 +51,122 @@ const BACK_PRINT_PATH = `M 228 206
   Q 300 430 236 416 Z`;
 
 const clampZoom = (value: number) => Math.max(0.7, Math.min(1.9, value));
+
+async function prepareArtwork(src: string): Promise<string> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      const width = image.naturalWidth || image.width;
+      const height = image.naturalHeight || image.height;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) {
+        resolve(src);
+        return;
+      }
+
+      context.drawImage(image, 0, 0, width, height);
+      const frame = context.getImageData(0, 0, width, height);
+      const data = frame.data;
+
+      const samplePoints = [
+        0,
+        width - 1,
+        (height - 1) * width,
+        height * width - 1,
+        Math.floor(width / 2),
+        Math.floor((height - 1) * width + width / 2),
+        Math.floor((Math.floor(height / 2) * width)),
+        Math.floor((Math.floor(height / 2) * width) + width - 1),
+      ];
+
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let count = 0;
+
+      for (const point of samplePoints) {
+        const index = point * 4;
+        if (data[index + 3] < 12) continue;
+        red += data[index];
+        green += data[index + 1];
+        blue += data[index + 2];
+        count += 1;
+      }
+
+      const base = count
+        ? { r: red / count, g: green / count, b: blue / count }
+        : { r: 255, g: 255, b: 255 };
+
+      const distanceLimit = 58;
+      for (let index = 0; index < data.length; index += 4) {
+        const alpha = data[index + 3];
+        if (alpha < 12) {
+          data[index + 3] = 0;
+          continue;
+        }
+
+        const distance = Math.hypot(data[index] - base.r, data[index + 1] - base.g, data[index + 2] - base.b);
+        if (distance < distanceLimit) {
+          data[index + 3] = Math.max(0, alpha - 230);
+        }
+      }
+
+      context.putImageData(frame, 0, 0);
+
+      let minX = width;
+      let minY = height;
+      let maxX = 0;
+      let maxY = 0;
+      let hasOpaquePixel = false;
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const index = (y * width + x) * 4;
+          if (data[index + 3] < 24) continue;
+          hasOpaquePixel = true;
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+
+      if (!hasOpaquePixel) {
+        resolve(src);
+        return;
+      }
+
+      const pad = 18;
+      const cropX = Math.max(0, minX - pad);
+      const cropY = Math.max(0, minY - pad);
+      const cropWidth = Math.min(width - cropX, maxX - minX + pad * 2);
+      const cropHeight = Math.min(height - cropY, maxY - minY + pad * 2);
+
+      const croppedCanvas = document.createElement("canvas");
+      croppedCanvas.width = cropWidth;
+      croppedCanvas.height = cropHeight;
+
+      const croppedContext = croppedCanvas.getContext("2d");
+      if (!croppedContext) {
+        resolve(src);
+        return;
+      }
+
+      croppedContext.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      resolve(croppedCanvas.toDataURL("image/png"));
+    };
+
+    image.onerror = () => resolve(src);
+    image.src = src;
+  });
+}
 
 function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; artwork: string | null }) {
   const uid = useId().replace(/:/g, "");
