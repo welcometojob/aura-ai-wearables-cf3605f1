@@ -1,22 +1,9 @@
-import { Suspense, useRef, useEffect, useMemo, useState as useReactState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import {
-  OrbitControls,
-  useGLTF,
-  Decal,
-  Environment,
-  Center,
-  Html,
-} from "@react-three/drei";
-import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import * as THREE from "three";
 import type { ColorSwatch, View } from "@/lib/aura-config";
-
-const SHIRT_URL =
-  "https://pub-0cbfa3c582404e5bb1e0615b530aa67d.r2.dev/models/shirt_baked.glb";
-
-useGLTF.preload(SHIRT_URL);
 
 type Props = {
   view: View;
@@ -27,82 +14,55 @@ type Props = {
   fabric: string;
 };
 
-function Shirt({
-  color,
-  artwork,
-  view,
-  zoom,
-}: {
-  color: ColorSwatch;
-  artwork: string | null;
-  view: View;
-  zoom: number;
-}) {
-  const { nodes, materials } = useGLTF(SHIRT_URL) as unknown as {
-    nodes: Record<string, THREE.Mesh>;
-    materials: Record<string, THREE.MeshStandardMaterial>;
-  };
-
-  const meshNode = useMemo(() => {
-    const meshKey = Object.keys(nodes).find(
-      (k) => (nodes[k] as THREE.Mesh)?.isMesh,
-    );
-    return meshKey ? nodes[meshKey] : null;
-  }, [nodes]);
-
-  const matKey = Object.keys(materials)[0];
-  const material = matKey ? materials[matKey] : null;
-
-  useEffect(() => {
-    if (!material) return;
-    // Clear baked texture map so color appears pure (no dark smudge from baked shading)
-    if (material.map) {
-      material.map = null;
-    }
-    material.color = new THREE.Color(color.hex);
-    material.roughness = 0.85;
-    material.metalness = 0.05;
-    material.needsUpdate = true;
-  }, [material, color.hex]);
-
+function ShirtMockup({ color, artwork, view, zoom }: { color: ColorSwatch; artwork: string | null; view: View; zoom: number }) {
   const groupRef = useRef<THREE.Group>(null);
+  const shirtColor = useMemo(() => new THREE.Color(color.hex), [color.hex]);
+  const ribColor = useMemo(() => new THREE.Color(color.hex).lerp(new THREE.Color("#ffffff"), color.id === "black" ? 0.28 : 0.08), [color.hex, color.id]);
+  const shirtMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: shirtColor,
+        roughness: 0.68,
+        metalness: 0,
+      }),
+    [shirtColor],
+  );
+
   useFrame((_, delta) => {
     if (!groupRef.current) return;
     const targetY = view === "back" ? Math.PI : 0;
-    const cur = groupRef.current.rotation.y;
-    // smooth toward target without overriding user drag too aggressively
-    groupRef.current.rotation.y = cur + (targetY - cur) * Math.min(1, delta * 4);
-    const curScale = groupRef.current.scale.x;
-    const next = curScale + (zoom - curScale) * Math.min(1, delta * 6);
-    groupRef.current.scale.setScalar(next);
+    groupRef.current.rotation.y += (targetY - groupRef.current.rotation.y) * Math.min(1, delta * 5);
+    groupRef.current.scale.lerp(new THREE.Vector3(zoom, zoom, zoom), Math.min(1, delta * 7));
   });
 
-  if (!meshNode) return null;
-
   return (
-    <group ref={groupRef} dispose={null} scale={zoom}>
-      <Center>
-        <mesh
-          castShadow
-          geometry={meshNode.geometry}
-          material={material ?? undefined}
-          material-roughness={0.85}
-          scale={1}
-        >
-          {artwork && <ArtworkDecal artwork={artwork} side={view} />}
-        </mesh>
-      </Center>
+    <group ref={groupRef} scale={zoom} position={[0, -0.02, 0]}>
+      <mesh material={shirtMaterial} castShadow receiveShadow>
+        <capsuleGeometry args={[0.4, 0.7, 10, 40]} />
+      </mesh>
+      <mesh material={shirtMaterial} position={[-0.43, 0.25, -0.01]} rotation={[0, 0, -0.83]} castShadow>
+        <capsuleGeometry args={[0.13, 0.46, 10, 28]} />
+      </mesh>
+      <mesh material={shirtMaterial} position={[0.43, 0.25, -0.01]} rotation={[0, 0, 0.83]} castShadow>
+        <capsuleGeometry args={[0.13, 0.46, 10, 28]} />
+      </mesh>
+      <mesh position={[0, 0.57, 0.012]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.15, 0.026, 16, 40]} />
+        <meshStandardMaterial color={ribColor} roughness={0.8} />
+      </mesh>
+      {artwork && <ArtworkPlane artwork={artwork} side={view} />}
     </group>
   );
 }
 
-function ArtworkDecal({ artwork, side }: { artwork: string; side: View }) {
-  const [texture, setTexture] = useReactState<THREE.Texture | null>(null);
+function ArtworkPlane({ artwork, side }: { artwork: string; side: View }) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
+
     loader.load(
       artwork,
       (tex) => {
@@ -111,14 +71,15 @@ function ArtworkDecal({ artwork, side }: { artwork: string; side: View }) {
           return;
         }
         tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
         setTexture(tex);
       },
       undefined,
-      (err) => {
-        console.warn("[Mockup] Failed to load artwork texture", err);
+      () => {
         if (!cancelled) setTexture(null);
       },
     );
+
     return () => {
       cancelled = true;
     };
@@ -126,33 +87,22 @@ function ArtworkDecal({ artwork, side }: { artwork: string; side: View }) {
 
   if (!texture) return null;
 
-  const position: [number, number, number] =
-    side === "front" ? [0, 0.04, 0.15] : [0, 0.04, -0.15];
-  const rotation: [number, number, number] =
-    side === "front" ? [0, 0, 0] : [0, Math.PI, 0];
   return (
-    <Decal
-      position={position}
-      rotation={rotation}
-      scale={0.18}
-      map={texture}
-    />
-  );
-}
-
-function Loading() {
-  return (
-    <Html center>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Loading 3D…
-      </div>
-    </Html>
+    <mesh position={side === "front" ? [0, 0.05, 0.408] : [0, 0.05, -0.408]} rotation={side === "front" ? [0, 0, 0] : [0, Math.PI, 0]} renderOrder={10}>
+      <planeGeometry args={[0.5, 0.5]} />
+      <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false} side={THREE.FrontSide} />
+    </mesh>
   );
 }
 
 export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const reset = () => {
     setZoom(1);
@@ -161,16 +111,14 @@ export function Mockup({ view, setView, color, artwork }: Props) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      <div className="flex items-center justify-center gap-3 px-2 pb-4 relative">
+      <div className="relative flex items-center justify-center gap-3 px-2 pb-4">
         <div className="inline-flex rounded-full border border-border bg-card p-1">
           {(["front", "back"] as View[]).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`px-4 py-1.5 text-xs font-medium uppercase tracking-wider rounded-full transition-all ${
-                view === v
-                  ? "bg-primary text-primary-foreground neon-glow"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-all ${
+                view === v ? "bg-primary text-primary-foreground neon-glow" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {v} View
@@ -178,68 +126,34 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           ))}
         </div>
         <div className="absolute right-2 flex items-center gap-1">
-          <button
-            onClick={() => setZoom((z) => Math.min(1.6, z + 0.1))}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
-            aria-label="Zoom in"
-          >
+          <button onClick={() => setZoom((z) => Math.min(1.45, z + 0.1))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom in">
             <ZoomIn className="h-4 w-4" />
           </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
-            aria-label="Zoom out"
-          >
+          <button onClick={() => setZoom((z) => Math.max(0.75, z - 0.1))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom out">
             <ZoomOut className="h-4 w-4" />
           </button>
-          <button
-            onClick={reset}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
-            aria-label="Reset view"
-          >
+          <button onClick={reset} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Reset view">
             <RotateCcw className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-900 dark:via-slate-950 dark:to-black">
-        <div className="pointer-events-none absolute inset-0 opacity-40">
-          <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
-        </div>
-
-        <Canvas
-          shadows
-          camera={{ position: [0, 0, 2.4], fov: 28 }}
-          gl={{ preserveDrawingBuffer: true, antialias: true }}
-          dpr={[1, 2]}
-        >
-          <ambientLight intensity={0.6} />
-          <directionalLight
-            position={[3, 4, 5]}
-            intensity={1.1}
-            castShadow
-          />
-          <directionalLight position={[-3, 2, -3]} intensity={0.4} />
-          <Environment preset="studio" />
-
-          <Suspense fallback={<Loading />}>
-            <Shirt color={color} artwork={artwork} view={view} zoom={zoom} />
-          </Suspense>
-
-          <OrbitControls
-            ref={controlsRef}
-            enablePan={false}
-            enableZoom={true}
-            minDistance={1.4}
-            maxDistance={4}
-            minPolarAngle={Math.PI / 2.6}
-            maxPolarAngle={Math.PI / 1.8}
-            rotateSpeed={0.8}
-          />
-        </Canvas>
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
+        {mounted ? (
+          <Canvas shadows camera={{ position: [0, 0, 3.25], fov: 28 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
+            <ambientLight intensity={1.15} />
+            <directionalLight position={[2.5, 4, 4]} intensity={1.8} castShadow />
+            <directionalLight position={[-3, 2, 2]} intensity={0.9} />
+            <directionalLight position={[0, 1, 4]} intensity={0.65} />
+            <ShirtMockup color={color} artwork={artwork} view={view} zoom={zoom} />
+            <OrbitControls ref={controlsRef} enablePan={false} enableZoom minDistance={2.1} maxDistance={4.2} minPolarAngle={Math.PI / 2.7} maxPolarAngle={Math.PI / 1.75} rotateSpeed={0.8} />
+          </Canvas>
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading preview...</div>
+        )}
 
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-          Drag to rotate
+          Drag or scroll to view
         </div>
       </div>
     </div>
