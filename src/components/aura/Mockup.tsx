@@ -196,7 +196,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           <Environment preset="studio" />
 
           <Suspense fallback={<Loading />}>
-            <Shirt color={color} artwork={artwork} view={view} />
+            <Shirt color={color} artwork={artwork} view={view} zoom={zoom} />
           </Suspense>
 
           <OrbitControls
