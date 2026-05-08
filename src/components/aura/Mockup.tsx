@@ -289,6 +289,24 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
 
 export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
+  const [preparedArtwork, setPreparedArtwork] = useState<string | null>(artwork);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!artwork) {
+      setPreparedArtwork(null);
+      return;
+    }
+
+    void prepareArtwork(artwork).then((result) => {
+      if (!cancelled) setPreparedArtwork(result);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [artwork]);
 
   const reset = () => setZoom(1);
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
@@ -351,7 +369,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           style={{ transform: `scale(${zoom})` }}
         >
           <div className="relative h-[88%] aspect-[6/7]">
-            <TShirtSVG color={color} view={view} artwork={artwork} />
+            <TShirtSVG color={color} view={view} artwork={preparedArtwork} />
           </div>
         </div>
 
