@@ -16,18 +16,25 @@ type Props = {
 
 useGLTF.preload("/models/shirt.glb");
 
+function ArtworkDecal({ url, view }: { url: string; view: View }) {
+  const texture = useLoader(THREE.TextureLoader, url);
+  texture.anisotropy = 16;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return (
+    <Decal
+      position={[0, 0.04, view === "back" ? -0.15 : 0.15]}
+      rotation={[0, view === "back" ? Math.PI : 0, 0]}
+      scale={0.18}
+      map={texture}
+      polygonOffset
+      polygonOffsetFactor={-1}
+    />
+  );
+}
+
 function Shirt({ color, artwork, view }: { color: string; artwork: string | null; view: View }) {
   const { nodes, materials } = useGLTF("/models/shirt.glb") as any;
 
-  const texture = artwork
-    ? useLoader(THREE.TextureLoader, artwork)
-    : null;
-  if (texture) {
-    texture.anisotropy = 16;
-    texture.colorSpace = THREE.SRGBColorSpace;
-  }
-
-  // Find first mesh node
   const meshNode = Object.values(nodes).find(
     (n: any) => n?.isMesh
   ) as THREE.Mesh | undefined;
@@ -35,29 +42,17 @@ function Shirt({ color, artwork, view }: { color: string; artwork: string | null
 
   if (!meshNode || !material) return null;
 
-  // Apply color
   material.color = new THREE.Color(color);
   material.roughness = 0.85;
   material.metalness = 0.05;
 
   return (
     <group rotation={[0, view === "back" ? Math.PI : 0, 0]} dispose={null}>
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={meshNode.geometry}
-        material={material}
-        material-roughness={0.85}
-      >
-        {texture && (
-          <Decal
-            position={[0, 0.04, view === "back" ? -0.15 : 0.15]}
-            rotation={[0, view === "back" ? Math.PI : 0, 0]}
-            scale={0.18}
-            map={texture}
-            polygonOffset
-            polygonOffsetFactor={-1}
-          />
+      <mesh castShadow receiveShadow geometry={meshNode.geometry} material={material}>
+        {artwork && (
+          <Suspense fallback={null}>
+            <ArtworkDecal url={artwork} view={view} />
+          </Suspense>
         )}
       </mesh>
     </group>
