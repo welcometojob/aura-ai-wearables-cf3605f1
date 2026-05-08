@@ -55,13 +55,14 @@ const clampZoom = (value: number) => Math.max(0.7, Math.min(1.9, value));
 function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; artwork: string | null }) {
   const uid = useId().replace(/:/g, "");
   const isLight = ["white", "yellow"].includes(color.id);
-  const shadow = isLight ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.26)";
-  const highlight = isLight ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.16)";
-  const sideShade = isLight ? "rgba(0,0,0,0.07)" : "rgba(0,0,0,0.16)";
-  const hemShade = isLight ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.14)";
-  const outline = isLight ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.12)";
-  const collarShade = isLight ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.42)";
-  const seam = isLight ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.14)";
+  const isBlack = color.id === "black";
+  const shadow = isLight ? "rgba(0,0,0,0.12)" : isBlack ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0.22)";
+  const highlight = isLight ? "rgba(255,255,255,0.28)" : isBlack ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)";
+  const sideShade = isLight ? "rgba(0,0,0,0.06)" : isBlack ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.14)";
+  const hemShade = isLight ? "rgba(0,0,0,0.05)" : isBlack ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.12)";
+  const outline = isLight ? "rgba(0,0,0,0.12)" : isBlack ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.12)";
+  const collarShade = isLight ? "rgba(0,0,0,0.08)" : isBlack ? "rgba(0,0,0,0.50)" : "rgba(0,0,0,0.42)";
+  const seam = isLight ? "rgba(0,0,0,0.14)" : isBlack ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.14)";
   const printPath = view === "front" ? FRONT_PRINT_PATH : BACK_PRINT_PATH;
   const printClipId = `print-area-${uid}`;
   const shirtShadowId = `shirt-shadow-${uid}`;
@@ -89,8 +90,8 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
           <stop offset="72%" stopColor="transparent" />
           <stop offset="100%" stopColor={hemShade} />
         </linearGradient>
-        <radialGradient id={shoulderLightId} cx="50%" cy="20%" r="42%">
-          <stop offset="0%" stopColor={highlight} stopOpacity="0.9" />
+        <radialGradient id={shoulderLightId} cx="50%" cy="18%" r="36%">
+          <stop offset="0%" stopColor={highlight} stopOpacity={isBlack ? "0.45" : "0.75"} />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
         <clipPath id={printClipId}>
@@ -135,8 +136,8 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
           </g>
         )}
 
-        <path d={SHIRT_PATH} fill={`url(#${topLightId})`} />
-        <path d={SHIRT_PATH} fill={`url(#${shoulderLightId})`} />
+        <path d={SHIRT_PATH} fill={`url(#${topLightId})`} opacity={isBlack ? 0.8 : 1} />
+        {!isBlack && <path d={SHIRT_PATH} fill={`url(#${shoulderLightId})`} />}
         <path d={SHIRT_PATH} fill={`url(#${sideShadeId})`} />
         <path d={SHIRT_PATH} fill={`url(#${hemShadeId})`} />
 
@@ -159,9 +160,9 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
         <path d="M 167 264 Q 183 278 202 284" stroke={seam} strokeWidth="1.25" fill="none" opacity="0.56" />
         <path d="M 433 264 Q 417 278 398 284" stroke={seam} strokeWidth="1.25" fill="none" opacity="0.56" />
         <path d="M 178 632 L 422 632" stroke={seam} strokeWidth="1" fill="none" opacity="0.4" />
-        <path d="M 226 224 Q 300 238 374 224" stroke={shadow} strokeWidth="1" fill="none" opacity="0.25" />
-        <path d="M 210 330 Q 230 350 246 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.22" />
-        <path d="M 390 330 Q 370 350 354 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.22" />
+        {!isBlack && <path d="M 226 224 Q 300 238 374 224" stroke={shadow} strokeWidth="1" fill="none" opacity="0.18" />}
+        {!isBlack && <path d="M 210 330 Q 230 350 246 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.18" />}
+        {!isBlack && <path d="M 390 330 Q 370 350 354 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.18" />}
       </g>
     </svg>
   );
