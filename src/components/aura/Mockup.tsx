@@ -16,14 +16,16 @@ type Props = {
 
 function ShirtMockup({ color, artwork, view, zoom }: { color: ColorSwatch; artwork: string | null; view: View; zoom: number }) {
   const groupRef = useRef<THREE.Group>(null);
+  const shirtColor = useMemo(() => new THREE.Color(color.hex), [color.hex]);
+  const ribColor = useMemo(() => new THREE.Color(color.hex).lerp(new THREE.Color("#ffffff"), color.id === "black" ? 0.28 : 0.08), [color.hex, color.id]);
   const shirtMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color(color.hex),
-        roughness: 0.82,
+        color: shirtColor,
+        roughness: 0.68,
         metalness: 0,
       }),
-    [color.hex],
+    [shirtColor],
   );
 
   useFrame((_, delta) => {
@@ -34,19 +36,19 @@ function ShirtMockup({ color, artwork, view, zoom }: { color: ColorSwatch; artwo
   });
 
   return (
-    <group ref={groupRef} scale={zoom} position={[0, -0.08, 0]}>
+    <group ref={groupRef} scale={zoom} position={[0, -0.02, 0]}>
       <mesh material={shirtMaterial} castShadow receiveShadow>
-        <capsuleGeometry args={[0.46, 0.72, 8, 32]} />
+        <capsuleGeometry args={[0.4, 0.7, 10, 40]} />
       </mesh>
-      <mesh material={shirtMaterial} position={[-0.52, 0.26, 0]} rotation={[0, 0, -0.74]} castShadow>
-        <capsuleGeometry args={[0.16, 0.55, 8, 24]} />
+      <mesh material={shirtMaterial} position={[-0.43, 0.25, -0.01]} rotation={[0, 0, -0.83]} castShadow>
+        <capsuleGeometry args={[0.13, 0.46, 10, 28]} />
       </mesh>
-      <mesh material={shirtMaterial} position={[0.52, 0.26, 0]} rotation={[0, 0, 0.74]} castShadow>
-        <capsuleGeometry args={[0.16, 0.55, 8, 24]} />
+      <mesh material={shirtMaterial} position={[0.43, 0.25, -0.01]} rotation={[0, 0, 0.83]} castShadow>
+        <capsuleGeometry args={[0.13, 0.46, 10, 28]} />
       </mesh>
       <mesh position={[0, 0.57, 0.012]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.18, 0.035, 16, 40]} />
-        <meshStandardMaterial color={new THREE.Color(color.hex).offsetHSL(0, 0, -0.12)} roughness={0.9} />
+        <torusGeometry args={[0.15, 0.026, 16, 40]} />
+        <meshStandardMaterial color={ribColor} roughness={0.8} />
       </mesh>
       {artwork && <ArtworkPlane artwork={artwork} side={view} />}
     </group>
@@ -86,8 +88,8 @@ function ArtworkPlane({ artwork, side }: { artwork: string; side: View }) {
   if (!texture) return null;
 
   return (
-    <mesh position={side === "front" ? [0, 0.08, 0.475] : [0, 0.08, -0.475]} rotation={side === "front" ? [0, 0, 0] : [0, Math.PI, 0]} renderOrder={10}>
-      <planeGeometry args={[0.52, 0.52]} />
+    <mesh position={side === "front" ? [0, 0.05, 0.408] : [0, 0.05, -0.408]} rotation={side === "front" ? [0, 0, 0] : [0, Math.PI, 0]} renderOrder={10}>
+      <planeGeometry args={[0.5, 0.5]} />
       <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false} side={THREE.FrontSide} />
     </mesh>
   );
@@ -138,10 +140,11 @@ export function Mockup({ view, setView, color, artwork }: Props) {
 
       <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
         {mounted ? (
-          <Canvas shadows camera={{ position: [0, 0, 3.1], fov: 30 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
-            <ambientLight intensity={0.75} />
-            <directionalLight position={[2.5, 4, 4]} intensity={1.2} castShadow />
-            <directionalLight position={[-3, 2, 2]} intensity={0.45} />
+          <Canvas shadows camera={{ position: [0, 0, 3.25], fov: 28 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
+            <ambientLight intensity={1.15} />
+            <directionalLight position={[2.5, 4, 4]} intensity={1.8} castShadow />
+            <directionalLight position={[-3, 2, 2]} intensity={0.9} />
+            <directionalLight position={[0, 1, 4]} intensity={0.65} />
             <ShirtMockup color={color} artwork={artwork} view={view} zoom={zoom} />
             <OrbitControls ref={controlsRef} enablePan={false} enableZoom minDistance={2.1} maxDistance={4.2} minPolarAngle={Math.PI / 2.7} maxPolarAngle={Math.PI / 1.75} rotateSpeed={0.8} />
           </Canvas>
