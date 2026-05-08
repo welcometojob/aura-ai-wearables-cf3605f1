@@ -1,10 +1,9 @@
-import { Suspense, useRef, useEffect, useMemo } from "react";
+import { Suspense, useRef, useEffect, useMemo, useState as useReactState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
   useGLTF,
   Decal,
-  useTexture,
   Environment,
   Center,
   Html,
@@ -96,9 +95,35 @@ function Shirt({
 }
 
 function ArtworkDecal({ artwork, side }: { artwork: string; side: View }) {
-  const texture = useTexture(artwork);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  // Front decal sits on chest; back decal sits on upper back.
+  const [texture, setTexture] = useReactState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    loader.load(
+      artwork,
+      (tex) => {
+        if (cancelled) {
+          tex.dispose();
+          return;
+        }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        setTexture(tex);
+      },
+      undefined,
+      (err) => {
+        console.warn("[Mockup] Failed to load artwork texture", err);
+        if (!cancelled) setTexture(null);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [artwork]);
+
+  if (!texture) return null;
+
   const position: [number, number, number] =
     side === "front" ? [0, 0.04, 0.15] : [0, 0.04, -0.15];
   const rotation: [number, number, number] =
