@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState, type WheelEvent } from "react";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
 
@@ -11,125 +11,157 @@ type Props = {
   fabric: string;
 };
 
-function TShirtSVG({ color, view }: { color: ColorSwatch; view: View }) {
-  // Subtle shading derived from base color
+const SHIRT_PATH = `M 180 132
+  L 114 176
+  L 78 248
+  L 112 286
+  L 165 264
+  L 165 620
+  Q 165 644 189 644
+  L 411 644
+  Q 435 644 435 620
+  L 435 264
+  L 488 286
+  L 522 248
+  L 486 176
+  L 420 132
+  Q 386 170 300 170
+  Q 214 170 180 132 Z`;
+
+const FRONT_COLLAR_PATH = `M 221 132
+  Q 300 207 379 132
+  Q 377 162 356 178
+  Q 300 199 244 178
+  Q 223 162 221 132 Z`;
+
+const BACK_COLLAR_PATH = `M 236 132
+  Q 300 165 364 132
+  Q 363 149 354 157
+  Q 300 173 246 157
+  Q 237 149 236 132 Z`;
+
+const FRONT_PRINT_PATH = `M 220 216
+  Q 300 203 380 216
+  L 370 430
+  Q 300 446 230 430 Z`;
+
+const BACK_PRINT_PATH = `M 228 206
+  Q 300 195 372 206
+  L 364 416
+  Q 300 430 236 416 Z`;
+
+const clampZoom = (value: number) => Math.max(0.7, Math.min(1.9, value));
+
+function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; artwork: string | null }) {
+  const uid = useId().replace(/:/g, "");
   const isLight = ["white", "yellow"].includes(color.id);
-  const shadow = isLight ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0.45)";
-  const highlight = isLight ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.12)";
-  const collarShade = isLight ? "rgba(0,0,0,0.10)" : "rgba(0,0,0,0.35)";
+  const shadow = isLight ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.26)";
+  const highlight = isLight ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.16)";
+  const sideShade = isLight ? "rgba(0,0,0,0.07)" : "rgba(0,0,0,0.16)";
+  const hemShade = isLight ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.14)";
+  const outline = isLight ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.12)";
+  const collarShade = isLight ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.42)";
+  const seam = isLight ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.14)";
+  const printPath = view === "front" ? FRONT_PRINT_PATH : BACK_PRINT_PATH;
+  const printClipId = `print-area-${uid}`;
+  const shirtShadowId = `shirt-shadow-${uid}`;
+  const topLightId = `top-light-${uid}`;
+  const sideShadeId = `side-shade-${uid}`;
+  const hemShadeId = `hem-shade-${uid}`;
+  const shoulderLightId = `shoulder-light-${uid}`;
 
   return (
     <svg viewBox="0 0 600 700" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <linearGradient id="bodyShade" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={topLightId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={highlight} />
-          <stop offset="55%" stopColor="transparent" />
-          <stop offset="100%" stopColor={shadow} />
+          <stop offset="38%" stopColor="transparent" />
+          <stop offset="100%" stopColor="transparent" />
         </linearGradient>
-        <radialGradient id="centerLight" cx="50%" cy="40%" r="55%">
-          <stop offset="0%" stopColor={highlight} stopOpacity="0.7" />
+        <linearGradient id={sideShadeId} x1="0" y1="0.5" x2="1" y2="0.5">
+          <stop offset="0%" stopColor={sideShade} />
+          <stop offset="20%" stopColor="transparent" />
+          <stop offset="80%" stopColor="transparent" />
+          <stop offset="100%" stopColor={sideShade} />
+        </linearGradient>
+        <linearGradient id={hemShadeId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="72%" stopColor="transparent" />
+          <stop offset="100%" stopColor={hemShade} />
+        </linearGradient>
+        <radialGradient id={shoulderLightId} cx="50%" cy="20%" r="42%">
+          <stop offset="0%" stopColor={highlight} stopOpacity="0.9" />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
-        <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
-          <feOffset dx="0" dy="14" result="off" />
-          <feComponentTransfer><feFuncA type="linear" slope="0.35" /></feComponentTransfer>
-          <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
+        <clipPath id={printClipId}>
+          <path d={printPath} />
+        </clipPath>
+        <filter id={shirtShadowId} x="-20%" y="-20%" width="140%" height="150%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="8" />
+          <feOffset dx="0" dy="12" result="offset" />
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.24" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="offset" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
       </defs>
 
-      {/* Drop shadow under shirt */}
-      <ellipse cx="300" cy="660" rx="180" ry="14" fill="rgba(0,0,0,0.25)" />
+      <ellipse cx="300" cy="656" rx="132" ry="14" fill="rgba(0,0,0,0.18)" />
 
-      {/* T-shirt body path */}
-      <g filter="url(#softShadow)">
+      <g filter={`url(#${shirtShadowId})`}>
         <path
-          d="M 180 130
-             L 110 175
-             L 60 260
-             L 110 305
-             L 165 280
-             L 165 620
-             Q 165 640 185 640
-             L 415 640
-             Q 435 640 435 620
-             L 435 280
-             L 490 305
-             L 540 260
-             L 490 175
-             L 420 130
-             Q 380 175 300 175
-             Q 220 175 180 130 Z"
+          d={SHIRT_PATH}
           fill={color.hex}
-          stroke={shadow}
-          strokeWidth="1.5"
+          stroke={outline}
+          strokeWidth="1.4"
         />
-        {/* Shading overlays */}
-        <path
-          d="M 180 130
-             L 110 175
-             L 60 260
-             L 110 305
-             L 165 280
-             L 165 620
-             Q 165 640 185 640
-             L 415 640
-             Q 435 640 435 620
-             L 435 280
-             L 490 305
-             L 540 260
-             L 490 175
-             L 420 130
-             Q 380 175 300 175
-             Q 220 175 180 130 Z"
-          fill="url(#bodyShade)"
-        />
-        <path
-          d="M 180 130
-             L 110 175
-             L 60 260
-             L 110 305
-             L 165 280
-             L 165 620
-             Q 165 640 185 640
-             L 415 640
-             Q 435 640 435 620
-             L 435 280
-             L 490 305
-             L 540 260
-             L 490 175
-             L 420 130
-             Q 380 175 300 175
-             Q 220 175 180 130 Z"
-          fill="url(#centerLight)"
-        />
+        {artwork && (
+          <g clipPath={`url(#${printClipId})`}>
+            {!isLight && <path d={printPath} fill="rgba(255,255,255,0.045)" />}
+            <image
+              href={artwork}
+              x={194}
+              y={view === "front" ? 195 : 188}
+              width={212}
+              height={260}
+              preserveAspectRatio="xMidYMid meet"
+              style={{
+                mixBlendMode: isLight ? "multiply" : "normal",
+              }}
+            />
+          </g>
+        )}
 
-        {/* Collar */}
+        <path d={SHIRT_PATH} fill={`url(#${topLightId})`} />
+        <path d={SHIRT_PATH} fill={`url(#${shoulderLightId})`} />
+        <path d={SHIRT_PATH} fill={`url(#${sideShadeId})`} />
+        <path d={SHIRT_PATH} fill={`url(#${hemShadeId})`} />
+
         {view === "front" ? (
           <path
-            d="M 220 130
-               Q 300 200 380 130
-               Q 380 158 360 172
-               Q 300 200 240 172
-               Q 220 158 220 130 Z"
+            d={FRONT_COLLAR_PATH}
             fill={collarShade}
+            stroke={seam}
+            strokeWidth="1"
           />
         ) : (
           <path
-            d="M 235 130
-               Q 300 165 365 130
-               Q 365 148 355 156
-               Q 300 175 245 156
-               Q 235 148 235 130 Z"
+            d={BACK_COLLAR_PATH}
             fill={collarShade}
+            stroke={seam}
+            strokeWidth="1"
           />
         )}
 
-        {/* Sleeve seams */}
-        <path d="M 165 280 Q 175 290 195 290" stroke={shadow} strokeWidth="1.2" fill="none" opacity="0.5" />
-        <path d="M 435 280 Q 425 290 405 290" stroke={shadow} strokeWidth="1.2" fill="none" opacity="0.5" />
-        {/* Hem */}
-        <path d="M 170 632 L 430 632" stroke={shadow} strokeWidth="1" fill="none" opacity="0.4" />
+        <path d="M 167 264 Q 183 278 202 284" stroke={seam} strokeWidth="1.25" fill="none" opacity="0.56" />
+        <path d="M 433 264 Q 417 278 398 284" stroke={seam} strokeWidth="1.25" fill="none" opacity="0.56" />
+        <path d="M 178 632 L 422 632" stroke={seam} strokeWidth="1" fill="none" opacity="0.4" />
+        <path d="M 226 224 Q 300 238 374 224" stroke={shadow} strokeWidth="1" fill="none" opacity="0.25" />
+        <path d="M 210 330 Q 230 350 246 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.22" />
+        <path d="M 390 330 Q 370 350 354 336" stroke={shadow} strokeWidth="1.1" fill="none" opacity="0.22" />
       </g>
     </svg>
   );
@@ -139,6 +171,11 @@ export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
 
   const reset = () => setZoom(1);
+  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.08 : -0.08;
+    setZoom((current) => clampZoom(current + delta));
+  };
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -158,14 +195,14 @@ export function Mockup({ view, setView, color, artwork }: Props) {
         </div>
         <div className="absolute right-2 flex items-center gap-1">
           <button
-            onClick={() => setZoom((z) => Math.min(1.6, z + 0.1))}
+            onClick={() => setZoom((z) => clampZoom(z + 0.1))}
             className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
             aria-label="Zoom in"
           >
             <ZoomIn className="h-4 w-4" />
           </button>
           <button
-            onClick={() => setZoom((z) => Math.max(0.6, z - 0.1))}
+            onClick={() => setZoom((z) => clampZoom(z - 0.1))}
             className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
             aria-label="Zoom out"
           >
@@ -181,40 +218,25 @@ export function Mockup({ view, setView, color, artwork }: Props) {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
+      <div
+        className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted"
+        onWheel={handleWheel}
+      >
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "radial-gradient(circle at center, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 58%)" }}
+        />
         <div
           className="absolute inset-0 flex items-center justify-center transition-transform duration-300 ease-out"
           style={{ transform: `scale(${zoom})` }}
         >
           <div className="relative h-[88%] aspect-[6/7]">
-            <TShirtSVG color={color} view={view} />
-            {artwork && (
-              <div
-                className="pointer-events-none absolute"
-                style={{
-                  // Chest print area — same box for front and back
-                  left: "32%",
-                  top: "32%",
-                  width: "36%",
-                  height: "38%",
-                }}
-              >
-                <img
-                  src={artwork}
-                  alt="Custom design"
-                  crossOrigin="anonymous"
-                  className="h-full w-full object-contain"
-                  style={{
-                    mixBlendMode: ["white", "yellow"].includes(color.id) ? "multiply" : "normal",
-                  }}
-                />
-              </div>
-            )}
+            <TShirtSVG color={color} view={view} artwork={artwork} />
           </div>
         </div>
 
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-          {view === "front" ? "Front view" : "Back view"} · use zoom buttons
+          {view === "front" ? "Front view" : "Back view"} · wheel or buttons to zoom
         </div>
       </div>
     </div>
