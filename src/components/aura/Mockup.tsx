@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
@@ -54,14 +54,36 @@ function ShirtMockup({ color, artwork, view, zoom }: { color: ColorSwatch; artwo
 }
 
 function ArtworkPlane({ artwork, side }: { artwork: string; side: View }) {
-  const texture = useMemo(() => {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
-    const tex = loader.load(artwork, undefined, undefined, () => undefined);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 8;
-    return tex;
+
+    loader.load(
+      artwork,
+      (tex) => {
+        if (cancelled) {
+          tex.dispose();
+          return;
+        }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+        setTexture(tex);
+      },
+      undefined,
+      () => {
+        if (!cancelled) setTexture(null);
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
   }, [artwork]);
+
+  if (!texture) return null;
 
   return (
     <mesh position={side === "front" ? [0, 0.08, 0.475] : [0, 0.08, -0.475]} rotation={side === "front" ? [0, 0, 0] : [0, Math.PI, 0]} renderOrder={10}>
@@ -73,7 +95,12 @@ function ArtworkPlane({ artwork, side }: { artwork: string; side: View }) {
 
 export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const reset = () => {
     setZoom(1);
@@ -110,13 +137,17 @@ export function Mockup({ view, setView, color, artwork }: Props) {
       </div>
 
       <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
-        <Canvas shadows camera={{ position: [0, 0, 3.1], fov: 30 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
-          <ambientLight intensity={0.75} />
-          <directionalLight position={[2.5, 4, 4]} intensity={1.2} castShadow />
-          <directionalLight position={[-3, 2, 2]} intensity={0.45} />
-          <ShirtMockup color={color} artwork={artwork} view={view} zoom={zoom} />
-          <OrbitControls ref={controlsRef} enablePan={false} enableZoom minDistance={2.1} maxDistance={4.2} minPolarAngle={Math.PI / 2.7} maxPolarAngle={Math.PI / 1.75} rotateSpeed={0.8} />
-        </Canvas>
+        {mounted ? (
+          <Canvas shadows camera={{ position: [0, 0, 3.1], fov: 30 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: true }} dpr={[1, 1.5]}>
+            <ambientLight intensity={0.75} />
+            <directionalLight position={[2.5, 4, 4]} intensity={1.2} castShadow />
+            <directionalLight position={[-3, 2, 2]} intensity={0.45} />
+            <ShirtMockup color={color} artwork={artwork} view={view} zoom={zoom} />
+            <OrbitControls ref={controlsRef} enablePan={false} enableZoom minDistance={2.1} maxDistance={4.2} minPolarAngle={Math.PI / 2.7} maxPolarAngle={Math.PI / 1.75} rotateSpeed={0.8} />
+          </Canvas>
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading preview...</div>
+        )}
 
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
           Drag or scroll to view
