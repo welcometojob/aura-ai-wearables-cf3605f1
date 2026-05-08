@@ -1,4 +1,4 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown, Search } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown, Search, Check } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
@@ -30,6 +30,8 @@ export function LeftSidebar({
   const [showAllDesigns, setShowAllDesigns] = useState(false);
   const [designQuery, setDesignQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const isSelectedArtwork = (image: string) => artwork === image;
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -293,9 +295,16 @@ export function LeftSidebar({
                     toast.success(`Applied "${d.name}"`);
                   }}
                   title={d.name}
-                  className="group relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-background/40 transition hover:border-primary"
+                  className={`group relative aspect-square w-full overflow-hidden rounded-lg border bg-background/40 transition hover:border-primary ${
+                    isSelectedArtwork(d.image) ? "border-primary ring-1 ring-primary/40" : "border-border"
+                  }`}
                 >
                   <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
+                  {isSelectedArtwork(d.image) && (
+                    <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -309,9 +318,16 @@ export function LeftSidebar({
                     toast.success(`Applied "${d.name}"`);
                   }}
                   title={d.name}
-                  className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-background/40 transition hover:border-primary"
+                  className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-background/40 transition hover:border-primary ${
+                    isSelectedArtwork(d.image) ? "border-primary ring-1 ring-primary/40" : "border-border"
+                  }`}
                 >
                   <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
+                  {isSelectedArtwork(d.image) && (
+                    <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
