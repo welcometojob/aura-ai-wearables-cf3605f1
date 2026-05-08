@@ -56,6 +56,7 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
   const uid = useId().replace(/:/g, "");
   const isLight = ["white", "yellow"].includes(color.id);
   const isBlack = color.id === "black";
+  const artworkBlendMode = isLight ? "multiply" : isBlack ? "screen" : "normal";
   const shadow = isLight ? "rgba(0,0,0,0.12)" : isBlack ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0.22)";
   const highlight = isLight ? "rgba(255,255,255,0.28)" : isBlack ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)";
   const sideShade = isLight ? "rgba(0,0,0,0.06)" : isBlack ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.14)";
@@ -130,7 +131,9 @@ function TShirtSVG({ color, view, artwork }: { color: ColorSwatch; view: View; a
               height={260}
               preserveAspectRatio="xMidYMid meet"
               style={{
-                mixBlendMode: isLight ? "multiply" : "normal",
+                mixBlendMode: artworkBlendMode,
+                opacity: isBlack ? 0.98 : 1,
+                filter: isBlack ? "drop-shadow(0 3px 10px rgba(255,140,0,0.18)) saturate(1.08) contrast(1.05)" : "none",
               }}
             />
           </g>
