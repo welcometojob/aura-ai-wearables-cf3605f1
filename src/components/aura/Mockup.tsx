@@ -55,6 +55,10 @@ function Shirt({
 
   useEffect(() => {
     if (!material) return;
+    // Clear baked texture map so color appears pure (no dark smudge from baked shading)
+    if (material.map) {
+      material.map = null;
+    }
     material.color = new THREE.Color(color.hex);
     material.roughness = 0.85;
     material.metalness = 0.05;
@@ -85,9 +89,7 @@ function Shirt({
           material-roughness={0.85}
           scale={1}
         >
-          {artwork && (
-            <ArtworkDecal artwork={artwork} side={view} />
-          )}
+          {artwork && <ArtworkDecal artwork={artwork} side={view} />}
         </mesh>
       </Center>
     </group>
@@ -227,7 +229,9 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           <OrbitControls
             ref={controlsRef}
             enablePan={false}
-            enableZoom={false}
+            enableZoom={true}
+            minDistance={1.4}
+            maxDistance={4}
             minPolarAngle={Math.PI / 2.6}
             maxPolarAngle={Math.PI / 1.8}
             rotateSpeed={0.8}
