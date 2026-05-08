@@ -182,7 +182,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
 
         <Canvas
           shadows
-          camera={{ position: [0, 0, 2.4 / zoom], fov: 28 }}
+          camera={{ position: [0, 0, 2.4], fov: 28 }}
           gl={{ preserveDrawingBuffer: true, antialias: true }}
           dpr={[1, 2]}
         >
