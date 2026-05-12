@@ -1,10 +1,6 @@
-import { Suspense, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Center, Environment, OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
+import { useState, type WheelEvent } from "react";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
-import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 
 type Props = {
   view: View;
@@ -15,121 +11,30 @@ type Props = {
   fabric: string;
 };
 
-function ArtworkPlane({ url, view }: { url: string; view: View }) {
-  const texture = useLoader(THREE.TextureLoader, url);
-  texture.anisotropy = 16;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.generateMipmaps = true;
-  texture.needsUpdate = true;
-
-  const isBack = view === "back";
-
-  return (
-    <mesh position={[0, -0.08, isBack ? -0.075 : 0.075]} rotation={[0, isBack ? Math.PI : 0, 0]} renderOrder={10}>
-      <planeGeometry args={[0.56, 0.64]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        polygonOffset
-        polygonOffsetFactor={-10}
-        depthTest
-        depthWrite={false}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
-
-function Shirt({ color, artwork, view }: { color: string; artwork: string | null; view: View }) {
-  const shirtGeometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-0.34, 0.78);
-    shape.lineTo(-0.72, 0.53);
-    shape.lineTo(-0.88, 0.22);
-    shape.lineTo(-0.63, 0.02);
-    shape.lineTo(-0.45, 0.22);
-    shape.lineTo(-0.39, -0.86);
-    shape.lineTo(0.39, -0.86);
-    shape.lineTo(0.45, 0.22);
-    shape.lineTo(0.63, 0.02);
-    shape.lineTo(0.88, 0.22);
-    shape.lineTo(0.72, 0.53);
-    shape.lineTo(0.34, 0.78);
-    shape.bezierCurveTo(0.22, 0.62, -0.22, 0.62, -0.34, 0.78);
-    return new THREE.ExtrudeGeometry(shape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 8 });
-  }, []);
-
-  const shirtMaterial = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.88, metalness: 0, side: THREE.DoubleSide }),
-    [color],
-  );
-
-  return (
-    <group rotation={[0, view === "back" ? Math.PI : 0, 0]} scale={1.32}>
-      <mesh castShadow receiveShadow geometry={shirtGeometry} material={shirtMaterial} position={[0, 0, -0.07]} />
-      <mesh position={[0, 0.7, 0.08]} rotation={[0, 0, 0]}>
-        <torusGeometry args={[0.21, 0.026, 16, 64, Math.PI]} />
-        <meshStandardMaterial color={color} roughness={0.9} metalness={0} />
-      </mesh>
-      {artwork && (
-        <Suspense fallback={null}>
-          <ArtworkPlane url={artwork} view={view} />
-        </Suspense>
-      )}
-    </group>
-  );
-}
-
-function CameraRig({ zoom }: { zoom: number }) {
-  useFrame((state) => {
-    const targetZ = 1.6 / zoom;
-    state.camera.position.z += (targetZ - state.camera.position.z) * 0.1;
-    state.camera.updateProjectionMatrix();
-  });
-  return null;
-}
+const clamp = (v: number) => Math.max(0.72, Math.min(1.9, v));
 
 export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
-  const [mounted, setMounted] = useState(false);
-  const [textureArtwork, setTextureArtwork] = useState<string | null>(null);
-  const controlsRef = useRef<any>(null);
-
-  useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!artwork) {
-      setTextureArtwork(null);
-      return;
-    }
-    if (artwork.startsWith("data:")) {
-      setTextureArtwork(artwork);
-      return;
-    }
-    setTextureArtwork(null);
-    getArtworkDataUri({ data: { url: artwork } })
-      .then(({ dataUri }) => {
-        if (!cancelled) setTextureArtwork(dataUri);
-      })
-      .catch(() => {
-        if (!cancelled) setTextureArtwork(artwork);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [artwork]);
+  const [tilt, setTilt] = useState({ x: -7, y: view === "back" ? 180 : 0 });
 
   const reset = () => {
     setZoom(1);
-    controlsRef.current?.reset();
+    setTilt({ x: -7, y: view === "back" ? 180 : 0 });
   };
-  const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
+
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    setZoom((z) => clamp(z + (event.deltaY < 0 ? 0.12 : -0.12)));
+    setZoom((z) => clamp(z + (event.deltaY < 0 ? 0.1 : -0.1)));
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.buttons !== 1) return;
+    setTilt((t) => ({ x: Math.max(-18, Math.min(10, t.x - event.movementY * 0.18)), y: t.y + event.movementX * 0.35 }));
+  };
+
+  const switchView = (v: View) => {
+    setView(v);
+    setTilt((t) => ({ ...t, y: v === "back" ? 180 : 0 }));
   };
 
   return (
@@ -139,7 +44,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           {(["front", "back"] as View[]).map((v) => (
             <button
               key={v}
-              onClick={() => setView(v)}
+              onClick={() => switchView(v)}
               className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-wider transition-all ${
                 view === v ? "bg-primary text-primary-foreground neon-glow" : "text-muted-foreground hover:text-foreground"
               }`}
@@ -149,10 +54,10 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           ))}
         </div>
         <div className="absolute right-2 flex items-center gap-1">
-          <button onClick={() => setZoom((z) => clamp(z + 0.15))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom in">
+          <button onClick={() => setZoom((z) => clamp(z + 0.12))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom in">
             <ZoomIn className="h-4 w-4" />
           </button>
-          <button onClick={() => setZoom((z) => clamp(z - 0.15))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom out">
+          <button onClick={() => setZoom((z) => clamp(z - 0.12))} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Zoom out">
             <ZoomOut className="h-4 w-4" />
           </button>
           <button onClick={reset} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary" aria-label="Reset view">
@@ -161,35 +66,49 @@ export function Mockup({ view, setView, color, artwork }: Props) {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted" onWheel={handleWheel}>
-        {mounted && (
-          <Canvas
-            shadows
-            dpr={[1, 2]}
-            camera={{ position: [0, 0, 1.6], fov: 32 }}
-            gl={{ preserveDrawingBuffer: true, antialias: true }}
+      <div
+        className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted"
+        onWheel={handleWheel}
+        onPointerMove={handlePointerMove}
+      >
+        <div className="absolute inset-0 grid place-items-center [perspective:900px]">
+          <div
+            className="relative aspect-[5/6] w-[min(62vh,58%)] min-w-72 select-none transition-transform duration-200 ease-out"
+            style={{ transform: `scale(${zoom}) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}
           >
-            <ambientLight intensity={0.55} />
-            <directionalLight position={[3, 4, 5]} intensity={1.2} castShadow shadow-mapSize={[1024, 1024]} />
-            <directionalLight position={[-4, 2, 3]} intensity={0.5} />
-            <directionalLight position={[0, -3, -4]} intensity={0.35} />
-            <Environment preset="city" />
-            <Suspense fallback={null}>
-              <Center>
-                <Shirt color={color.hex} artwork={textureArtwork} view={view} />
-              </Center>
-            </Suspense>
-            <OrbitControls
-              ref={controlsRef}
-              enablePan={false}
-              enableZoom={false}
-              minDistance={0.8}
-              maxDistance={3.5}
-              autoRotate={false}
-            />
-            <CameraRig zoom={zoom} />
-          </Canvas>
-        )}
+            <svg viewBox="0 0 520 620" className="absolute inset-0 h-full w-full drop-shadow-2xl" aria-label="3D T-shirt mockup">
+              <defs>
+                <clipPath id="shirt-print-area">
+                  <path d="M170 190 C205 215 315 215 350 190 L374 496 C338 518 182 518 146 496 Z" />
+                </clipPath>
+                <linearGradient id="shirtShade" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="white" stopOpacity="0.24" />
+                  <stop offset="0.5" stopColor="white" stopOpacity="0.03" />
+                  <stop offset="1" stopColor="black" stopOpacity="0.22" />
+                </linearGradient>
+                <radialGradient id="bodyLight" cx="50%" cy="18%" r="72%">
+                  <stop offset="0" stopColor="white" stopOpacity="0.2" />
+                  <stop offset="0.55" stopColor="white" stopOpacity="0.02" />
+                  <stop offset="1" stopColor="black" stopOpacity="0.18" />
+                </radialGradient>
+                <filter id="softDepth" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="28" stdDeviation="22" floodOpacity="0.32" />
+                </filter>
+              </defs>
+
+              <path d="M164 82 L76 136 L40 236 L112 282 L145 232 L132 548 C184 576 336 576 388 548 L375 232 L408 282 L480 236 L444 136 L356 82 C333 121 187 121 164 82 Z" fill={color.hex} filter="url(#softDepth)" />
+              <path d="M164 82 L76 136 L40 236 L112 282 L145 232 L132 548 C184 576 336 576 388 548 L375 232 L408 282 L480 236 L444 136 L356 82 C333 121 187 121 164 82 Z" fill="url(#shirtShade)" />
+              <path d="M164 82 C196 146 324 146 356 82 C326 116 194 116 164 82 Z" fill="none" stroke="currentColor" strokeOpacity="0.28" strokeWidth="18" className="text-background" />
+              <path d="M145 232 C185 205 335 205 375 232" fill="none" stroke="currentColor" strokeOpacity="0.14" strokeWidth="3" className="text-background" />
+              <path d="M132 548 C184 576 336 576 388 548" fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth="10" className="text-background" />
+
+              <g clipPath="url(#shirt-print-area)">
+                {artwork && <image href={artwork} x="155" y="185" width="210" height="245" preserveAspectRatio="xMidYMid meet" />}
+                <path d="M145 182 C190 222 330 222 375 182 L388 512 C330 544 190 544 132 512 Z" fill="url(#bodyLight)" pointerEvents="none" />
+              </g>
+            </svg>
+          </div>
+        </div>
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
           Drag to rotate · Scroll to zoom
         </div>
