@@ -1,8 +1,9 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check, History } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
+import type { GenerationItem } from "@/hooks/use-generation-history";
 
 type Props = {
   prompt: string;
@@ -14,12 +15,16 @@ type Props = {
   onUploadImage: (dataUrl: string) => void;
   artwork: string | null;
   onDeleteArtwork: () => void;
+  generationHistory?: GenerationItem[];
+  onRemoveHistory?: (url: string) => void;
 };
 
 export function LeftSidebar({
   prompt, setPrompt, onGenerate, generating,
   selectedStyle, setSelectedStyle,
   onUploadImage, artwork, onDeleteArtwork,
+  generationHistory = [],
+  onRemoveHistory,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<string[]>([]);
@@ -148,6 +153,53 @@ export function LeftSidebar({
               <span className="absolute bottom-2 left-2 rounded-md bg-background/80 px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary backdrop-blur">
                 Current
               </span>
+            </div>
+          )}
+
+          {generationHistory.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center gap-2">
+                <History className="h-3 w-3 text-primary" />
+                <h4 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Your generations ({generationHistory.length})
+                </h4>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {generationHistory.map((g) => {
+                  const active = artwork === g.url;
+                  return (
+                    <div
+                      key={g.url}
+                      className={`group relative aspect-square overflow-hidden rounded-md border bg-background/40 transition hover:border-primary ${
+                        active ? "border-primary ring-1 ring-primary/40" : "border-border"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onUploadImage(g.url)}
+                        title={g.prompt}
+                        className="block h-full w-full"
+                      >
+                        <img src={g.url} alt={g.prompt} className="h-full w-full object-cover" />
+                      </button>
+                      {onRemoveHistory && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveHistory(g.url);
+                            if (active) onDeleteArtwork();
+                          }}
+                          aria-label="Remove from history"
+                          className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition group-hover:opacity-100 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </section>

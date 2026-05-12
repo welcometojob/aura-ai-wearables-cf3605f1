@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LogOut, Mail, User as UserIcon, Sparkles, Package, Coins } from "lucide-react";
+import { Loader2, LogOut, Mail, User as UserIcon, Sparkles, Package, Coins, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { useGenerationHistory } from "@/hooks/use-generation-history";
 
 type Tx = {
   id: string;
@@ -33,15 +34,18 @@ const STAGES = [
 export function ProfileDialog({
   open,
   onOpenChange,
+  onPickArtwork,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  onPickArtwork?: (url: string) => void;
 }) {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [txs, setTxs] = useState<Tx[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const { items: generations, remove: removeGen, clear: clearGen } = useGenerationHistory();
 
   useEffect(() => {
     if (!open || !user) return;
@@ -76,16 +80,17 @@ export function ProfileDialog({
     void navigate({ to: "/" });
   };
 
-  const generations = txs.filter((t) => t.type === "generation");
+  // unused: kept txs fetch for future credit usage display
+  void txs;
 
   if (!user) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Your Account</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Your Account</SheetTitle>
+        </SheetHeader>
 
         <div className="space-y-5">
           {/* Identity */}
@@ -130,40 +135,68 @@ export function ProfileDialog({
             </div>
           </div>
 
+          {/* Generated images gallery (localStorage) */}
+          <section>
+            <div className="mb-2 flex items-center justify-between">
+              <h4 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Sparkles className="h-3 w-3 text-primary" /> Your generations ({generations.length})
+              </h4>
+              {generations.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => clearGen()}
+                  className="text-[10px] text-muted-foreground hover:text-destructive"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+            {generations.length === 0 ? (
+              <p className="rounded-md border border-dashed border-border bg-background/30 p-3 text-center text-[11px] text-muted-foreground">
+                Your AI-generated images will appear here
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {generations.map((g) => (
+                  <div
+                    key={g.url}
+                    className="group relative aspect-square overflow-hidden rounded-md border border-border bg-background/40 hover:border-primary"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onPickArtwork?.(g.url);
+                        onOpenChange(false);
+                        toast.success("Applied to mockup");
+                      }}
+                      title={g.prompt}
+                      className="block h-full w-full"
+                    >
+                      <img src={g.url} alt={g.prompt} className="h-full w-full object-cover" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeGen(g.url);
+                      }}
+                      aria-label="Remove"
+                      className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition group-hover:opacity-100 hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           {loading ? (
             <div className="flex h-20 items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : (
             <>
-              {/* Generated images */}
-              <section>
-                <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Sparkles className="h-3 w-3 text-primary" /> Recent generations
-                </h4>
-                {generations.length === 0 ? (
-                  <p className="rounded-md border border-dashed border-border bg-background/30 p-3 text-center text-[11px] text-muted-foreground">
-                    No generations yet
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-border rounded-md border border-border">
-                    {generations.slice(0, 8).map((g) => (
-                      <li key={g.id} className="flex items-start gap-2 p-2.5 text-xs">
-                        <span className="mt-0.5 inline-flex shrink-0 items-center rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
-                          −{Math.abs(g.amount)}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-foreground/90" title={g.note ?? ""}>
-                          {g.note?.replace(/^AI generation:\s*/, "") || "AI generation"}
-                        </span>
-                        <span className="shrink-0 text-[10px] text-muted-foreground">
-                          {new Date(g.created_at).toLocaleDateString()}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-
               {/* Orders */}
               <section>
                 <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -197,7 +230,7 @@ export function ProfileDialog({
             </>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
