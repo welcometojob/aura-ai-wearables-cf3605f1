@@ -58,6 +58,7 @@ import trend4 from "@/assets/trend-4.jpg";
 import { fetchProducts, type AdminProduct } from "@/lib/admin-products";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchReviews, type Review } from "@/lib/reviews";
+import { lookupOrder, ORDER_STAGES, type Order } from "@/lib/orders";
 import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
 import { ImageLightbox } from "@/components/aura/ImageLightbox";
 import { supabase } from "@/integrations/supabase/client";
