@@ -80,7 +80,8 @@ export function ProfileDialog({
     void navigate({ to: "/" });
   };
 
-  const generations = txs.filter((t) => t.type === "generation");
+  // unused: kept txs fetch for future credit usage display
+  void txs;
 
   if (!user) return null;
 
