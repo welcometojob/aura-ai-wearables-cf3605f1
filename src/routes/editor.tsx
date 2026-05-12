@@ -7,7 +7,7 @@ const Mockup = lazy(() =>
   import("@/components/aura/Mockup").then((m) => ({ default: m.Mockup })),
 );
 import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
-import { ArrowLeft, User, Sun, Moon, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Sun, Moon, Loader2, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
@@ -16,6 +16,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { generateOpenAIArtwork } from "@/server/openai.functions";
 import { ProfileDialog } from "@/components/aura/ProfileDialog";
 import { useGenerationHistory } from "@/hooks/use-generation-history";
+import { useCart } from "@/hooks/use-cart";
+import { CartDrawer } from "@/components/aura/CartDrawer";
+import { BuyNowDrawer, type BuyNowItem } from "@/components/aura/BuyNowDrawer";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -34,10 +37,13 @@ function Editor() {
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
   const [artwork, setArtwork] = useState<string | null>(null);
   const credits = profile?.credits_remaining ?? 0;
   const { items: history, add: addHistory, remove: removeHistory } = useGenerationHistory();
+  const cart = useCart();
 
   const [view, setView] = useState<View>("front");
   const [fit, setFit] = useState<Fit>("Men");
@@ -47,7 +53,8 @@ function Editor() {
   const [quantity, setQuantity] = useState(1);
 
   const artworkFee = artwork ? 4 : 0;
-  const total = useMemo(() => (product.price + artworkFee) * quantity, [product.price, artworkFee, quantity]);
+  const unitPrice = product.price + artworkFee;
+  const total = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -114,6 +121,20 @@ function Editor() {
           <CreditsTopUp credits={credits} />
           <button
             type="button"
+            onClick={() => setCartOpen(true)}
+            aria-label="Open cart"
+            title="Cart"
+            className="relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground transition hover:border-primary hover:text-primary"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {cart.totalCount > 0 && (
+              <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                {cart.totalCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
             onClick={() => {
               if (!user) {
                 void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
@@ -133,6 +154,12 @@ function Editor() {
         open={profileOpen}
         onOpenChange={setProfileOpen}
         onPickArtwork={(url) => setArtwork(url)}
+      />
+      <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      <BuyNowDrawer
+        open={buyNowItem !== null}
+        onOpenChange={(v) => { if (!v) setBuyNowItem(null); }}
+        item={buyNowItem}
       />
       <div className="flex flex-1 overflow-hidden">
       <LeftSidebar
@@ -183,6 +210,19 @@ function Editor() {
         quantity={quantity}
         setQuantity={setQuantity}
         total={total}
+        unitPrice={unitPrice}
+        artwork={artwork}
+        onAddToCart={(item) => cart.add(item)}
+        onBuyNow={() => {
+          setBuyNowItem({
+            name: `${fit}'s ${product.name} · ${color.name} · ${size}`,
+            description: artwork ? "Includes custom AI artwork" : undefined,
+            unitPrice,
+            quantity,
+            image: artwork,
+            colorHex: color.hex,
+          });
+        }}
       />
       </div>
     </div>
