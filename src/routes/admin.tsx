@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,14 @@ import {
   type ReadyDesign,
 } from "@/lib/ready-designs";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  ORDER_STAGES,
+  createOrder,
+  deleteOrder,
+  fetchOrders,
+  updateOrderStage,
+  type Order,
+} from "@/lib/orders";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -166,6 +174,9 @@ function AdminPage() {
             <TabsTrigger value="designs">
               <Shirt className="h-4 w-4" /> Ready Designs
             </TabsTrigger>
+            <TabsTrigger value="orders">
+              <ClipboardList className="h-4 w-4" /> Orders
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="products" className="grid lg:grid-cols-5 gap-8">
         <section className="lg:col-span-2">
@@ -307,6 +318,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="designs">
             <ReadyDesignsManager userId={user.id} />
+          </TabsContent>
+          <TabsContent value="orders">
+            <OrdersManager />
           </TabsContent>
         </Tabs>
       </main>
@@ -459,6 +473,175 @@ function ReadyDesignsManager({ userId }: { userId: string }) {
                       {d.category}
                     </div>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function OrdersManager() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [orderNumber, setOrderNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [itemSummary, setItemSummary] = useState("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchOrders()
+      .then(setOrders)
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Failed to load orders"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderNumber.trim()) return;
+    setSubmitting(true);
+    try {
+      const created = await createOrder({
+        orderNumber: orderNumber,
+        customerName,
+        customerEmail,
+        itemSummary,
+        notes,
+      });
+      setOrders((prev) => [created, ...prev]);
+      toast.success("Order created");
+      setOrderNumber(""); setCustomerName(""); setCustomerEmail(""); setItemSummary(""); setNotes("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create order");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onSetStage = async (id: string, stage: number) => {
+    setUpdating(id);
+    try {
+      await updateOrderStage(id, stage);
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, stage } : o)));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update stage");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const onDelete = async (id: string) => {
+    try {
+      await deleteOrder(id);
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+      toast.success("Order deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete");
+    }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-5 gap-8">
+      <section className="lg:col-span-2">
+        <div className="glass rounded-2xl p-6">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Plus className="h-4 w-4 text-primary" /> Create order
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Issue an order number to give your customer for tracking.
+          </p>
+          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Order number</label>
+              <Input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} placeholder="TM-2026-0001" className="mt-1.5" required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Customer name</label>
+                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="mt-1.5" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Email</label>
+                <Input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="mt-1.5" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Item summary</label>
+              <Input value={itemSummary} onChange={(e) => setItemSummary(e.target.value)} placeholder="Black Tee · L · Neon Koi" className="mt-1.5" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Notes</label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="mt-1.5" />
+            </div>
+            <Button type="submit" variant="hero" className="w-full" disabled={submitting}>
+              {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : "Create order"}
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      <section className="lg:col-span-3">
+        <div className="flex items-end justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-semibold">Orders ({orders.length})</h2>
+            <p className="text-xs text-muted-foreground">Tick the next stage to update what the customer sees.</p>
+          </div>
+        </div>
+        {loading ? (
+          <div className="py-16 grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+        ) : orders.length === 0 ? (
+          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
+            No orders yet. Create your first order on the left.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((o) => (
+              <div key={o.id} className="glass rounded-2xl p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm">#{o.orderNumber}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {o.customerName || "—"}{o.customerEmail ? ` · ${o.customerEmail}` : ""}
+                    </div>
+                    {o.itemSummary && (
+                      <div className="mt-1 text-xs text-muted-foreground truncate">{o.itemSummary}</div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onDelete(o.id)}
+                    className="h-8 w-8 grid place-items-center rounded-lg bg-background/60 border border-border/60 hover:border-destructive hover:text-destructive transition shrink-0"
+                    aria-label="Delete order"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {ORDER_STAGES.map((label, i) => {
+                    const reached = i <= o.stage;
+                    const isCurrent = i === o.stage;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        disabled={updating === o.id}
+                        onClick={() => onSetStage(o.id, i)}
+                        className={`text-[11px] rounded-lg px-2 py-2 border flex items-center justify-center gap-1 transition ${
+                          reached
+                            ? "border-primary/50 bg-primary/15 text-foreground"
+                            : "border-border/60 text-muted-foreground hover:border-primary/40"
+                        } ${isCurrent ? "ring-1 ring-primary" : ""}`}
+                      >
+                        {reached && <Check className="h-3 w-3 text-primary" />}
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

@@ -58,6 +58,7 @@ import trend4 from "@/assets/trend-4.jpg";
 import { fetchProducts, type AdminProduct } from "@/lib/admin-products";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchReviews, type Review } from "@/lib/reviews";
+import { lookupOrder, ORDER_STAGES, type Order } from "@/lib/orders";
 import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
 import { ImageLightbox } from "@/components/aura/ImageLightbox";
 import { supabase } from "@/integrations/supabase/client";
@@ -306,7 +307,12 @@ function HowItWorks() {
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 grid place-items-center ring-glow">
                   <s.icon className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-5xl font-extrabold text-foreground/5">0{i + 1}</span>
+                <span
+                  aria-hidden
+                  className="text-6xl font-black leading-none text-gradient drop-shadow-[0_0_18px_oklch(0.62_0.21_264/0.45)]"
+                >
+                  0{i + 1}
+                </span>
               </div>
               <h3 className="text-xl font-semibold">{s.title}</h3>
               <p className="mt-2 text-muted-foreground text-sm leading-relaxed">{s.desc}</p>
@@ -758,6 +764,7 @@ function Reviews() {
   const [sort, setSort] = useState<SortMode>("newest");
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -783,7 +790,7 @@ function Reviews() {
     return { star, count, pct: total ? Math.round((count / total) * 100) : 0 };
   });
 
-  const visible = reviews
+  const filtered = reviews
     .filter((r) => (filter === 0 ? true : Math.round(r.rating) === filter))
     .sort((a, b) => {
       if (sort === "newest") return +new Date(b.createdAt) - +new Date(a.createdAt);
@@ -791,6 +798,10 @@ function Reviews() {
       if (sort === "highest") return b.rating - a.rating;
       return a.rating - b.rating;
     });
+
+  const PREVIEW_COUNT = 6;
+  const visible = expanded ? filtered : filtered.slice(0, PREVIEW_COUNT);
+  const hiddenCount = Math.max(0, filtered.length - visible.length);
 
   const onWriteReview = () => {
     if (!user) {
@@ -977,6 +988,20 @@ function Reviews() {
           </div>
         )}
 
+        {filtered.length > PREVIEW_COUNT && (
+          <div className="mt-10 flex justify-center">
+            <Button
+              variant="ghostNeon"
+              size="lg"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded
+                ? "Show fewer reviews"
+                : `Show all reviews (${hiddenCount} more)`}
+            </Button>
+          </div>
+        )}
+
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button variant="hero" size="lg" onClick={onWriteReview}>
             <PenSquare className="h-4 w-4" />
@@ -1008,15 +1033,29 @@ function Reviews() {
 
 function OrderTracking() {
   const [orderId, setOrderId] = useState("");
-  const [status, setStatus] = useState<null | { id: string; stage: number }>(null);
-  const stages = ["Order placed", "In production", "Shipped", "Out for delivery", "Delivered"];
+  const [status, setStatus] = useState<Order | null>(null);
+  const [tracking, setTracking] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const stages = ORDER_STAGES;
 
-  const onTrack = (e: React.FormEvent) => {
+  const onTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderId.trim()) return;
-    // demo: derive a stage from the id length
-    const stage = Math.min(4, Math.max(0, orderId.trim().length % 5));
-    setStatus({ id: orderId.trim(), stage });
+    setTracking(true);
+    setNotFound(false);
+    setStatus(null);
+    try {
+      const order = await lookupOrder(orderId);
+      if (!order) {
+        setNotFound(true);
+      } else {
+        setStatus(order);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to look up order");
+    } finally {
+      setTracking(false);
+    }
   };
 
   return (
@@ -1042,16 +1081,22 @@ function OrderTracking() {
                 className="h-12 pl-9 bg-background/40 border-border/60"
               />
             </div>
-            <Button type="submit" variant="hero" size="lg">
-              Track Order
+            <Button type="submit" variant="hero" size="lg" disabled={tracking}>
+              {tracking ? (<><Loader2 className="h-4 w-4 animate-spin" /> Tracking…</>) : "Track Order"}
             </Button>
           </form>
+
+          {notFound && (
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              No order found with that number. Double-check your confirmation email.
+            </div>
+          )}
 
           {status && (
             <div className="mt-10 animate-fade-up">
               <div className="flex items-center justify-between mb-4 text-sm">
                 <div className="text-muted-foreground">
-                  Order <span className="text-foreground font-semibold">#{status.id}</span>
+                  Order <span className="text-foreground font-semibold">#{status.orderNumber}</span>
                 </div>
                 <div className="text-primary font-medium">{stages[status.stage]}</div>
               </div>
@@ -1075,6 +1120,22 @@ function OrderTracking() {
                   </li>
                 ))}
               </ol>
+              {(status.itemSummary || status.notes) && (
+                <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+                  {status.itemSummary && (
+                    <div className="glass rounded-xl p-4">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Item</div>
+                      <div>{status.itemSummary}</div>
+                    </div>
+                  )}
+                  {status.notes && (
+                    <div className="glass rounded-xl p-4">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Latest update</div>
+                      <div className="whitespace-pre-line">{status.notes}</div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1282,9 +1343,6 @@ function Footer() {
               coming
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Design and order TommyMeow on the go. Available soon on iOS and Android.
-          </p>
           <div className="flex flex-col gap-2.5">
             <button
               type="button"
