@@ -13,6 +13,7 @@ import { TextureLoader } from "three";
 import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
+import { Slider } from "@/components/ui/slider";
 
 type Props = {
   view: View;
@@ -28,32 +29,37 @@ useGLTF.preload("/models/shirt.glb");
 function ArtworkDecal({
   url,
   side,
+  scale,
 }: {
   url: string;
   side: "front" | "back";
+  scale: number;
 }) {
   const texture = useLoader(TextureLoader, url);
   useEffect(() => {
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 8;
+    texture.anisotropy = 16;
+    texture.minFilter = THREE.LinearMipMapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = true;
     texture.needsUpdate = true;
   }, [texture]);
 
   // Position on chest (front) / upper back (back)
   const z = side === "front" ? 0.15 : -0.15;
   const rotY = side === "front" ? 0 : Math.PI;
+  const s = scale;
 
   return (
     <Decal
       position={[0, 0.04, z]}
       rotation={[0, rotY, 0]}
-      scale={[0.18, 0.22, 0.18]}
+      scale={[0.22 * s, 0.27 * s, 0.22 * s]}
     >
-      <meshStandardMaterial
+      <meshBasicMaterial
         map={texture}
         transparent
-        roughness={0.85}
-        metalness={0}
+        toneMapped={false}
         depthTest
         depthWrite={false}
         polygonOffset
@@ -66,10 +72,12 @@ function ArtworkDecal({
 function Shirt({
   color,
   artworkUri,
+  artworkScale,
   view,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
+  artworkScale: { front: number; back: number };
   view: View;
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
@@ -121,12 +129,12 @@ function Shirt({
         >
           {artworkUri.front && (
             <Suspense fallback={null}>
-              <ArtworkDecal url={artworkUri.front} side="front" />
+              <ArtworkDecal url={artworkUri.front} side="front" scale={artworkScale.front} />
             </Suspense>
           )}
           {artworkUri.back && (
             <Suspense fallback={null}>
-              <ArtworkDecal url={artworkUri.back} side="back" />
+              <ArtworkDecal url={artworkUri.back} side="back" scale={artworkScale.back} />
             </Suspense>
           )}
         </mesh>
@@ -151,6 +159,8 @@ export function Mockup({ view, setView, color, artwork }: Props) {
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
   const [backArt, setBackArt] = useState<string | null>(null);
+  const [frontScale, setFrontScale] = useState(1);
+  const [backScale, setBackScale] = useState(1);
   const [loadingArt, setLoadingArt] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -261,6 +271,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
               <Shirt
                 color={color.hex}
                 artworkUri={{ front: frontArt, back: backArt }}
+                artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
               />
             </Suspense>
@@ -291,6 +302,29 @@ export function Mockup({ view, setView, color, artwork }: Props) {
           Drag to rotate · Scroll to zoom
         </div>
       </div>
+
+      {((view === "front" && frontArt) || (view === "back" && backArt)) && (
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-border bg-card/60 px-4 py-3 backdrop-blur">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Artwork size
+          </span>
+          <Slider
+            value={[view === "back" ? backScale : frontScale]}
+            min={0.4}
+            max={1.8}
+            step={0.01}
+            onValueChange={(v) => {
+              const next = v[0] ?? 1;
+              if (view === "back") setBackScale(next);
+              else setFrontScale(next);
+            }}
+            className="flex-1"
+          />
+          <span className="w-12 text-right text-xs tabular-nums text-muted-foreground">
+            {Math.round((view === "back" ? backScale : frontScale) * 100)}%
+          </span>
+        </div>
+      )}
     </div>
   );
 }
