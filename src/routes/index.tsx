@@ -763,6 +763,7 @@ function Reviews() {
   const [sort, setSort] = useState<SortMode>("newest");
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -788,7 +789,7 @@ function Reviews() {
     return { star, count, pct: total ? Math.round((count / total) * 100) : 0 };
   });
 
-  const visible = reviews
+  const filtered = reviews
     .filter((r) => (filter === 0 ? true : Math.round(r.rating) === filter))
     .sort((a, b) => {
       if (sort === "newest") return +new Date(b.createdAt) - +new Date(a.createdAt);
@@ -796,6 +797,10 @@ function Reviews() {
       if (sort === "highest") return b.rating - a.rating;
       return a.rating - b.rating;
     });
+
+  const PREVIEW_COUNT = 6;
+  const visible = expanded ? filtered : filtered.slice(0, PREVIEW_COUNT);
+  const hiddenCount = Math.max(0, filtered.length - visible.length);
 
   const onWriteReview = () => {
     if (!user) {
