@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Center, Decal, Environment, OrbitControls, useGLTF } from "@react-three/drei";
+import { Center, Environment, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
@@ -15,9 +15,7 @@ type Props = {
   fabric: string;
 };
 
-useGLTF.preload("/models/shirt.glb");
-
-function ArtworkDecal({ url, view }: { url: string; view: View }) {
+function ArtworkPlane({ url, view }: { url: string; view: View }) {
   const texture = useLoader(THREE.TextureLoader, url);
   texture.anisotropy = 16;
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -29,7 +27,8 @@ function ArtworkDecal({ url, view }: { url: string; view: View }) {
   const isBack = view === "back";
 
   return (
-    <Decal position={[0, -0.035, isBack ? -0.132 : 0.152]} rotation={[0, isBack ? Math.PI : 0, 0]} scale={[0.24, 0.28, 0.24]}>
+    <mesh position={[0, -0.08, isBack ? -0.075 : 0.075]} rotation={[0, isBack ? Math.PI : 0, 0]} renderOrder={10}>
+      <planeGeometry args={[0.56, 0.64]} />
       <meshBasicMaterial
         map={texture}
         transparent
@@ -39,40 +38,46 @@ function ArtworkDecal({ url, view }: { url: string; view: View }) {
         depthWrite={false}
         toneMapped={false}
       />
-    </Decal>
+    </mesh>
   );
 }
 
 function Shirt({ color, artwork, view }: { color: string; artwork: string | null; view: View }) {
-  const { nodes, materials } = useGLTF("/models/shirt.glb") as any;
+  const shirtGeometry = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-0.34, 0.78);
+    shape.lineTo(-0.72, 0.53);
+    shape.lineTo(-0.88, 0.22);
+    shape.lineTo(-0.63, 0.02);
+    shape.lineTo(-0.45, 0.22);
+    shape.lineTo(-0.39, -0.86);
+    shape.lineTo(0.39, -0.86);
+    shape.lineTo(0.45, 0.22);
+    shape.lineTo(0.63, 0.02);
+    shape.lineTo(0.88, 0.22);
+    shape.lineTo(0.72, 0.53);
+    shape.lineTo(0.34, 0.78);
+    shape.bezierCurveTo(0.22, 0.62, -0.22, 0.62, -0.34, 0.78);
+    return new THREE.ExtrudeGeometry(shape, { depth: 0.14, bevelEnabled: true, bevelSize: 0.018, bevelThickness: 0.018, bevelSegments: 8 });
+  }, []);
 
-  const meshNode = Object.values(nodes).find(
-    (n: any) => n?.isMesh
-  ) as THREE.Mesh | undefined;
-  const material = (materials && Object.values(materials)[0]) as THREE.MeshStandardMaterial | undefined;
-
-  const shirtMaterial = useMemo(() => {
-    if (!material) return null;
-    const clone = material.clone();
-    clone.color = new THREE.Color(color);
-    clone.roughness = 0.92;
-    clone.metalness = 0;
-    clone.map = null;
-    clone.normalMap = null;
-    return clone;
-  }, [color, material]);
-
-  if (!meshNode || !shirtMaterial) return null;
+  const shirtMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.88, metalness: 0, side: THREE.DoubleSide }),
+    [color],
+  );
 
   return (
-    <group rotation={[0, view === "back" ? Math.PI : 0, 0]} dispose={null}>
-      <mesh castShadow receiveShadow geometry={meshNode.geometry} material={shirtMaterial}>
-        {artwork && (
-          <Suspense fallback={null}>
-            <ArtworkDecal url={artwork} view={view} />
-          </Suspense>
-        )}
+    <group rotation={[0, view === "back" ? Math.PI : 0, 0]} scale={1.32}>
+      <mesh castShadow receiveShadow geometry={shirtGeometry} material={shirtMaterial} position={[0, 0, -0.07]} />
+      <mesh position={[0, 0.7, 0.08]} rotation={[0, 0, 0]}>
+        <torusGeometry args={[0.21, 0.026, 16, 64, Math.PI]} />
+        <meshStandardMaterial color={color} roughness={0.9} metalness={0} />
       </mesh>
+      {artwork && (
+        <Suspense fallback={null}>
+          <ArtworkPlane url={artwork} view={view} />
+        </Suspense>
+      )}
     </group>
   );
 }
