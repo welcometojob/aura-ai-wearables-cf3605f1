@@ -1,8 +1,9 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check, History } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
+import type { GenerationItem } from "@/hooks/use-generation-history";
 
 type Props = {
   prompt: string;
@@ -14,12 +15,16 @@ type Props = {
   onUploadImage: (dataUrl: string) => void;
   artwork: string | null;
   onDeleteArtwork: () => void;
+  generationHistory?: GenerationItem[];
+  onRemoveHistory?: (url: string) => void;
 };
 
 export function LeftSidebar({
   prompt, setPrompt, onGenerate, generating,
   selectedStyle, setSelectedStyle,
   onUploadImage, artwork, onDeleteArtwork,
+  generationHistory = [],
+  onRemoveHistory,
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<string[]>([]);
