@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ElementType, type ReactNode } from "react";
 import brandLogo from "@/assets/tommymeow-logo.png";
 import {
   Sparkles,
@@ -373,7 +373,7 @@ function FeatureCard({
   desc,
   className = "",
 }: {
-  icon: React.ElementType;
+  icon: ElementType;
   title: string;
   desc: string;
   className?: string;
