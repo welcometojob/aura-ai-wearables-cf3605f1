@@ -1,7 +1,5 @@
 import { Ruler, Check, Minus, Plus, ShoppingCart, Zap, Truck, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
 import { COLORS, PRODUCT_STYLES, SIZES, type ColorSwatch, type Fit, type ProductStyle, type Size } from "@/lib/aura-config";
 
 type Props = {
@@ -15,35 +13,44 @@ type Props = {
   setSize: (s: Size) => void;
   quantity: number;
   total: number;
+  unitPrice: number;
+  artwork: string | null;
+  onAddToCart: (item: {
+    productId: string;
+    productName: string;
+    fit: string;
+    colorName: string;
+    colorHex: string;
+    size: string;
+    quantity: number;
+    unitPrice: number;
+    artwork: string | null;
+  }) => void;
+  onBuyNow: () => void;
 };
 
 export function RightSidebar({
-  fit, setFit, product, setProduct, color, setColor, size, setSize, quantity, setQuantity, total,
+  fit, setFit, product, setProduct, color, setColor, size, setSize, quantity, setQuantity, total, unitPrice, artwork, onAddToCart, onBuyNow,
 }: Props & { setQuantity: (q: number) => void }) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const requireAuth = (intent: "cart" | "buy") => {
-    if (!user) {
-      toast.info("Please sign in to continue your purchase.");
-      void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
-      return false;
-    }
-    return true;
-  };
-
   const handleAddToCart = () => {
-    if (!requireAuth("cart")) return;
+    onAddToCart({
+      productId: product.id,
+      productName: product.name,
+      fit,
+      colorName: color.name,
+      colorHex: color.hex,
+      size,
+      quantity,
+      unitPrice,
+      artwork,
+    });
     toast.success(
       `Added to cart: ${fit}'s ${product.name} · ${color.name} · ${size} · ×${quantity}`,
     );
   };
 
   const handleBuyNow = () => {
-    if (!requireAuth("buy")) return;
-    toast.message("Checkout coming soon", {
-      description: `${fit}'s ${product.name} · ${color.name} · ${size} · ×${quantity} — $${total.toFixed(2)}`,
-    });
+    onBuyNow();
   };
 
   return (
