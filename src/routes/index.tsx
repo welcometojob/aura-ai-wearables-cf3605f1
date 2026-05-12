@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useState, type ElementType, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import brandLogo from "@/assets/tommymeow-logo.png";
 import {
   Sparkles,
@@ -38,6 +38,7 @@ import {
   Loader2,
   PenSquare,
   ArrowDownNarrowWide,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -373,7 +374,7 @@ function FeatureCard({
   desc,
   className = "",
 }: {
-  icon: ElementType;
+  icon: LucideIcon;
   title: string;
   desc: string;
   className?: string;
