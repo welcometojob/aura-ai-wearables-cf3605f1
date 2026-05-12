@@ -194,12 +194,7 @@ function CameraRig({ zoom }: { zoom: number }) {
 
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
-export function Mockup({ view, setView, color, artwork }: Props) {
-  // fit is part of Props but destructured below to avoid breaking callers
-  return <MockupInner view={view} setView={setView} color={color} artwork={artwork} />;
-}
-
-function MockupInner({ view, setView, color, artwork, fit = "Men" }: Props) {
+export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
   const [zoom, setZoom] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
