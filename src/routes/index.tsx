@@ -1033,15 +1033,29 @@ function Reviews() {
 
 function OrderTracking() {
   const [orderId, setOrderId] = useState("");
-  const [status, setStatus] = useState<null | { id: string; stage: number }>(null);
-  const stages = ["Order placed", "In production", "Shipped", "Out for delivery", "Delivered"];
+  const [status, setStatus] = useState<Order | null>(null);
+  const [tracking, setTracking] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const stages = ORDER_STAGES;
 
-  const onTrack = (e: React.FormEvent) => {
+  const onTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderId.trim()) return;
-    // demo: derive a stage from the id length
-    const stage = Math.min(4, Math.max(0, orderId.trim().length % 5));
-    setStatus({ id: orderId.trim(), stage });
+    setTracking(true);
+    setNotFound(false);
+    setStatus(null);
+    try {
+      const order = await lookupOrder(orderId);
+      if (!order) {
+        setNotFound(true);
+      } else {
+        setStatus(order);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to look up order");
+    } finally {
+      setTracking(false);
+    }
   };
 
   return (
@@ -1067,16 +1081,22 @@ function OrderTracking() {
                 className="h-12 pl-9 bg-background/40 border-border/60"
               />
             </div>
-            <Button type="submit" variant="hero" size="lg">
-              Track Order
+            <Button type="submit" variant="hero" size="lg" disabled={tracking}>
+              {tracking ? (<><Loader2 className="h-4 w-4 animate-spin" /> Tracking…</>) : "Track Order"}
             </Button>
           </form>
+
+          {notFound && (
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              No order found with that number. Double-check your confirmation email.
+            </div>
+          )}
 
           {status && (
             <div className="mt-10 animate-fade-up">
               <div className="flex items-center justify-between mb-4 text-sm">
                 <div className="text-muted-foreground">
-                  Order <span className="text-foreground font-semibold">#{status.id}</span>
+                  Order <span className="text-foreground font-semibold">#{status.orderNumber}</span>
                 </div>
                 <div className="text-primary font-medium">{stages[status.stage]}</div>
               </div>
@@ -1100,6 +1120,22 @@ function OrderTracking() {
                   </li>
                 ))}
               </ol>
+              {(status.itemSummary || status.notes) && (
+                <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+                  {status.itemSummary && (
+                    <div className="glass rounded-xl p-4">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Item</div>
+                      <div>{status.itemSummary}</div>
+                    </div>
+                  )}
+                  {status.notes && (
+                    <div className="glass rounded-xl p-4">
+                      <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Latest update</div>
+                      <div className="whitespace-pre-line">{status.notes}</div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
