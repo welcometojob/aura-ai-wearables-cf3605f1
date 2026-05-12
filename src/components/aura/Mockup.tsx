@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Center, Decal, Environment, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -122,7 +122,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
     controlsRef.current?.reset();
   };
   const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
     setZoom((z) => clamp(z + (event.deltaY < 0 ? 0.12 : -0.12)));
   };
