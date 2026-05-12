@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { generateOpenAIArtwork } from "@/server/openai.functions";
 import { ProfileDialog } from "@/components/aura/ProfileDialog";
+import { useGenerationHistory } from "@/hooks/use-generation-history";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -36,6 +37,7 @@ function Editor() {
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
   const [artwork, setArtwork] = useState<string | null>(null);
   const credits = profile?.credits_remaining ?? 0;
+  const { items: history, add: addHistory, remove: removeHistory } = useGenerationHistory();
 
   const [view, setView] = useState<View>("front");
   const [fit, setFit] = useState<Fit>("Men");
@@ -68,6 +70,7 @@ function Editor() {
         data: { prompt: prompt.trim(), style: selectedStyle },
       });
       setArtwork(url);
+      addHistory({ url, prompt: prompt.trim(), style: selectedStyle });
       const { error } = await supabase.rpc("consume_credit", {
         _amount: 1,
         _note: `AI generation: ${prompt.slice(0, 80)}`,
@@ -126,7 +129,11 @@ function Editor() {
           </button>
         </div>
       </header>
-      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
+      <ProfileDialog
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        onPickArtwork={(url) => setArtwork(url)}
+      />
       <div className="flex flex-1 overflow-hidden">
       <LeftSidebar
         prompt={prompt}
@@ -138,6 +145,8 @@ function Editor() {
         onUploadImage={(u) => setArtwork(u)}
         artwork={artwork}
         onDeleteArtwork={() => setArtwork(null)}
+        generationHistory={history}
+        onRemoveHistory={removeHistory}
       />
 
       <main className="flex flex-1 flex-col">
@@ -156,6 +165,7 @@ function Editor() {
             artwork={artwork}
             styleName={`${fit}'s ${product.name}`}
             fabric={fabric}
+            fit={fit}
             />
           </Suspense>
         </section>
