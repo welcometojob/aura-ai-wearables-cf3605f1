@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,14 @@ import {
   type ReadyDesign,
 } from "@/lib/ready-designs";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  ORDER_STAGES,
+  createOrder,
+  deleteOrder,
+  fetchOrders,
+  updateOrderStage,
+  type Order,
+} from "@/lib/orders";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -166,6 +174,9 @@ function AdminPage() {
             <TabsTrigger value="designs">
               <Shirt className="h-4 w-4" /> Ready Designs
             </TabsTrigger>
+            <TabsTrigger value="orders">
+              <ClipboardList className="h-4 w-4" /> Orders
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="products" className="grid lg:grid-cols-5 gap-8">
         <section className="lg:col-span-2">
@@ -307,6 +318,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="designs">
             <ReadyDesignsManager userId={user.id} />
+          </TabsContent>
+          <TabsContent value="orders">
+            <OrdersManager />
           </TabsContent>
         </Tabs>
       </main>
