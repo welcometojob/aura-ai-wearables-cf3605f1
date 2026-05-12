@@ -1343,9 +1343,6 @@ function Footer() {
               coming
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Design and order TommyMeow on the go. Available soon on iOS and Android.
-          </p>
           <div className="flex flex-col gap-2.5">
             <button
               type="button"
