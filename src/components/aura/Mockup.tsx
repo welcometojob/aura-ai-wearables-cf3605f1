@@ -80,15 +80,31 @@ function Shirt({
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
 
+  // Build a clean fabric material — strip any baked textures (AO/diffuse/normal)
+  // from the GLB that were producing the dark stain-like patches on the shirt.
+  const fabricMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(color),
+      roughness: 0.78,
+      metalness: 0,
+      map: null,
+      normalMap: null,
+      aoMap: null,
+      roughnessMap: null,
+      metalnessMap: null,
+      emissiveMap: null,
+      bumpMap: null,
+      displacementMap: null,
+      side: THREE.FrontSide,
+    });
+    return mat;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useFrame((_, dt) => {
     if (!groupRef.current) return;
-    // Smooth color
-    const mat = meshNode.material as THREE.MeshStandardMaterial;
-    if (mat && mat.color) {
-      mat.color.lerp(targetColor, Math.min(1, dt * 6));
-      mat.roughness = 0.78;
-      mat.metalness = 0;
-    }
+    // Smooth color on our clean fabric material
+    fabricMaterial.color.lerp(targetColor, Math.min(1, dt * 6));
     // Smooth rotation between front/back
     const cur = groupRef.current.rotation.y;
     groupRef.current.rotation.y = cur + (targetRotY - cur) * Math.min(1, dt * 5);
@@ -101,9 +117,7 @@ function Shirt({
           castShadow
           receiveShadow
           geometry={meshNode.geometry}
-          material={meshNode.material}
-          material-roughness={0.78}
-          material-metalness={0}
+          material={fabricMaterial}
         >
           {artworkUri.front && (
             <Suspense fallback={null}>
@@ -230,14 +244,17 @@ export function Mockup({ view, setView, color, artwork }: Props) {
             gl={{ antialias: true, preserveDrawingBuffer: true }}
             camera={{ position: [0, 0, 2.4], fov: 28 }}
           >
-            <ambientLight intensity={0.45} />
+            <ambientLight intensity={0.55} />
             <directionalLight
-              position={[3, 4, 5]}
-              intensity={1.1}
+              position={[4, 6, 6]}
+              intensity={0.9}
               castShadow
-              shadow-mapSize={[1024, 1024]}
+              shadow-mapSize={[2048, 2048]}
+              shadow-bias={-0.0005}
+              shadow-normalBias={0.05}
             />
-            <directionalLight position={[-4, 2, -3]} intensity={0.4} />
+            <directionalLight position={[-5, 3, -4]} intensity={0.35} />
+            <directionalLight position={[0, -3, 4]} intensity={0.25} />
             <Environment preset="studio" />
 
             <Suspense fallback={null}>
@@ -250,9 +267,9 @@ export function Mockup({ view, setView, color, artwork }: Props) {
 
             <ContactShadows
               position={[0, -0.55, 0]}
-              opacity={0.45}
+              opacity={0.35}
               scale={4}
-              blur={2.6}
+              blur={3}
               far={1.2}
             />
 
