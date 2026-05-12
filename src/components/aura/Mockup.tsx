@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Center, Decal, Environment, OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -29,16 +29,17 @@ function ArtworkDecal({ url, view }: { url: string; view: View }) {
   const isBack = view === "back";
 
   return (
-    <Decal
-      position={[0, -0.035, isBack ? -0.132 : 0.152]}
-      rotation={[0, isBack ? Math.PI : 0, 0]}
-      scale={[0.24, 0.28, 0.24]}
-      map={texture}
-      polygonOffset
-      polygonOffsetFactor={-10}
-      depthTest
-      depthWrite={false}
-    />
+    <Decal position={[0, -0.035, isBack ? -0.132 : 0.152]} rotation={[0, isBack ? Math.PI : 0, 0]} scale={[0.24, 0.28, 0.24]}>
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        polygonOffset
+        polygonOffsetFactor={-10}
+        depthTest
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </Decal>
   );
 }
 
@@ -50,18 +51,18 @@ function Shirt({ color, artwork, view }: { color: string; artwork: string | null
   ) as THREE.Mesh | undefined;
   const material = (materials && Object.values(materials)[0]) as THREE.MeshStandardMaterial | undefined;
 
-  if (!meshNode || !material) return null;
+  const shirtMaterial = useMemo(() => {
+    if (!material) return null;
+    const clone = material.clone();
+    clone.color = new THREE.Color(color);
+    clone.roughness = 0.92;
+    clone.metalness = 0;
+    clone.map = null;
+    clone.normalMap = null;
+    return clone;
+  }, [color, material]);
 
-  material.color = new THREE.Color(color);
-  material.roughness = 0.85;
-  material.metalness = 0.05;
-
-  const shirtMaterial = material.clone();
-  shirtMaterial.color = new THREE.Color(color);
-  shirtMaterial.roughness = 0.92;
-  shirtMaterial.metalness = 0;
-  shirtMaterial.map = null;
-  shirtMaterial.normalMap = null;
+  if (!meshNode || !shirtMaterial) return null;
 
   return (
     <group rotation={[0, view === "back" ? Math.PI : 0, 0]} dispose={null}>
