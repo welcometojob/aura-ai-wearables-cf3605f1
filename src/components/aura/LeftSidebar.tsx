@@ -1,4 +1,4 @@
-import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, ChevronDown, Search, Check } from "lucide-react";
+import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { enhancePrompt } from "@/server/ai.functions";
@@ -27,7 +27,6 @@ export function LeftSidebar({
   const [enhancing, setEnhancing] = useState(false);
   const [readyDesigns, setReadyDesigns] = useState<ReadyDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
-  const [showAllDesigns, setShowAllDesigns] = useState(false);
   const [designQuery, setDesignQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
@@ -213,19 +212,7 @@ export function LeftSidebar({
         </section>
 
         <section>
-          <div className="flex items-center justify-between">
-            <SectionTitle icon={Shirt} label="Ready Designs" />
-            {filteredDesigns.length > 6 && (
-              <button
-                type="button"
-                onClick={() => setShowAllDesigns((v) => !v)}
-                className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline"
-              >
-                {showAllDesigns ? "Less" : "More"}
-                <ChevronDown className={`h-3 w-3 transition-transform ${showAllDesigns ? "rotate-180" : ""}`} />
-              </button>
-            )}
-          </div>
+          <SectionTitle icon={Shirt} label="Ready Designs" />
 
           {readyDesigns.length > 0 && (
             <>
@@ -285,7 +272,7 @@ export function LeftSidebar({
             <div className="mt-2 flex h-20 items-center justify-center rounded-lg border border-dashed border-border bg-background/30 px-3 text-center text-[10px] text-muted-foreground">
               No designs match your search
             </div>
-          ) : showAllDesigns ? (
+          ) : (
             <div className="mt-2 grid grid-cols-3 gap-2">
               {filteredDesigns.map((d) => (
                 <button
@@ -296,29 +283,6 @@ export function LeftSidebar({
                   }}
                   title={d.name}
                   className={`group relative aspect-square w-full overflow-hidden rounded-lg border bg-background/40 transition hover:border-primary ${
-                    isSelectedArtwork(d.image) ? "border-primary ring-1 ring-primary/40" : "border-border"
-                  }`}
-                >
-                  <img src={d.image} alt={d.name} className="h-full w-full object-contain" />
-                  {isSelectedArtwork(d.image) && (
-                    <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
-                      <Check className="h-3 w-3" />
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-2 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-              {filteredDesigns.slice(0, 6).map((d) => (
-                <button
-                  key={d.id}
-                  onClick={() => {
-                    onUploadImage(d.image);
-                    toast.success(`Applied "${d.name}"`);
-                  }}
-                  title={d.name}
-                  className={`group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-background/40 transition hover:border-primary ${
                     isSelectedArtwork(d.image) ? "border-primary ring-1 ring-primary/40" : "border-border"
                   }`}
                 >
