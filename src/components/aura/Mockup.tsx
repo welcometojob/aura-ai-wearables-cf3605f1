@@ -169,7 +169,13 @@ export function Mockup({ view, setView, color, artwork }: Props) {
   useEffect(() => {
     let cancelled = false;
     async function resolve() {
-      if (!artwork) return;
+      if (!artwork) {
+        // Clear the current side's artwork so deleting from the panel
+        // also removes it from the t-shirt mockup.
+        if (view === "back") setBackArt(null);
+        else setFrontArt(null);
+        return;
+      }
       try {
         let uri = artwork;
         if (/^https?:\/\//i.test(artwork)) {
