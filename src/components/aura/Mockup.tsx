@@ -48,8 +48,6 @@ function ArtworkDecal({
       position={[0, 0.04, z]}
       rotation={[0, rotY, 0]}
       scale={[0.18, 0.22, 0.18]}
-      polygonOffset
-      polygonOffsetFactor={-10}
     >
       <meshStandardMaterial
         map={texture}
