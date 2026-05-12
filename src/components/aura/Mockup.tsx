@@ -89,15 +89,43 @@ function CameraRig({ zoom }: { zoom: number }) {
 export function Mockup({ view, setView, color, artwork }: Props) {
   const [zoom, setZoom] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [textureArtwork, setTextureArtwork] = useState<string | null>(null);
   const controlsRef = useRef<any>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!artwork) {
+      setTextureArtwork(null);
+      return;
+    }
+    if (artwork.startsWith("data:")) {
+      setTextureArtwork(artwork);
+      return;
+    }
+    setTextureArtwork(null);
+    getArtworkDataUri({ data: { url: artwork } })
+      .then(({ dataUri }) => {
+        if (!cancelled) setTextureArtwork(dataUri);
+      })
+      .catch(() => {
+        if (!cancelled) setTextureArtwork(artwork);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [artwork]);
 
   const reset = () => {
     setZoom(1);
     controlsRef.current?.reset();
   };
   const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setZoom((z) => clamp(z + (event.deltaY < 0 ? 0.12 : -0.12)));
+  };
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -128,7 +156,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted">
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-muted via-background to-muted" onWheel={handleWheel}>
         {mounted && (
           <Canvas
             shadows
@@ -143,13 +171,13 @@ export function Mockup({ view, setView, color, artwork }: Props) {
             <Environment preset="city" />
             <Suspense fallback={null}>
               <Center>
-                <Shirt color={color.hex} artwork={artwork} view={view} />
+                <Shirt color={color.hex} artwork={textureArtwork} view={view} />
               </Center>
             </Suspense>
             <OrbitControls
               ref={controlsRef}
               enablePan={false}
-              enableZoom
+              enableZoom={false}
               minDistance={0.8}
               maxDistance={3.5}
               autoRotate={false}
