@@ -4,6 +4,7 @@ import { Center, Decal, Environment, OrbitControls, useGLTF } from "@react-three
 import * as THREE from "three";
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import type { ColorSwatch, View } from "@/lib/aura-config";
+import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 
 type Props = {
   view: View;
@@ -20,12 +21,23 @@ function ArtworkDecal({ url, view }: { url: string; view: View }) {
   const texture = useLoader(THREE.TextureLoader, url);
   texture.anisotropy = 16;
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+
+  const isBack = view === "back";
+
   return (
     <Decal
-      position={[0, 0.04, view === "back" ? -0.15 : 0.15]}
-      rotation={[0, view === "back" ? Math.PI : 0, 0]}
-      scale={0.18}
+      position={[0, -0.035, isBack ? -0.132 : 0.152]}
+      rotation={[0, isBack ? Math.PI : 0, 0]}
+      scale={[0.24, 0.28, 0.24]}
       map={texture}
+      polygonOffset
+      polygonOffsetFactor={-10}
+      depthTest
+      depthWrite={false}
     />
   );
 }
@@ -44,9 +56,16 @@ function Shirt({ color, artwork, view }: { color: string; artwork: string | null
   material.roughness = 0.85;
   material.metalness = 0.05;
 
+  const shirtMaterial = material.clone();
+  shirtMaterial.color = new THREE.Color(color);
+  shirtMaterial.roughness = 0.92;
+  shirtMaterial.metalness = 0;
+  shirtMaterial.map = null;
+  shirtMaterial.normalMap = null;
+
   return (
     <group rotation={[0, view === "back" ? Math.PI : 0, 0]} dispose={null}>
-      <mesh castShadow receiveShadow geometry={meshNode.geometry} material={material}>
+      <mesh castShadow receiveShadow geometry={meshNode.geometry} material={shirtMaterial}>
         {artwork && (
           <Suspense fallback={null}>
             <ArtworkDecal url={artwork} view={view} />
