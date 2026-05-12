@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
-import { Mockup } from "@/components/aura/Mockup";
+const Mockup = lazy(() =>
+  import("@/components/aura/Mockup").then((m) => ({ default: m.Mockup })),
+);
 import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
-import { ArrowLeft, User, Sun, Moon } from "lucide-react";
+import { ArrowLeft, User, Sun, Moon, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
@@ -125,14 +127,22 @@ function Editor() {
 
       <main className="flex flex-1 flex-col">
         <section className="flex-1 p-6">
-          <Mockup
+          <Suspense
+            fallback={
+              <div className="flex h-full w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            }
+          >
+            <Mockup
             view={view}
             setView={setView}
             color={color}
             artwork={artwork}
             styleName={`${fit}'s ${product.name}`}
             fabric={fabric}
-          />
+            />
+          </Suspense>
         </section>
       </main>
 
