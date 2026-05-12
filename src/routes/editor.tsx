@@ -14,6 +14,7 @@ import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { generateOpenAIArtwork } from "@/server/openai.functions";
+import { ProfileDialog } from "@/components/aura/ProfileDialog";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -31,6 +32,7 @@ function Editor() {
   const { theme, toggle: toggleTheme } = useTheme();
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
   const [artwork, setArtwork] = useState<string | null>(null);
   const credits = profile?.credits_remaining ?? 0;
@@ -107,11 +109,24 @@ function Editor() {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           <CreditsTopUp credits={credits} />
-          <button className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground">
+          <button
+            type="button"
+            onClick={() => {
+              if (!user) {
+                void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+                return;
+              }
+              setProfileOpen(true);
+            }}
+            aria-label="Open profile"
+            title="Profile"
+            className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground transition hover:opacity-90"
+          >
             <User className="h-4 w-4" />
           </button>
         </div>
       </header>
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
       <div className="flex flex-1 overflow-hidden">
       <LeftSidebar
         prompt={prompt}
