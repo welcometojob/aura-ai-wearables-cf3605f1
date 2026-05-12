@@ -38,6 +38,7 @@ import {
   Loader2,
   PenSquare,
   ArrowDownNarrowWide,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -373,7 +374,7 @@ function FeatureCard({
   desc,
   className = "",
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   desc: string;
   className?: string;
