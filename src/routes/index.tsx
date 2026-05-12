@@ -306,7 +306,12 @@ function HowItWorks() {
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 grid place-items-center ring-glow">
                   <s.icon className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-5xl font-extrabold text-foreground/5">0{i + 1}</span>
+                <span
+                  aria-hidden
+                  className="text-6xl font-black leading-none text-gradient drop-shadow-[0_0_18px_oklch(0.62_0.21_264/0.45)]"
+                >
+                  0{i + 1}
+                </span>
               </div>
               <h3 className="text-xl font-semibold">{s.title}</h3>
               <p className="mt-2 text-muted-foreground text-sm leading-relaxed">{s.desc}</p>
