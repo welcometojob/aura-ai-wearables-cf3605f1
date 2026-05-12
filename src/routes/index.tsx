@@ -987,6 +987,20 @@ function Reviews() {
           </div>
         )}
 
+        {filtered.length > PREVIEW_COUNT && (
+          <div className="mt-10 flex justify-center">
+            <Button
+              variant="ghostNeon"
+              size="lg"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded
+                ? "Show fewer reviews"
+                : `Show all reviews (${hiddenCount} more)`}
+            </Button>
+          </div>
+        )}
+
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button variant="hero" size="lg" onClick={onWriteReview}>
             <PenSquare className="h-4 w-4" />
