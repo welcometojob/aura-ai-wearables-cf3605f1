@@ -22,9 +22,42 @@ type Props = {
   artwork: string | null;
   styleName: string;
   fabric: string;
+  fit?: "Men" | "Women" | "Kids";
 };
 
 useGLTF.preload("/models/shirt.glb");
+
+// SVG data URI for a soft V-neck shadow overlay used when fit === "Women".
+// A downward-pointing triangle with a vertical gradient gives the impression
+// of a V-neck cut without altering the underlying mesh geometry.
+const V_NECK_SVG =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+      <defs>
+        <linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>
+          <stop offset='0%' stop-color='black' stop-opacity='0.55'/>
+          <stop offset='70%' stop-color='black' stop-opacity='0.18'/>
+          <stop offset='100%' stop-color='black' stop-opacity='0'/>
+        </linearGradient>
+      </defs>
+      <polygon points='10,0 190,0 100,170' fill='url(#g)'/>
+    </svg>`,
+  );
+
+function VNeckDecal() {
+  const texture = useLoader(TextureLoader, V_NECK_SVG);
+  useEffect(() => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 8;
+    texture.needsUpdate = true;
+  }, [texture]);
+  return (
+    <Decal position={[0, 0.42, 0.15]} rotation={[0, 0, 0]} scale={[0.18, 0.18, 0.18]}>
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest depthWrite={false} polygonOffset polygonOffsetFactor={-8} />
+    </Decal>
+  );
+}
 
 function ArtworkDecal({
   url,
@@ -74,11 +107,13 @@ function Shirt({
   artworkUri,
   artworkScale,
   view,
+  fit,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
   artworkScale: { front: number; back: number };
   view: View;
+  fit: "Men" | "Women" | "Kids";
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -127,6 +162,11 @@ function Shirt({
           geometry={meshNode.geometry}
           material={fabricMaterial}
         >
+          {fit === "Women" && (
+            <Suspense fallback={null}>
+              <VNeckDecal />
+            </Suspense>
+          )}
           {artworkUri.front && (
             <Suspense fallback={null}>
               <ArtworkDecal url={artworkUri.front} side="front" scale={artworkScale.front} />
@@ -155,6 +195,11 @@ function CameraRig({ zoom }: { zoom: number }) {
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
 export function Mockup({ view, setView, color, artwork }: Props) {
+  // fit is part of Props but destructured below to avoid breaking callers
+  return <MockupInner view={view} setView={setView} color={color} artwork={artwork} />;
+}
+
+function MockupInner({ view, setView, color, artwork, fit = "Men" }: Props) {
   const [zoom, setZoom] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
@@ -279,6 +324,7 @@ export function Mockup({ view, setView, color, artwork }: Props) {
                 artworkUri={{ front: frontArt, back: backArt }}
                 artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
+                fit={fit}
               />
             </Suspense>
 
