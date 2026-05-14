@@ -32,6 +32,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-primary-glow: var(--primary-glow);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
 }
 
 :root {
