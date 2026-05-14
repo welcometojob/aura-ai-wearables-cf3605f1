@@ -765,6 +765,7 @@ function Reviews() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [canReview, setCanReview] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -782,6 +783,13 @@ function Reviews() {
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!user) { setCanReview(false); return; }
+    supabase.rpc("can_user_review", { _user_id: user.id })
+      .then(({ data }) => setCanReview(Boolean(data)))
+      .catch(() => setCanReview(false));
+  }, [user]);
 
   const total = reviews.length;
   const avg = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
@@ -807,6 +815,10 @@ function Reviews() {
     if (!user) {
       toast.info("Sign in to write a review");
       navigate({ to: "/auth", search: { redirect: "/#reviews", plan: undefined } });
+      return;
+    }
+    if (!canReview) {
+      toast.error("Only verified buyers can write a review. Place an order and we'll unlock this for you after delivery.");
       return;
     }
     setSubmitOpen(true);
