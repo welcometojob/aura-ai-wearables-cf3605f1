@@ -94,6 +94,26 @@ serve(async (req) => {
           if (userId) await upsertSubscription(sub, userId);
         }
         if (s.mode === "payment") {
+          // Credit top-up purchases — credit user balance instead of creating an order.
+          if ((s.metadata?.kind as string) === "credits") {
+            const userId = await findUserId({
+              customerId: s.customer as string,
+              userIdMeta: (s.metadata?.user_id as string) ?? (s.client_reference_id ?? null),
+              email: s.customer_details?.email ?? s.customer_email,
+            });
+            const credits = parseInt((s.metadata?.credits as string) ?? "0", 10);
+            if (userId && credits > 0) {
+              const { data: prof } = await supabaseAdmin
+                .from("profiles").select("credits_remaining").eq("user_id", userId).maybeSingle();
+              const next = (prof?.credits_remaining ?? 0) + credits;
+              await supabaseAdmin.from("profiles").update({ credits_remaining: next }).eq("user_id", userId);
+              await supabaseAdmin.from("credit_transactions").insert({
+                user_id: userId, amount: credits, type: "purchase",
+                note: `Stripe top-up · session ${s.id}`,
+              });
+            }
+            break;
+          }
           const email = s.customer_details?.email ?? s.customer_email ?? null;
           const name = s.customer_details?.name ?? null;
           const orderNumber = `ORD-${(s.id ?? "").slice(-10).toUpperCase()}`;
