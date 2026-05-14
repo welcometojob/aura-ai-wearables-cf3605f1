@@ -787,8 +787,10 @@ function Reviews() {
   useEffect(() => {
     if (!user) { setCanReview(false); return; }
     supabase.rpc("can_user_review", { _user_id: user.id })
-      .then(({ data }) => setCanReview(Boolean(data)))
-      .catch(() => setCanReview(false));
+      .then(({ data, error }) => {
+        if (error) { setCanReview(false); return; }
+        setCanReview(Boolean(data));
+      });
   }, [user]);
 
   const total = reviews.length;
