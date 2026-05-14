@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star, Loader2, Upload, X, ImagePlus } from "lucide-react";
+import { Star, Loader2, Upload, X, ImagePlus, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -129,21 +129,34 @@ export function SubmitReviewDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-2xl glass border-primary/30">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Share your <span className="text-gradient">experience</span>
-          </DialogTitle>
-          <DialogDescription>
-            Help other creators discover what you loved. Verified reviews build trust.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl overflow-hidden border-border/60 bg-background p-0">
+        {/* Hero */}
+        <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-gold/15 via-gold/5 to-transparent px-7 py-6">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gold/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-gold/10 blur-3xl" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold">
+              <ShieldCheck className="h-3 w-3" />
+              Verified buyer
+            </div>
+            <DialogHeader className="mt-3 space-y-1.5 text-left">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
+                Share your experience
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Tell other creators what you loved about your TommyMeow piece — print, fit, fabric, delivery.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+        </div>
 
-        <form onSubmit={onSubmit} className="space-y-5 mt-2">
+        <form onSubmit={onSubmit} className="space-y-5 px-7 py-6 max-h-[70vh] overflow-y-auto">
           {/* Rating */}
-          <div>
-            <Label className="text-sm font-medium mb-2 block">Your rating</Label>
-            <div className="flex items-center gap-2">
+          <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Your rating
+            </Label>
+            <div className="mt-3 flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((n) => {
                 const filled = (hoverRating || rating) >= n;
                 return (
@@ -154,55 +167,61 @@ export function SubmitReviewDialog({
                     onClick={() => setRating(n)}
                     onMouseEnter={() => setHoverRating(n)}
                     onMouseLeave={() => setHoverRating(0)}
-                    className="p-1 hover:scale-110 transition-transform"
+                    className="p-1 transition-transform hover:scale-115 active:scale-95"
                   >
                     <Star
-                      className={`h-7 w-7 transition-colors ${
-                        filled ? "fill-primary text-primary" : "text-muted-foreground/40"
+                      className={`h-9 w-9 transition-colors ${
+                        filled
+                          ? "fill-gold text-gold drop-shadow-[0_0_8px_var(--gold)]"
+                          : "text-muted-foreground/30"
                       }`}
                     />
                   </button>
                 );
               })}
-              <span className="ml-2 text-sm text-muted-foreground">
-                {rating} of 5
+              <span className="ml-3 text-sm font-semibold tabular-nums text-foreground">
+                {hoverRating || rating}<span className="text-muted-foreground">/5</span>
               </span>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="r-title" className="text-sm font-medium">Review title</Label>
+            <Label htmlFor="r-title" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Review title
+            </Label>
             <Input
               id="r-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Sum it up in one line"
               maxLength={120}
-              className="mt-1.5"
+              className="mt-2 h-11"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="r-text" className="text-sm font-medium">Your review</Label>
+            <Label htmlFor="r-text" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Your review
+            </Label>
             <Textarea
               id="r-text"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="What did you like? How was the print quality, fit, and delivery?"
               maxLength={2000}
-              rows={5}
-              className="mt-1.5 resize-none"
+              rows={6}
+              className="mt-2 resize-none"
               required
             />
-            <div className="text-xs text-muted-foreground mt-1 text-right">
-              {text.length}/2000
+            <div className="mt-1 text-right text-[11px] tabular-nums text-muted-foreground">
+              {text.length} / 2000
             </div>
           </div>
 
           <div>
-            <Label htmlFor="r-variant" className="text-sm font-medium">
-              Product / variant <span className="text-muted-foreground font-normal">(optional)</span>
+            <Label htmlFor="r-variant" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Product · variant <span className="font-normal normal-case">(optional)</span>
             </Label>
             <Input
               id="r-variant"
@@ -210,31 +229,31 @@ export function SubmitReviewDialog({
               onChange={(e) => setVariant(e.target.value)}
               placeholder="e.g. Black · Large"
               maxLength={80}
-              className="mt-1.5"
+              className="mt-2 h-11"
             />
           </div>
 
           {/* Images */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">
-              Photos <span className="text-muted-foreground font-normal">(up to {MAX_IMAGES})</span>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Photos <span className="font-normal normal-case">(up to {MAX_IMAGES})</span>
             </Label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="mt-2 grid grid-cols-4 gap-2">
               {previews.map((src, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-border/60 group">
+                <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-border/60">
                   <img src={src} alt={`upload preview ${i + 1}`} className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
                     aria-label="Remove image"
-                    className="absolute top-1 right-1 h-6 w-6 grid place-items-center rounded-full bg-background/90 border border-border opacity-0 group-hover:opacity-100 hover:text-destructive transition"
+                    className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full border border-border bg-background/90 opacity-0 transition group-hover:opacity-100 hover:text-destructive"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
               {files.length < MAX_IMAGES && (
-                <label className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary/60 hover:bg-primary/5 transition cursor-pointer grid place-items-center text-muted-foreground hover:text-primary">
+                <label className="grid aspect-square cursor-pointer place-items-center rounded-xl border-2 border-dashed border-border text-muted-foreground transition hover:border-gold/60 hover:bg-gold/5 hover:text-gold">
                   <input
                     type="file"
                     accept="image/*"
@@ -244,19 +263,25 @@ export function SubmitReviewDialog({
                   />
                   <div className="text-center">
                     <ImagePlus className="h-5 w-5 mx-auto" />
-                    <span className="text-[10px] mt-1 block">Add</span>
+                    <span className="mt-1 block text-[10px] font-medium">Add</span>
                   </div>
                 </label>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">JPG / PNG, max {MAX_SIZE_MB}MB each</p>
+            <p className="mt-2 text-[11px] text-muted-foreground">JPG / PNG · max {MAX_SIZE_MB}MB each</p>
           </div>
+        </form>
 
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+        <div className="flex flex-col-reverse items-stretch gap-2 border-t border-border/60 bg-card/30 px-7 py-4 sm:flex-row sm:justify-between sm:items-center">
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-gold" />
+            Reviews are public and tied to your verified order.
+          </p>
+          <div className="flex gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit" variant="hero" disabled={submitting}>
+            <Button type="button" onClick={onSubmit as unknown as React.MouseEventHandler<HTMLButtonElement>} variant="hero" disabled={submitting}>
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -270,7 +295,7 @@ export function SubmitReviewDialog({
               )}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
