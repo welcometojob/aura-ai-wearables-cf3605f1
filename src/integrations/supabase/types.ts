@@ -328,6 +328,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_review: { Args: { _user_id: string }; Returns: boolean }
       consume_credit: {
         Args: { _amount?: number; _note?: string }
         Returns: number

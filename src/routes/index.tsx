@@ -746,7 +746,7 @@ function Stars({ rating }: { rating: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${i < Math.round(rating) ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
+          className={`h-3.5 w-3.5 ${i < Math.round(rating) ? "fill-gold text-gold" : "text-muted-foreground/30"}`}
         />
       ))}
     </div>
@@ -765,6 +765,7 @@ function Reviews() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [canReview, setCanReview] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -782,6 +783,15 @@ function Reviews() {
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!user) { setCanReview(false); return; }
+    supabase.rpc("can_user_review", { _user_id: user.id })
+      .then(({ data, error }) => {
+        if (error) { setCanReview(false); return; }
+        setCanReview(Boolean(data));
+      });
+  }, [user]);
 
   const total = reviews.length;
   const avg = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
@@ -807,6 +817,10 @@ function Reviews() {
     if (!user) {
       toast.info("Sign in to write a review");
       navigate({ to: "/auth", search: { redirect: "/#reviews", plan: undefined } });
+      return;
+    }
+    if (!canReview) {
+      toast.error("Only verified buyers can write a review. Place an order and we'll unlock this for you after delivery.");
       return;
     }
     setSubmitOpen(true);
@@ -857,11 +871,11 @@ function Reviews() {
                   }`}
                 >
                   <span className={`w-10 flex items-center gap-1 ${filter === d.star ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-                    {d.star}<Star className="h-3 w-3 fill-primary text-primary" />
+                    {d.star}<Star className="h-3 w-3 fill-gold text-gold" />
                   </span>
                   <div className="flex-1 h-2 rounded-full bg-muted/40 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-accent via-primary to-[#1200FF] transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-amber-400 via-gold to-amber-600 transition-all"
                       style={{ width: `${d.pct}%` }}
                     />
                   </div>
@@ -885,8 +899,8 @@ function Reviews() {
                 onClick={() => setFilter(n)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1 ${
                   filter === n
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border/60 text-muted-foreground hover:border-primary/60 hover:text-primary"
+                    ? "bg-gold text-gold-foreground border-gold"
+                    : "border-border/60 text-muted-foreground hover:border-gold/60 hover:text-gold"
                 }`}
               >
                 {n === 0 ? "All" : (
