@@ -70,6 +70,8 @@
   --shadow-glow-soft: 0 0 30px oklch(0.62 0.21 264 / 0.25);
   --shadow-elevated: 0 20px 60px -10px oklch(0 0 0 / 0.6);
   --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --gold: oklch(0.82 0.16 85);                  /* #F5B400 warm gold */
+  --gold-foreground: oklch(0.18 0.03 60);
 }
 
 .dark {
