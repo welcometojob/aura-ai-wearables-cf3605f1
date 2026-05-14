@@ -93,6 +93,20 @@ serve(async (req) => {
           });
           if (userId) await upsertSubscription(sub, userId);
         }
+        if (s.mode === "payment") {
+          const email = s.customer_details?.email ?? s.customer_email ?? null;
+          const name = s.customer_details?.name ?? null;
+          const orderNumber = `ORD-${(s.id ?? "").slice(-10).toUpperCase()}`;
+          const itemSummary = (s.metadata?.item_summary as string) ?? null;
+          await supabaseAdmin.from("orders").insert({
+            order_number: orderNumber,
+            customer_email: email,
+            customer_name: name,
+            item_summary: itemSummary,
+            stage: 0,
+            notes: `Stripe session ${s.id} · total $${((s.amount_total ?? 0) / 100).toFixed(2)}`,
+          });
+        }
         break;
       }
       case "customer.subscription.created":
