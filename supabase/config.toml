@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.create-product-checkout]
 verify_jwt = false
+
+[functions.create-credits-checkout]
+verify_jwt = false

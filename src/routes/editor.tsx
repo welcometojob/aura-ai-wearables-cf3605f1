@@ -118,7 +118,26 @@ function Editor() {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <CreditsTopUp credits={credits} />
+          <CreditsTopUp
+            credits={credits}
+            onTopUp={async (amount) => {
+              if (!user) {
+                void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+                throw new Error("Please sign in first");
+              }
+              const { data: sessionData } = await supabase.auth.getSession();
+              const token = sessionData.session?.access_token;
+              if (!token) throw new Error("Please sign in again");
+              const { data, error } = await supabase.functions.invoke("create-credits-checkout", {
+                body: { credits: amount },
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (error) throw new Error(error.message);
+              const url = (data as { url?: string } | null)?.url;
+              if (!url) throw new Error("Checkout URL missing");
+              window.location.href = url;
+            }}
+          />
           <button
             type="button"
             onClick={() => setCartOpen(true)}
