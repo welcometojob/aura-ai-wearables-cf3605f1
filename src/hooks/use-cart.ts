@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const KEY = "tommymeow.cart.v1";
+const EVT = "tommymeow.cart.changed";
 
 export type CartItem = {
   id: string;
@@ -32,6 +33,7 @@ function write(items: CartItem[]) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(KEY, JSON.stringify(items));
+    window.dispatchEvent(new CustomEvent(EVT));
   } catch {
     // ignore
   }
@@ -42,11 +44,16 @@ export function useCart() {
 
   useEffect(() => {
     setItems(read());
+    const sync = () => setItems(read());
     const onStorage = (e: StorageEvent) => {
       if (e.key === KEY) setItems(read());
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener(EVT, sync);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(EVT, sync);
+    };
   }, []);
 
   const add = useCallback((item: Omit<CartItem, "id" | "createdAt">) => {
