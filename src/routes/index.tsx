@@ -899,8 +899,8 @@ function Reviews() {
                 onClick={() => setFilter(n)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition flex items-center gap-1 ${
                   filter === n
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border/60 text-muted-foreground hover:border-primary/60 hover:text-primary"
+                    ? "bg-gold text-gold-foreground border-gold"
+                    : "border-border/60 text-muted-foreground hover:border-gold/60 hover:text-gold"
                 }`}
               >
                 {n === 0 ? "All" : (
