@@ -119,6 +119,7 @@ function Editor() {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           <CreditsTopUp credits={credits} />
+          
           <button
             type="button"
             onClick={() => setCartOpen(true)}
