@@ -857,11 +857,11 @@ function Reviews() {
                   }`}
                 >
                   <span className={`w-10 flex items-center gap-1 ${filter === d.star ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-                    {d.star}<Star className="h-3 w-3 fill-primary text-primary" />
+                    {d.star}<Star className="h-3 w-3 fill-gold text-gold" />
                   </span>
                   <div className="flex-1 h-2 rounded-full bg-muted/40 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-accent via-primary to-[#1200FF] transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-amber-400 via-gold to-amber-600 transition-all"
                       style={{ width: `${d.pct}%` }}
                     />
                   </div>
