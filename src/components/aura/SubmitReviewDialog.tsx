@@ -270,9 +270,8 @@ export function SubmitReviewDialog({
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">JPG / PNG · max {MAX_SIZE_MB}MB each</p>
           </div>
-        </form>
 
-        <div className="flex flex-col-reverse items-stretch gap-2 border-t border-border/60 bg-card/30 px-7 py-4 sm:flex-row sm:justify-between sm:items-center">
+          <div className="-mx-7 -mb-6 mt-2 flex flex-col-reverse items-stretch gap-2 border-t border-border/60 bg-card/30 px-7 py-4 sm:flex-row sm:justify-between sm:items-center">
           <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <Sparkles className="h-3 w-3 text-gold" />
             Reviews are public and tied to your verified order.
@@ -281,7 +280,7 @@ export function SubmitReviewDialog({
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="button" onClick={onSubmit as unknown as React.MouseEventHandler<HTMLButtonElement>} variant="hero" disabled={submitting}>
+              <Button type="submit" variant="hero" disabled={submitting}>
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -296,6 +295,7 @@ export function SubmitReviewDialog({
             </Button>
           </div>
         </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
