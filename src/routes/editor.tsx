@@ -9,7 +9,7 @@ const Mockup = lazy(() =>
 import { COLORS, PRODUCT_STYLES, type Fit, type ProductStyle, type Size, type View } from "@/lib/aura-config";
 import { listProductStyles } from "@/lib/product-styles";
 import { getShippingRate } from "@/lib/site-settings";
-import { ArrowLeft, User, Sun, Moon, Loader2, ShoppingCart } from "lucide-react";
+import { ArrowLeft, User, Sun, Moon, Loader2, ShoppingCart, PanelLeft, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { CreditsTopUp } from "@/components/aura/CreditsTopUp";
@@ -21,6 +21,7 @@ import { useGenerationHistory } from "@/hooks/use-generation-history";
 import { useCart } from "@/hooks/use-cart";
 import { CartDrawer } from "@/components/aura/CartDrawer";
 import { BuyNowDrawer, type BuyNowItem } from "@/components/aura/BuyNowDrawer";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/editor")({
   head: () => ({
@@ -41,6 +42,8 @@ function Editor() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("cyberpunk");
   const [artwork, setArtwork] = useState<string | null>(null);
   const credits = profile?.credits_remaining ?? 0;
@@ -120,13 +123,23 @@ function Editor() {
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
-        <Link
-          to="/"
-          className="group inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-primary hover:bg-primary/10 hover:text-primary"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-          Back to home
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setLeftPanelOpen(true)}
+            aria-label="Open design tools"
+            className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground transition hover:border-primary hover:text-primary lg:hidden"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+          <Link
+            to="/"
+            className="group inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur transition hover:border-primary hover:bg-primary/10 hover:text-primary"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span className="hidden sm:inline">Back to home</span>
+          </Link>
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -186,6 +199,14 @@ function Editor() {
           >
             <User className="h-4 w-4" />
           </button>
+          <button
+            type="button"
+            onClick={() => setRightPanelOpen(true)}
+            aria-label="Open product options"
+            className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground transition hover:border-primary hover:text-primary lg:hidden"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
         </div>
       </header>
       <ProfileDialog
@@ -201,19 +222,40 @@ function Editor() {
         shipping={shippingRate}
       />
       <div className="flex flex-1 overflow-hidden">
-      <LeftSidebar
-        prompt={prompt}
-        setPrompt={setPrompt}
-        onGenerate={handleGenerate}
-        generating={generating}
-        selectedStyle={selectedStyle}
-        setSelectedStyle={setSelectedStyle}
-        onUploadImage={(u) => setArtwork(u)}
-        artwork={artwork}
-        onDeleteArtwork={() => setArtwork(null)}
-        generationHistory={history}
-        onRemoveHistory={removeHistory}
-      />
+      <div className="hidden lg:flex h-full">
+        <LeftSidebar
+          prompt={prompt}
+          setPrompt={setPrompt}
+          onGenerate={handleGenerate}
+          generating={generating}
+          selectedStyle={selectedStyle}
+          setSelectedStyle={setSelectedStyle}
+          onUploadImage={(u) => setArtwork(u)}
+          artwork={artwork}
+          onDeleteArtwork={() => setArtwork(null)}
+          generationHistory={history}
+          onRemoveHistory={removeHistory}
+        />
+      </div>
+      <Sheet open={leftPanelOpen} onOpenChange={setLeftPanelOpen}>
+        <SheetContent side="left" className="w-[88vw] max-w-sm p-0 sm:max-w-sm lg:hidden">
+          <div className="h-full overflow-hidden">
+            <LeftSidebar
+              prompt={prompt}
+              setPrompt={setPrompt}
+              onGenerate={() => { handleGenerate(); }}
+              generating={generating}
+              selectedStyle={selectedStyle}
+              setSelectedStyle={setSelectedStyle}
+              onUploadImage={(u) => { setArtwork(u); setLeftPanelOpen(false); }}
+              artwork={artwork}
+              onDeleteArtwork={() => setArtwork(null)}
+              generationHistory={history}
+              onRemoveHistory={removeHistory}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <main className="flex flex-1 flex-col">
         <section className="flex-1 p-6">
@@ -237,6 +279,7 @@ function Editor() {
         </section>
       </main>
 
+      <div className="hidden lg:flex h-full">
       <RightSidebar
         fit={fit}
         setFit={setFit}
@@ -266,6 +309,43 @@ function Editor() {
           });
         }}
       />
+      </div>
+      <Sheet open={rightPanelOpen} onOpenChange={setRightPanelOpen}>
+        <SheetContent side="right" className="w-[88vw] max-w-sm p-0 sm:max-w-sm lg:hidden">
+          <div className="h-full overflow-hidden">
+            <RightSidebar
+              fit={fit}
+              setFit={setFit}
+              product={product}
+              setProduct={setProduct}
+              productStyles={productStyles}
+              color={color}
+              setColor={setColor}
+              size={size}
+              setSize={setSize}
+              quantity={quantity}
+              setQuantity={setQuantity}
+              total={total}
+              unitPrice={unitPrice}
+              subtotal={subtotal}
+              shipping={shippingRate}
+              artwork={artwork}
+              onAddToCart={(item) => { cart.add(item); setRightPanelOpen(false); }}
+              onBuyNow={() => {
+                setRightPanelOpen(false);
+                setBuyNowItem({
+                  name: `${fit}'s ${product.name} · ${color.name} · ${size}`,
+                  description: artwork ? "Includes custom AI artwork" : undefined,
+                  unitPrice,
+                  quantity,
+                  image: artwork,
+                  colorHex: color.hex,
+                });
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
       </div>
     </div>
   );
