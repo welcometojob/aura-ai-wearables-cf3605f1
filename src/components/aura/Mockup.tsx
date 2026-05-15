@@ -242,7 +242,7 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      <div className="relative flex items-center justify-center gap-3 px-2 pb-4">
+      <div className="relative flex flex-wrap items-center justify-between gap-3 px-2 pb-4 sm:justify-center">
         <div className="inline-flex rounded-full border border-border bg-card p-1">
           {(["front", "back"] as View[]).map((v) => (
             <button
@@ -258,7 +258,7 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
             </button>
           ))}
         </div>
-        <div className="absolute right-2 flex items-center gap-1">
+        <div className="flex items-center gap-1 sm:absolute sm:right-2">
           <button
             onClick={() => setZoom((z) => clamp(z + 0.12))}
             className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:text-primary"
@@ -336,6 +336,7 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
             <OrbitControls
               enablePan={false}
               enableZoom
+              target={[0, 0, 0]}
               minDistance={1.2}
               maxDistance={4}
               minPolarAngle={Math.PI / 2.6}
