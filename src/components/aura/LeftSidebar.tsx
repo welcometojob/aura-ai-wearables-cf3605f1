@@ -30,6 +30,7 @@ export function LeftSidebar({
   const [uploads, setUploads] = useState<string[]>([]);
   const [removingBg, setRemovingBg] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
+  const [bgReady, setBgReady] = useState(false);
   const [readyDesigns, setReadyDesigns] = useState<ReadyDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(true);
   const [designQuery, setDesignQuery] = useState("");
@@ -62,6 +63,22 @@ export function LeftSidebar({
       .finally(() => setLoadingDesigns(false));
   }, []);
 
+  // Warm up background-removal model in the background so the first click
+  // doesn't have to download ~30MB of WASM + weights.
+  useEffect(() => {
+    let cancelled = false;
+    const warm = () => {
+      import("@imgly/background-removal")
+        .then(({ preload }) => preload({ model: "isnet_quint8" }))
+        .then(() => { if (!cancelled) setBgReady(true); })
+        .catch(() => {});
+    };
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+    if (typeof w.requestIdleCallback === "function") w.requestIdleCallback(warm);
+    else setTimeout(warm, 1500);
+    return () => { cancelled = true; };
+  }, []);
+
   const handleEnhance = async () => {
     if (!prompt.trim() || enhancing) return;
     setEnhancing(true);
@@ -83,7 +100,7 @@ export function LeftSidebar({
     try {
       const { removeBackground } = await import("@imgly/background-removal");
       const blob = await removeBackground(artwork, {
-        model: "isnet",
+        model: "isnet_quint8",
         output: { format: "image/png", quality: 1 },
       });
       const reader = new FileReader();
@@ -259,7 +276,11 @@ export function LeftSidebar({
             {removingBg ? "Removing background…" : "Remove Background"}
           </button>
           <p className="mt-1.5 text-[10px] text-muted-foreground">
-            {artwork ? "Click to isolate subject from current artwork" : "Upload or generate artwork first"}
+            {artwork
+              ? bgReady
+                ? "Click to isolate subject from current artwork"
+                : "Loading model in background — first run may take a moment"
+              : "Upload or generate artwork first"}
           </p>
         </section>
 
