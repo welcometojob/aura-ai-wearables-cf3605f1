@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { Ruler, Check, Minus, Plus, ShoppingCart, Zap, Truck, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { COLORS, PRODUCT_STYLES, SIZES, type ColorSwatch, type Fit, type ProductStyle, type Size } from "@/lib/aura-config";
+import { COLORS, SIZES, type ColorSwatch, type Fit, type ProductStyle, type Size } from "@/lib/aura-config";
+import { SizeGuideDialog } from "@/components/aura/SizeGuideDialog";
 
 type Props = {
   fit: Fit;
   setFit: (f: Fit) => void;
   product: ProductStyle;
   setProduct: (p: ProductStyle) => void;
+  productStyles: ProductStyle[];
   color: ColorSwatch;
   setColor: (c: ColorSwatch) => void;
   size: Size;
@@ -14,6 +17,8 @@ type Props = {
   quantity: number;
   total: number;
   unitPrice: number;
+  subtotal: number;
+  shipping: number;
   artwork: string | null;
   onAddToCart: (item: {
     productId: string;
@@ -30,8 +35,10 @@ type Props = {
 };
 
 export function RightSidebar({
-  fit, setFit, product, setProduct, color, setColor, size, setSize, quantity, setQuantity, total, unitPrice, artwork, onAddToCart, onBuyNow,
+  fit, setFit, product, setProduct, productStyles, color, setColor, size, setSize, quantity, setQuantity, total, unitPrice, subtotal, shipping, artwork, onAddToCart, onBuyNow,
 }: Props & { setQuantity: (q: number) => void }) {
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+
   const handleAddToCart = () => {
     onAddToCart({
       productId: product.id,
@@ -49,12 +56,9 @@ export function RightSidebar({
     );
   };
 
-  const handleBuyNow = () => {
-    onBuyNow();
-  };
-
   return (
     <aside className="flex h-full w-[340px] shrink-0 flex-col border-l border-border bg-card/40">
+      <SizeGuideDialog open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         <section>
           <Title>Select Fit</Title>
@@ -76,7 +80,7 @@ export function RightSidebar({
         <section>
           <Title>Product Style</Title>
           <div className="mt-2 space-y-2">
-            {PRODUCT_STYLES.map((p) => {
+            {productStyles.map((p) => {
               const active = product.id === p.id;
               return (
                 <button
@@ -128,7 +132,11 @@ export function RightSidebar({
         <section>
           <div className="flex items-center justify-between">
             <Title>Size</Title>
-            <button className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-primary hover:underline">
+            <button
+              type="button"
+              onClick={() => setSizeGuideOpen(true)}
+              className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-primary hover:underline"
+            >
               <Ruler className="h-3 w-3" /> View Size Guide
             </button>
           </div>
@@ -181,14 +189,18 @@ export function RightSidebar({
       </div>
 
       <div className="border-t border-border bg-card/80 p-5 backdrop-blur-md">
-        <div className="mb-3 flex items-end justify-between">
+        <div className="mb-3 space-y-1.5">
+          <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
+          <Row label="Shipping" value={shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"} />
+        </div>
+        <div className="mb-3 flex items-end justify-between border-t border-border pt-3">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Estimated Total</p>
             <p className="mt-0.5 text-3xl font-bold tracking-tight text-foreground">
               ${total.toFixed(2)}
             </p>
           </div>
-          <p className="text-[11px] text-muted-foreground">incl. AI artwork</p>
+          <p className="text-[11px] text-muted-foreground">incl. artwork & shipping</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -200,7 +212,7 @@ export function RightSidebar({
           </button>
           <button
             type="button"
-            onClick={handleBuyNow}
+            onClick={onBuyNow}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:opacity-90 neon-glow"
           >
             <Zap className="h-4 w-4" /> Buy Now
@@ -218,4 +230,13 @@ export function RightSidebar({
 
 function Title({ children }: { children: React.ReactNode }) {
   return <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{children}</h3>;
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-foreground">{value}</span>
+    </div>
+  );
 }
