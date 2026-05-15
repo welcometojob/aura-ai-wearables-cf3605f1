@@ -238,7 +238,7 @@ function Editor() {
         />
       </div>
       <Sheet open={leftPanelOpen} onOpenChange={setLeftPanelOpen}>
-        <SheetContent side="left" className="w-[88vw] max-w-sm p-0 sm:max-w-sm lg:hidden">
+        <SheetContent side="left" className="w-80 max-w-[88vw] p-0 sm:max-w-[88vw] lg:hidden">
           <div className="h-full overflow-hidden">
             <LeftSidebar
               prompt={prompt}
@@ -311,7 +311,7 @@ function Editor() {
       />
       </div>
       <Sheet open={rightPanelOpen} onOpenChange={setRightPanelOpen}>
-        <SheetContent side="right" className="w-[88vw] max-w-sm p-0 sm:max-w-sm lg:hidden">
+        <SheetContent side="right" className="w-[340px] max-w-[88vw] p-0 sm:max-w-[88vw] lg:hidden">
           <div className="h-full overflow-hidden">
             <RightSidebar
               fit={fit}
