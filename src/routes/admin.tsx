@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,9 @@ import {
   updateOrderStage,
   type Order,
 } from "@/lib/orders";
+import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
+import { getShippingRate, setShippingRate } from "@/lib/site-settings";
+import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -177,6 +180,15 @@ function AdminPage() {
             <TabsTrigger value="orders">
               <ClipboardList className="h-4 w-4" /> Orders
             </TabsTrigger>
+            <TabsTrigger value="styles">
+              <Shirt className="h-4 w-4" /> Product Styles
+            </TabsTrigger>
+            <TabsTrigger value="pages">
+              <FileText className="h-4 w-4" /> Pages
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <SettingsIcon className="h-4 w-4" /> Settings
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="products" className="grid lg:grid-cols-5 gap-8">
         <section className="lg:col-span-2">
@@ -321,6 +333,15 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersManager />
+          </TabsContent>
+          <TabsContent value="styles">
+            <ProductStylesManager />
+          </TabsContent>
+          <TabsContent value="pages">
+            <SitePagesManager />
+          </TabsContent>
+          <TabsContent value="settings">
+            <SiteSettingsManager />
           </TabsContent>
         </Tabs>
       </main>
