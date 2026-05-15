@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/use-cart";
+import { getShippingRate } from "@/lib/site-settings";
 
 export function CartDrawer({
   open,
@@ -14,6 +15,13 @@ export function CartDrawer({
 }) {
   const { items, remove, updateQty, totalPrice, clear } = useCart();
   const [loading, setLoading] = useState(false);
+  const [shipping, setShipping] = useState(0);
+
+  useEffect(() => {
+    getShippingRate().then(setShipping).catch(() => setShipping(0));
+  }, []);
+
+  const grandTotal = totalPrice + (items.length > 0 ? shipping : 0);
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -28,6 +36,7 @@ export function CartDrawer({
             quantity: i.quantity,
             image: i.artwork ?? undefined,
           })),
+          shippingRate: shipping,
         },
       });
       if (error) throw error;
@@ -115,9 +124,13 @@ export function CartDrawer({
 
         {items.length > 0 && (
           <div className="border-t border-border pt-3">
-            <div className="mb-3 flex items-end justify-between">
+            <div className="mb-3 space-y-1 text-xs">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${totalPrice.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
+            </div>
+            <div className="mb-3 flex items-end justify-between border-t border-border pt-3">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Total</span>
-              <span className="text-2xl font-bold">${totalPrice.toFixed(2)}</span>
+              <span className="text-2xl font-bold">${grandTotal.toFixed(2)}</span>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <button
