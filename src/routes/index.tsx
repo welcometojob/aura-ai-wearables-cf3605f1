@@ -1016,18 +1016,7 @@ function Reviews() {
           </div>
         )}
 
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button variant="hero" size="lg" onClick={onWriteReview}>
-            <PenSquare className="h-4 w-4" />
-            Write a review
-          </Button>
-          <Button variant="ghostNeon" size="lg" asChild>
-            <Link to="/editor">
-              Create your design
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        {/* CTA buttons intentionally removed per user request */}
       </div>
 
       <SubmitReviewDialog
@@ -1333,20 +1322,20 @@ function Footer() {
         <div className="lg:col-span-2">
           <div className="text-sm font-semibold mb-4">Help</div>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
-            <li><a href="#" className="hover:text-foreground transition">About Us</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Contact Us</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Terms &amp; Conditions</a></li>
+            <li><Link to="/p/$slug" params={{ slug: "about" }} className="hover:text-foreground transition">About Us</Link></li>
+            <li><Link to="/p/$slug" params={{ slug: "contact" }} className="hover:text-foreground transition">Contact Us</Link></li>
+            <li><Link to="/p/$slug" params={{ slug: "privacy" }} className="hover:text-foreground transition">Privacy Policy</Link></li>
+            <li><Link to="/p/$slug" params={{ slug: "terms" }} className="hover:text-foreground transition">Terms &amp; Conditions</Link></li>
           </ul>
         </div>
 
         <div className="lg:col-span-3">
           <div className="text-sm font-semibold mb-4">Useful Links</div>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
-            <li><a href="#features" className="hover:text-foreground transition">Our AI generator</a></li>
-            <li><a href="#track" className="hover:text-foreground transition">Order Tracking</a></li>
-            <li><a href="#" className="hover:text-foreground transition">Returns Policy</a></li>
-            <li><a href="#shipping" className="hover:text-foreground transition">Shipping Policy</a></li>
+            <li><Link to="/editor" className="hover:text-foreground transition">Our AI generator</Link></li>
+            <li><Link to="/orders/track" className="hover:text-foreground transition">Order Tracking</Link></li>
+            <li><Link to="/p/$slug" params={{ slug: "returns" }} className="hover:text-foreground transition">Returns Policy</Link></li>
+            <li><Link to="/p/$slug" params={{ slug: "shipping" }} className="hover:text-foreground transition">Shipping Policy</Link></li>
           </ul>
         </div>
 

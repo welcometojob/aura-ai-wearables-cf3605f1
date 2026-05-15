@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +30,9 @@ import {
   updateOrderStage,
   type Order,
 } from "@/lib/orders";
+import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
+import { getShippingRate, setShippingRate } from "@/lib/site-settings";
+import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -177,6 +180,15 @@ function AdminPage() {
             <TabsTrigger value="orders">
               <ClipboardList className="h-4 w-4" /> Orders
             </TabsTrigger>
+            <TabsTrigger value="styles">
+              <Shirt className="h-4 w-4" /> Product Styles
+            </TabsTrigger>
+            <TabsTrigger value="pages">
+              <FileText className="h-4 w-4" /> Pages
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <SettingsIcon className="h-4 w-4" /> Settings
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="products" className="grid lg:grid-cols-5 gap-8">
         <section className="lg:col-span-2">
@@ -321,6 +333,15 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersManager />
+          </TabsContent>
+          <TabsContent value="styles">
+            <ProductStylesManager />
+          </TabsContent>
+          <TabsContent value="pages">
+            <SitePagesManager />
+          </TabsContent>
+          <TabsContent value="settings">
+            <SiteSettingsManager />
           </TabsContent>
         </Tabs>
       </main>
@@ -648,6 +669,178 @@ function OrdersManager() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+function ProductStylesManager() {
+  const [styles, setStyles] = useState<ProductStyleRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newSlug, setNewSlug] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+
+  const load = () => {
+    setLoading(true);
+    listProductStyles().then(setStyles).catch((e) => toast.error(e.message)).finally(() => setLoading(false));
+  };
+  useEffect(load, []);
+
+  const onSave = async (s: ProductStyleRow) => {
+    try {
+      await updateProductStyle(s.id, { name: s.name, description: s.description, price: s.price, active: s.active, sort_order: s.sortOrder });
+      toast.success("Saved");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
+  const onAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSlug.trim() || !newName.trim() || !newPrice.trim()) return;
+    try {
+      await addProductStyle({ slug: newSlug.trim(), name: newName.trim(), description: newDesc.trim(), price: Number(newPrice), sort_order: styles.length + 1 });
+      toast.success("Style added");
+      setNewSlug(""); setNewName(""); setNewDesc(""); setNewPrice("");
+      load();
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Add failed"); }
+  };
+
+  const onDelete = async (id: string) => {
+    if (!confirm("Delete this style?")) return;
+    try { await deleteProductStyle(id); load(); } catch (e) { toast.error(e instanceof Error ? e.message : "Delete failed"); }
+  };
+
+  if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
+
+  return (
+    <div className="grid lg:grid-cols-5 gap-8">
+      <section className="lg:col-span-2">
+        <div className="glass rounded-2xl p-6">
+          <h2 className="text-lg font-semibold flex items-center gap-2"><Plus className="h-4 w-4 text-primary" /> Add product style</h2>
+          <form onSubmit={onAdd} className="mt-5 space-y-3">
+            <div><label className="text-xs text-muted-foreground">Slug (unique key)</label><Input value={newSlug} onChange={(e) => setNewSlug(e.target.value)} placeholder="longsleeve" className="mt-1.5" /></div>
+            <div><label className="text-xs text-muted-foreground">Name</label><Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Long Sleeve" className="mt-1.5" /></div>
+            <div><label className="text-xs text-muted-foreground">Description</label><Input value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Premium long sleeve" className="mt-1.5" /></div>
+            <div><label className="text-xs text-muted-foreground">Price (USD)</label><Input value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="42" type="number" step="0.01" className="mt-1.5" /></div>
+            <Button type="submit" variant="hero" className="w-full">Add style</Button>
+          </form>
+        </div>
+      </section>
+      <section className="lg:col-span-3 space-y-3">
+        {styles.map((s, idx) => (
+          <div key={s.id} className="glass rounded-2xl p-5 grid sm:grid-cols-[1fr_120px_100px_auto_auto] gap-3 items-end">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Name</label>
+              <Input value={s.name} onChange={(e) => setStyles((arr) => arr.map((x, i) => i === idx ? { ...x, name: e.target.value } : x))} className="mt-1" />
+              <Input value={s.description} onChange={(e) => setStyles((arr) => arr.map((x, i) => i === idx ? { ...x, description: e.target.value } : x))} placeholder="Description" className="mt-2 text-xs" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Price</label>
+              <Input type="number" step="0.01" value={s.price} onChange={(e) => setStyles((arr) => arr.map((x, i) => i === idx ? { ...x, price: Number(e.target.value) } : x))} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Order</label>
+              <Input type="number" value={s.sortOrder} onChange={(e) => setStyles((arr) => arr.map((x, i) => i === idx ? { ...x, sortOrder: Number(e.target.value) } : x))} className="mt-1" />
+            </div>
+            <Button size="sm" variant="hero" onClick={() => onSave(s)}><Save className="h-4 w-4" /> Save</Button>
+            <Button size="sm" variant="ghostNeon" onClick={() => onDelete(s.id)}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
+function SitePagesManager() {
+  const [pages, setPages] = useState<SitePage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeSlug, setActiveSlug] = useState<string>("");
+
+  useEffect(() => {
+    listSitePages().then((p) => { setPages(p); setActiveSlug(p[0]?.slug ?? ""); }).catch((e) => toast.error(e.message)).finally(() => setLoading(false));
+  }, []);
+
+  const active = pages.find((p) => p.slug === activeSlug);
+
+  const onSave = async () => {
+    if (!active) return;
+    try {
+      await upsertSitePage({ slug: active.slug, title: active.title, content: active.content });
+      toast.success("Page saved");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed"); }
+  };
+
+  if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
+
+  return (
+    <div className="grid lg:grid-cols-[220px_1fr] gap-6">
+      <aside className="glass rounded-2xl p-3 h-max">
+        <ul className="space-y-1">
+          {pages.map((p) => (
+            <li key={p.slug}>
+              <button onClick={() => setActiveSlug(p.slug)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${activeSlug === p.slug ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-card/60"}`}>
+                {p.title}
+                <div className="text-[10px] text-muted-foreground/70">/p/{p.slug}</div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      {active && (
+        <section className="glass rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Edit: {active.title}</h2>
+            <Button variant="hero" size="sm" onClick={onSave}><Save className="h-4 w-4" /> Save</Button>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Title</label>
+            <Input value={active.title} onChange={(e) => setPages((arr) => arr.map((p) => p.slug === active.slug ? { ...p, title: e.target.value } : p))} className="mt-1.5" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Content (Markdown supported)</label>
+            <Textarea value={active.content} onChange={(e) => setPages((arr) => arr.map((p) => p.slug === active.slug ? { ...p, content: e.target.value } : p))} rows={20} className="mt-1.5 font-mono text-xs" />
+          </div>
+          <p className="text-[11px] text-muted-foreground">Use <code>#</code> for headings, <code>**bold**</code>, <code>- item</code> for lists. Page lives at <code>/p/{active.slug}</code>.</p>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function SiteSettingsManager() {
+  const [shipping, setShipping] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getShippingRate().then((r) => setShipping(String(r))).catch((e) => toast.error(e.message)).finally(() => setLoading(false));
+  }, []);
+
+  const onSave = async () => {
+    const n = Number(shipping);
+    if (!Number.isFinite(n) || n < 0) { toast.error("Enter a valid non-negative number"); return; }
+    setSaving(true);
+    try {
+      await setShippingRate(n);
+      toast.success("Shipping rate saved");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSaving(false); }
+  };
+
+  if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
+
+  return (
+    <div className="max-w-md glass rounded-2xl p-6 space-y-4">
+      <h2 className="text-lg font-semibold flex items-center gap-2"><SettingsIcon className="h-4 w-4 text-primary" /> Shipping</h2>
+      <div>
+        <label className="text-xs text-muted-foreground">Flat shipping rate (USD)</label>
+        <Input type="number" step="0.01" min="0" value={shipping} onChange={(e) => setShipping(e.target.value)} className="mt-1.5" />
+        <p className="mt-1 text-[11px] text-muted-foreground">Applied to every order at checkout. Set to 0 for free shipping.</p>
+      </div>
+      <Button variant="hero" onClick={onSave} disabled={saving}>
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
+      </Button>
     </div>
   );
 }

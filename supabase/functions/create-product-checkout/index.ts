@@ -33,7 +33,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = await req.json() as { items: IncomingItem[]; shipping?: ShippingInfo };
+    const body = await req.json() as { items: IncomingItem[]; shipping?: ShippingInfo; shippingRate?: number };
     const items = Array.isArray(body.items) ? body.items : [];
     if (items.length === 0) {
       return new Response(JSON.stringify({ error: "Cart is empty" }), {
@@ -63,22 +63,36 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") ?? "http://localhost:5173";
 
+    const lineItems = items.map((it) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: it.name,
+          description: it.description?.slice(0, 240),
+          images: it.image ? [it.image].filter((u) => /^https?:\/\//.test(u)) : undefined,
+        },
+        unit_amount: Math.round(it.unitPrice * 100),
+      },
+      quantity: it.quantity,
+    }));
+
+    const shippingRate = typeof body.shippingRate === "number" && body.shippingRate > 0 ? body.shippingRate : 0;
+    if (shippingRate > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Shipping" },
+          unit_amount: Math.round(shippingRate * 100),
+        },
+        quantity: 1,
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: customerEmail,
       client_reference_id: user?.id,
-      line_items: items.map((it) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: it.name,
-            description: it.description?.slice(0, 240),
-            images: it.image ? [it.image].filter((u) => /^https?:\/\//.test(u)) : undefined,
-          },
-          unit_amount: Math.round(it.unitPrice * 100),
-        },
-        quantity: it.quantity,
-      })),
+      line_items: lineItems,
       shipping_address_collection: { allowed_countries: ["US","CA","GB","AU","DE","FR","NL","SE","NO","DK","ES","IT","IN","BD","SG","JP","BR","MX"] },
       phone_number_collection: { enabled: true },
       success_url: `${origin}/?checkout=success`,

@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
 const Mockup = lazy(() =>
   import("@/components/aura/Mockup").then((m) => ({ default: m.Mockup })),
 );
-import { COLORS, PRODUCT_STYLES, type Fit, type Size, type View } from "@/lib/aura-config";
+import { COLORS, PRODUCT_STYLES, type Fit, type ProductStyle, type Size, type View } from "@/lib/aura-config";
+import { listProductStyles } from "@/lib/product-styles";
+import { getShippingRate } from "@/lib/site-settings";
 import { ArrowLeft, User, Sun, Moon, Loader2, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
@@ -44,6 +46,22 @@ function Editor() {
   const credits = profile?.credits_remaining ?? 0;
   const { items: history, add: addHistory, remove: removeHistory } = useGenerationHistory();
   const cart = useCart();
+  const [productStyles, setProductStyles] = useState<ProductStyle[]>(PRODUCT_STYLES);
+  const [shippingRate, setShippingRate] = useState<number>(0);
+
+  useEffect(() => {
+    listProductStyles()
+      .then((rows) => {
+        if (rows.length === 0) return;
+        const mapped: ProductStyle[] = rows
+          .filter((r) => r.active)
+          .map((r) => ({ id: r.slug, name: r.name, price: r.price, description: r.description }));
+        setProductStyles(mapped);
+        setProduct((curr) => mapped.find((m) => m.id === curr.id) ?? mapped[0]);
+      })
+      .catch(() => { /* fall back to defaults */ });
+    getShippingRate().then(setShippingRate).catch(() => setShippingRate(0));
+  }, []);
 
   const [view, setView] = useState<View>("front");
   const [fit, setFit] = useState<Fit>("Men");
@@ -54,7 +72,8 @@ function Editor() {
 
   const artworkFee = artwork ? 4 : 0;
   const unitPrice = product.price + artworkFee;
-  const total = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
+  const subtotal = useMemo(() => unitPrice * quantity, [unitPrice, quantity]);
+  const total = useMemo(() => subtotal + shippingRate, [subtotal, shippingRate]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -179,6 +198,7 @@ function Editor() {
         open={buyNowItem !== null}
         onOpenChange={(v) => { if (!v) setBuyNowItem(null); }}
         item={buyNowItem}
+        shipping={shippingRate}
       />
       <div className="flex flex-1 overflow-hidden">
       <LeftSidebar
@@ -222,6 +242,7 @@ function Editor() {
         setFit={setFit}
         product={product}
         setProduct={setProduct}
+        productStyles={productStyles}
         color={color}
         setColor={setColor}
         size={size}
@@ -230,6 +251,8 @@ function Editor() {
         setQuantity={setQuantity}
         total={total}
         unitPrice={unitPrice}
+        subtotal={subtotal}
+        shipping={shippingRate}
         artwork={artwork}
         onAddToCart={(item) => cart.add(item)}
         onBuyNow={() => {

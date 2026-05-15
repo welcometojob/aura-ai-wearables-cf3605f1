@@ -18,10 +18,12 @@ export function BuyNowDrawer({
   open,
   onOpenChange,
   item,
+  shipping = 0,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   item: BuyNowItem | null;
+  shipping?: number;
 }) {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,8 @@ export function BuyNowDrawer({
 
   if (!item) return null;
 
-  const total = item.unitPrice * item.quantity;
+  const subtotal = item.unitPrice * item.quantity;
+  const total = subtotal + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +73,7 @@ export function BuyNowDrawer({
               image: item.image ?? undefined,
             },
           ],
+          shippingRate: shipping,
           shipping: form,
         },
       });
@@ -103,7 +107,11 @@ export function BuyNowDrawer({
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold">{item.name}</p>
             <p className="text-[11px] text-muted-foreground">Quantity: {item.quantity}</p>
-            <p className="mt-1 text-sm font-bold">${total.toFixed(2)}</p>
+            <div className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
+              <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
+              <div className="flex justify-between border-t border-border pt-1 text-sm font-bold text-foreground"><span>Total</span><span>${total.toFixed(2)}</span></div>
+            </div>
           </div>
         </div>
 
