@@ -52,6 +52,13 @@ import { Input } from "@/components/ui/input";
 import tshirt1 from "@/assets/tshirt-hero-1.jpg";
 import tshirt2 from "@/assets/tshirt-hero-2.jpg";
 import tshirt3 from "@/assets/tshirt-hero-3.jpg";
+import tshirt4 from "@/assets/tshirt-hero-4.jpg";
+import tshirt5 from "@/assets/tshirt-hero-5.jpg";
+import tshirt6 from "@/assets/tshirt-hero-6.jpg";
+import tshirt7 from "@/assets/tshirt-hero-7.jpg";
+import tshirt8 from "@/assets/tshirt-hero-8.jpg";
+import tshirt9 from "@/assets/tshirt-hero-9.jpg";
+import tshirt10 from "@/assets/tshirt-hero-10.jpg";
 import trend1 from "@/assets/trend-1.jpg";
 import trend2 from "@/assets/trend-2.jpg";
 import trend3 from "@/assets/trend-3.jpg";
@@ -76,7 +83,7 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const heroMockups = [tshirt1, tshirt2, tshirt3];
+const heroMockups = [tshirt1, tshirt2, tshirt3, tshirt4, tshirt5, tshirt6, tshirt7, tshirt8, tshirt9, tshirt10];
 
 function Nav() {
   const { user, profile, isAdmin, signOut } = useAuth();
