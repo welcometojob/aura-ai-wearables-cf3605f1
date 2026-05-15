@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useEffect, useState, type ReactNode } from "react";
 import brandLogo from "@/assets/tommymeow-logo.png";
+import brandMark from "@/assets/tommymeow-mark.png";
 import {
   Sparkles,
   Wand2,
@@ -104,7 +105,8 @@ function Nav() {
       <div className="mx-auto max-w-7xl px-6 py-4">
         <div className="glass rounded-2xl px-5 py-3 flex items-center justify-between">
           <a href="#" className="flex items-center gap-2">
-            <img src={brandLogo} alt="TommyMeow" className="h-9 w-auto" />
+            <img src={brandMark} alt="TommyMeow" className="h-9 w-auto sm:hidden" />
+            <img src={brandLogo} alt="TommyMeow" className="hidden h-9 w-auto sm:block" />
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
