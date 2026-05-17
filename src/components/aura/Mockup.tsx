@@ -195,28 +195,6 @@ function Shirt({
             </Suspense>
           )}
         </mesh>
-        {isHoodie && (
-          <>
-            {/* Procedural hood — a flattened sphere sitting on the upper back */}
-            <mesh
-              position={[0, 0.62, -0.08]}
-              scale={[0.42, 0.32, 0.38]}
-              castShadow
-              receiveShadow
-              material={fabricMaterial}
-            >
-              <sphereGeometry args={[1, 32, 24]} />
-            </mesh>
-            {/* Front kangaroo pocket hint */}
-            <mesh
-              position={[0, -0.18, 0.16]}
-              rotation={[0, 0, 0]}
-              material={fabricMaterial}
-            >
-              <boxGeometry args={[0.55, 0.22, 0.02]} />
-            </mesh>
-          </>
-        )}
       </Center>
     </group>
   );
