@@ -10,8 +10,8 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { TextureLoader } from "three";
-import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
-import type { ColorSwatch, View } from "@/lib/aura-config";
+import { ZoomIn, ZoomOut, RotateCcw, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import type { ColorSwatch, Fit, ProductStyle, View } from "@/lib/aura-config";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 import { Slider } from "@/components/ui/slider";
 
@@ -22,7 +22,11 @@ type Props = {
   artwork: string | null;
   styleName: string;
   fabric: string;
-  fit?: "Men" | "Women" | "Kids";
+  fit?: Fit;
+  setFit?: (f: Fit) => void;
+  product?: ProductStyle;
+  setProduct?: (p: ProductStyle) => void;
+  productStyles?: ProductStyle[];
 };
 
 useGLTF.preload("/models/shirt.glb");
@@ -108,12 +112,14 @@ function Shirt({
   artworkScale,
   view,
   fit,
+  isHoodie,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
   artworkScale: { front: number; back: number };
   view: View;
-  fit: "Men" | "Women" | "Kids";
+  fit: Fit;
+  isHoodie: boolean;
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -122,6 +128,15 @@ function Shirt({
   const groupRef = useRef<THREE.Group>(null);
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
+
+  // Body silhouette scale per fit (and slight stretch for hoodies)
+  const targetScale = useMemo(() => {
+    let sx = 1, sy = 1, sz = 1;
+    if (fit === "Women") { sx = 0.92; sy = 1.02; sz = 0.95; }
+    else if (fit === "Kids") { sx = 0.82; sy = 0.85; sz = 0.82; }
+    if (isHoodie) { sy *= 1.05; sx *= 1.04; sz *= 1.04; }
+    return new THREE.Vector3(sx, sy, sz);
+  }, [fit, isHoodie]);
 
   // Build a clean fabric material — strip any baked textures (AO/diffuse/normal)
   // from the GLB that were producing the dark stain-like patches on the shirt.
@@ -151,6 +166,8 @@ function Shirt({
     // Smooth rotation between front/back
     const cur = groupRef.current.rotation.y;
     groupRef.current.rotation.y = cur + (targetRotY - cur) * Math.min(1, dt * 5);
+    // Smooth scale between variants
+    groupRef.current.scale.lerp(targetScale, Math.min(1, dt * 6));
   });
 
   return (
@@ -178,6 +195,28 @@ function Shirt({
             </Suspense>
           )}
         </mesh>
+        {isHoodie && (
+          <>
+            {/* Procedural hood — a flattened sphere sitting on the upper back */}
+            <mesh
+              position={[0, 0.62, -0.08]}
+              scale={[0.42, 0.32, 0.38]}
+              castShadow
+              receiveShadow
+              material={fabricMaterial}
+            >
+              <sphereGeometry args={[1, 32, 24]} />
+            </mesh>
+            {/* Front kangaroo pocket hint */}
+            <mesh
+              position={[0, -0.18, 0.16]}
+              rotation={[0, 0, 0]}
+              material={fabricMaterial}
+            >
+              <boxGeometry args={[0.55, 0.22, 0.02]} />
+            </mesh>
+          </>
+        )}
       </Center>
     </group>
   );
@@ -194,8 +233,36 @@ function CameraRig({ zoom }: { zoom: number }) {
 
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
-export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
+export function Mockup({ view, setView, color, artwork, fit = "Men", setFit, product, setProduct, productStyles }: Props) {
   const [zoom, setZoom] = useState(1);
+  const isHoodie = (product?.name ?? "").toLowerCase().includes("hood");
+
+  // Variant carousel: cycle through (fit × product) combinations.
+  const variants = useMemo(() => {
+    if (!productStyles || productStyles.length === 0) return [] as { fit: Fit; product: ProductStyle; label: string }[];
+    const fits: Fit[] = ["Men", "Women", "Kids"];
+    const list: { fit: Fit; product: ProductStyle; label: string }[] = [];
+    for (const f of fits) {
+      for (const p of productStyles) {
+        list.push({ fit: f, product: p, label: `${f}'s ${p.name}` });
+      }
+    }
+    return list;
+  }, [productStyles]);
+
+  const currentIndex = useMemo(() => {
+    if (!product) return -1;
+    return variants.findIndex((v) => v.fit === fit && v.product.id === product.id);
+  }, [variants, fit, product]);
+
+  const canCycle = variants.length > 1 && setFit && setProduct;
+  const goVariant = (dir: -1 | 1) => {
+    if (!canCycle || currentIndex < 0) return;
+    const next = (currentIndex + dir + variants.length) % variants.length;
+    const v = variants[next];
+    setFit!(v.fit);
+    setProduct!(v.product);
+  };
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
   const [backArt, setBackArt] = useState<string | null>(null);
@@ -287,6 +354,35 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
         {/* Soft studio backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_oklch(1_0_0/0.08),_transparent_60%)]" />
 
+        {canCycle && (
+          <>
+            <button
+              type="button"
+              onClick={() => goVariant(-1)}
+              aria-label="Previous style"
+              className="absolute left-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground shadow-sm backdrop-blur transition hover:border-primary hover:text-primary sm:left-3 sm:h-11 sm:w-11"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goVariant(1)}
+              aria-label="Next style"
+              className="absolute right-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground shadow-sm backdrop-blur transition hover:border-primary hover:text-primary sm:right-3 sm:h-11 sm:w-11"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            {currentIndex >= 0 && (
+              <div className="pointer-events-none absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+                {variants[currentIndex].label}
+                <span className="ml-2 text-muted-foreground/60">
+                  {currentIndex + 1}/{variants.length}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
         {loadingArt && (
           <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] uppercase tracking-wider text-muted-foreground backdrop-blur">
             <Loader2 className="h-3 w-3 animate-spin" /> Applying art
@@ -320,6 +416,7 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
                 artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
                 fit={fit}
+                isHoodie={isHoodie}
               />
             </Suspense>
 
