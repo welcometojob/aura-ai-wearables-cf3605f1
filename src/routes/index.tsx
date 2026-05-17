@@ -133,7 +133,7 @@ function Nav() {
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <Button variant="hero" size="sm" asChild>
-              <Link to="/editor">Start Designing</Link>
+              <Link to="/editor">Start Free Designing</Link>
             </Button>
             {user ? (
               <DropdownMenu>
