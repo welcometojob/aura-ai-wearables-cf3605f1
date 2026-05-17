@@ -59,12 +59,6 @@ import tshirt7 from "@/assets/tshirt-hero-7.jpg";
 import tshirt8 from "@/assets/tshirt-hero-8.jpg";
 import tshirt9 from "@/assets/tshirt-hero-9.jpg";
 import tshirt10 from "@/assets/tshirt-hero-10.jpg";
-import tshirt11 from "@/assets/tshirt-hero-11.jpg";
-import tshirt12 from "@/assets/tshirt-hero-12.jpg";
-import tshirt13 from "@/assets/tshirt-hero-13.jpg";
-import tshirt14 from "@/assets/tshirt-hero-14.jpg";
-import tshirt15 from "@/assets/tshirt-hero-15.jpg";
-import tshirt16 from "@/assets/tshirt-hero-16.jpg";
 import trend1 from "@/assets/trend-1.jpg";
 import trend2 from "@/assets/trend-2.jpg";
 import trend3 from "@/assets/trend-3.jpg";
@@ -89,7 +83,7 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const heroMockups = [tshirt1, tshirt2, tshirt3, tshirt4, tshirt5, tshirt6, tshirt7, tshirt8, tshirt9, tshirt10, tshirt11, tshirt12, tshirt13, tshirt14, tshirt15, tshirt16];
+const heroMockups = [tshirt1, tshirt2, tshirt3, tshirt4, tshirt5, tshirt6, tshirt7, tshirt8, tshirt9, tshirt10];
 
 function Nav() {
   const { user, profile, isAdmin, signOut } = useAuth();
