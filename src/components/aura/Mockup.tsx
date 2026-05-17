@@ -10,8 +10,8 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { TextureLoader } from "three";
-import { ZoomIn, ZoomOut, RotateCcw, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import type { ColorSwatch, ProductStyle, View, Fit } from "@/lib/aura-config";
+import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
+import type { ColorSwatch, View } from "@/lib/aura-config";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 import { Slider } from "@/components/ui/slider";
 
@@ -22,11 +22,7 @@ type Props = {
   artwork: string | null;
   styleName: string;
   fabric: string;
-  fit?: Fit;
-  product?: ProductStyle;
-  productStyles?: ProductStyle[];
-  setFit?: (f: Fit) => void;
-  setProduct?: (p: ProductStyle) => void;
+  fit?: "Men" | "Women" | "Kids";
 };
 
 useGLTF.preload("/models/shirt.glb");
@@ -61,34 +57,6 @@ function VNeckDecal() {
       <meshBasicMaterial map={texture} transparent toneMapped={false} depthTest depthWrite={false} polygonOffset polygonOffsetFactor={-8} />
     </Decal>
   );
-}
-
-// Procedural hood — a hemispherical fabric blob sitting at the top
-// of the shirt mesh so hoodie variants read as visually distinct from tees.
-function HoodMesh({ color }: { color: string }) {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
-  const target = useMemo(() => new THREE.Color(color), [color]);
-  useFrame((_, dt) => {
-    if (matRef.current) {
-      matRef.current.color.lerp(target, Math.min(1, dt * 6));
-    }
-  });
-  return (
-    <group position={[0, 0.52, -0.05]} rotation={[0.25, 0, 0]}>
-      <mesh castShadow receiveShadow scale={[0.32, 0.22, 0.28]}>
-        <sphereGeometry args={[1, 32, 32, 0, Math.PI * 2, 0, Math.PI / 1.6]} />
-        <meshStandardMaterial ref={matRef} color={color} roughness={0.85} metalness={0} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
-  );
-}
-
-function getVariantScale(fit: Fit, productId: string): [number, number, number] {
-  const hoodie = productId === "hoodie";
-  if (fit === "Kids") return hoodie ? [0.82, 0.86, 0.84] : [0.78, 0.82, 0.8];
-  if (fit === "Women") return hoodie ? [0.95, 1.08, 0.96] : [0.92, 1.02, 0.95];
-  // Men
-  return hoodie ? [1.08, 1.1, 1.05] : [1, 1, 1];
 }
 
 function ArtworkDecal({
@@ -140,14 +108,12 @@ function Shirt({
   artworkScale,
   view,
   fit,
-  productId,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
   artworkScale: { front: number; back: number };
   view: View;
-  fit: Fit;
-  productId: string;
+  fit: "Men" | "Women" | "Kids";
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -156,8 +122,6 @@ function Shirt({
   const groupRef = useRef<THREE.Group>(null);
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
-  const variantScale = useMemo(() => getVariantScale(fit, productId), [fit, productId]);
-  const isHoodie = productId === "hoodie";
 
   // Build a clean fabric material — strip any baked textures (AO/diffuse/normal)
   // from the GLB that were producing the dark stain-like patches on the shirt.
@@ -192,31 +156,28 @@ function Shirt({
   return (
     <group ref={groupRef} dispose={null}>
       <Center>
-        <group scale={variantScale}>
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={meshNode.geometry}
-            material={fabricMaterial}
-          >
-            {fit === "Women" && !isHoodie && (
-              <Suspense fallback={null}>
-                <VNeckDecal />
-              </Suspense>
-            )}
-            {artworkUri.front && (
-              <Suspense fallback={null}>
-                <ArtworkDecal url={artworkUri.front} side="front" scale={artworkScale.front} />
-              </Suspense>
-            )}
-            {artworkUri.back && (
-              <Suspense fallback={null}>
-                <ArtworkDecal url={artworkUri.back} side="back" scale={artworkScale.back} />
-              </Suspense>
-            )}
-          </mesh>
-          {isHoodie && <HoodMesh color={color} />}
-        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={meshNode.geometry}
+          material={fabricMaterial}
+        >
+          {fit === "Women" && (
+            <Suspense fallback={null}>
+              <VNeckDecal />
+            </Suspense>
+          )}
+          {artworkUri.front && (
+            <Suspense fallback={null}>
+              <ArtworkDecal url={artworkUri.front} side="front" scale={artworkScale.front} />
+            </Suspense>
+          )}
+          {artworkUri.back && (
+            <Suspense fallback={null}>
+              <ArtworkDecal url={artworkUri.back} side="back" scale={artworkScale.back} />
+            </Suspense>
+          )}
+        </mesh>
       </Center>
     </group>
   );
@@ -233,7 +194,7 @@ function CameraRig({ zoom }: { zoom: number }) {
 
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
-export function Mockup({ view, setView, color, artwork, fit = "Men", product, productStyles, setFit, setProduct }: Props) {
+export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
   const [zoom, setZoom] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
@@ -243,42 +204,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", product, pr
   const [loadingArt, setLoadingArt] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
-  // Build carousel variant list (Men Tee, Women Tee, Men Hoodie, Women Hoodie, Kids Tee)
-  const tee = useMemo(
-    () => productStyles?.find((p) => p.id === "standard") ?? null,
-    [productStyles],
-  );
-  const hoodie = useMemo(
-    () => productStyles?.find((p) => p.id === "hoodie") ?? null,
-    [productStyles],
-  );
-  const variants = useMemo(() => {
-    const list: Array<{ fit: Fit; product: ProductStyle; label: string }> = [];
-    if (tee) list.push({ fit: "Men", product: tee, label: "Men's Standard" });
-    if (tee) list.push({ fit: "Women", product: tee, label: "Women's Standard" });
-    if (hoodie) list.push({ fit: "Men", product: hoodie, label: "Men's Hoodie" });
-    if (hoodie) list.push({ fit: "Women", product: hoodie, label: "Women's Hoodie" });
-    if (tee) list.push({ fit: "Kids", product: tee, label: "Kids' Standard" });
-    return list;
-  }, [tee, hoodie]);
-
-  const currentIdx = useMemo(() => {
-    if (!product) return 0;
-    const i = variants.findIndex((v) => v.fit === fit && v.product.id === product.id);
-    return i < 0 ? 0 : i;
-  }, [variants, fit, product]);
-
-  const goVariant = (delta: number) => {
-    if (variants.length === 0 || !setFit || !setProduct) return;
-    const next = (currentIdx + delta + variants.length) % variants.length;
-    const v = variants[next];
-    setFit(v.fit);
-    setProduct(v.product);
-  };
-
-  const canCarousel = variants.length > 1 && Boolean(setFit && setProduct);
-  const currentLabel = variants[currentIdx]?.label;
 
   // Resolve artwork URL → CORS-safe data URI, then assign to active side.
   useEffect(() => {
@@ -368,42 +293,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", product, pr
           </div>
         )}
 
-        {canCarousel && (
-          <>
-            <button
-              type="button"
-              onClick={() => goVariant(-1)}
-              aria-label="Previous style"
-              className="absolute left-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-foreground shadow-md backdrop-blur transition hover:border-primary hover:text-primary sm:left-4 sm:h-11 sm:w-11"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => goVariant(1)}
-              aria-label="Next style"
-              className="absolute right-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-foreground shadow-md backdrop-blur transition hover:border-primary hover:text-primary sm:right-4 sm:h-11 sm:w-11"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-            {currentLabel && (
-              <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground backdrop-blur">
-                {currentLabel}
-              </div>
-            )}
-            <div className="pointer-events-none absolute bottom-10 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5">
-              {variants.map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === currentIdx ? "w-5 bg-primary" : "w-1.5 bg-border"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
         {mounted && (
           <Canvas
             shadows
@@ -431,7 +320,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", product, pr
                 artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
                 fit={fit}
-                productId={product?.id ?? "standard"}
               />
             </Suspense>
 

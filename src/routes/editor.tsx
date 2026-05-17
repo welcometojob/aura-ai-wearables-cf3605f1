@@ -274,10 +274,6 @@ function Editor() {
             styleName={`${fit}'s ${product.name}`}
             fabric={fabric}
             fit={fit}
-            product={product}
-            productStyles={productStyles}
-            setFit={setFit}
-            setProduct={setProduct}
             />
           </Suspense>
         </section>
