@@ -112,12 +112,14 @@ function Shirt({
   artworkScale,
   view,
   fit,
+  isHoodie,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
   artworkScale: { front: number; back: number };
   view: View;
-  fit: "Men" | "Women" | "Kids";
+  fit: Fit;
+  isHoodie: boolean;
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -126,6 +128,15 @@ function Shirt({
   const groupRef = useRef<THREE.Group>(null);
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
+
+  // Body silhouette scale per fit (and slight stretch for hoodies)
+  const targetScale = useMemo(() => {
+    let sx = 1, sy = 1, sz = 1;
+    if (fit === "Women") { sx = 0.92; sy = 1.02; sz = 0.95; }
+    else if (fit === "Kids") { sx = 0.82; sy = 0.85; sz = 0.82; }
+    if (isHoodie) { sy *= 1.05; sx *= 1.04; sz *= 1.04; }
+    return new THREE.Vector3(sx, sy, sz);
+  }, [fit, isHoodie]);
 
   // Build a clean fabric material — strip any baked textures (AO/diffuse/normal)
   // from the GLB that were producing the dark stain-like patches on the shirt.
@@ -155,6 +166,8 @@ function Shirt({
     // Smooth rotation between front/back
     const cur = groupRef.current.rotation.y;
     groupRef.current.rotation.y = cur + (targetRotY - cur) * Math.min(1, dt * 5);
+    // Smooth scale between variants
+    groupRef.current.scale.lerp(targetScale, Math.min(1, dt * 6));
   });
 
   return (
@@ -182,6 +195,28 @@ function Shirt({
             </Suspense>
           )}
         </mesh>
+        {isHoodie && (
+          <>
+            {/* Procedural hood — a flattened sphere sitting on the upper back */}
+            <mesh
+              position={[0, 0.62, -0.08]}
+              scale={[0.42, 0.32, 0.38]}
+              castShadow
+              receiveShadow
+              material={fabricMaterial}
+            >
+              <sphereGeometry args={[1, 32, 24]} />
+            </mesh>
+            {/* Front kangaroo pocket hint */}
+            <mesh
+              position={[0, -0.18, 0.16]}
+              rotation={[0, 0, 0]}
+              material={fabricMaterial}
+            >
+              <boxGeometry args={[0.55, 0.22, 0.02]} />
+            </mesh>
+          </>
+        )}
       </Center>
     </group>
   );
