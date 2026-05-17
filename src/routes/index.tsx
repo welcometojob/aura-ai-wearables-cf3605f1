@@ -308,7 +308,6 @@ function HowItWorks() {
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6 relative">
-          <div className="hidden md:block absolute top-16 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           {steps.map((s, i) => (
             <div key={s.title} className="relative glass rounded-2xl p-8 hover:border-primary/40 transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-6">
