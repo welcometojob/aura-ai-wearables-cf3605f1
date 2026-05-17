@@ -274,12 +274,6 @@ function Editor() {
             styleName={`${fit}'s ${product.name}`}
             fabric={fabric}
             fit={fit}
-            productId={product.id}
-            onVariantChange={({ fit: nextFit, productId: nextProductId }) => {
-              setFit(nextFit);
-              const nextProduct = productStyles.find((p) => p.id === nextProductId);
-              if (nextProduct) setProduct(nextProduct);
-            }}
             />
           </Suspense>
         </section>

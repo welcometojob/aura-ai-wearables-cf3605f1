@@ -10,8 +10,8 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { TextureLoader } from "three";
-import { ZoomIn, ZoomOut, RotateCcw, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import type { ColorSwatch, View, Fit } from "@/lib/aura-config";
+import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
+import type { ColorSwatch, View } from "@/lib/aura-config";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 import { Slider } from "@/components/ui/slider";
 
@@ -22,9 +22,7 @@ type Props = {
   artwork: string | null;
   styleName: string;
   fabric: string;
-  fit?: Fit;
-  productId?: string;
-  onVariantChange?: (variant: { fit: Fit; productId: "standard" | "hoodie" }) => void;
+  fit?: "Men" | "Women" | "Kids";
 };
 
 useGLTF.preload("/models/shirt.glb");
@@ -110,14 +108,12 @@ function Shirt({
   artworkScale,
   view,
   fit,
-  productId,
 }: {
   color: string;
   artworkUri: { front: string | null; back: string | null };
   artworkScale: { front: number; back: number };
   view: View;
-  fit: Fit;
-  productId: string;
+  fit: "Men" | "Women" | "Kids";
 }) {
   const { nodes } = useGLTF("/models/shirt.glb") as unknown as {
     nodes: Record<string, THREE.Mesh>;
@@ -126,15 +122,6 @@ function Shirt({
   const groupRef = useRef<THREE.Group>(null);
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
-
-  // Variant-specific body scale to give each fit/product a distinct silhouette.
-  const bodyScale = useMemo<[number, number, number]>(() => {
-    const isHoodie = productId === "hoodie";
-    if (fit === "Kids") return [0.78, 0.82, 0.78];
-    if (fit === "Women") return isHoodie ? [0.95, 1.06, 0.96] : [0.92, 1.02, 0.94];
-    // Men
-    return isHoodie ? [1.08, 1.06, 1.05] : [1, 1, 1];
-  }, [fit, productId]);
 
   // Build a clean fabric material — strip any baked textures (AO/diffuse/normal)
   // from the GLB that were producing the dark stain-like patches on the shirt.
@@ -169,7 +156,6 @@ function Shirt({
   return (
     <group ref={groupRef} dispose={null}>
       <Center>
-        <group scale={bodyScale}>
         <mesh
           castShadow
           receiveShadow
@@ -192,26 +178,6 @@ function Shirt({
             </Suspense>
           )}
         </mesh>
-        {productId === "hoodie" && (
-          <>
-            {/* Procedural hood — flattened sphere behind the neck */}
-            <mesh
-              position={[0, 0.55, -0.08]}
-              scale={[0.42, 0.32, 0.28]}
-              castShadow
-              receiveShadow
-            >
-              <sphereGeometry args={[1, 32, 24]} />
-              <primitive object={fabricMaterial} attach="material" />
-            </mesh>
-            {/* Hood opening shadow */}
-            <mesh position={[0, 0.5, 0.05]} scale={[0.34, 0.18, 0.02]}>
-              <sphereGeometry args={[1, 24, 16]} />
-              <meshBasicMaterial color="#000" transparent opacity={0.35} />
-            </mesh>
-          </>
-        )}
-        </group>
       </Center>
     </group>
   );
@@ -228,15 +194,7 @@ function CameraRig({ zoom }: { zoom: number }) {
 
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
-const VARIANTS: { fit: Fit; productId: "standard" | "hoodie"; label: string }[] = [
-  { fit: "Men", productId: "standard", label: "Men's Tee" },
-  { fit: "Women", productId: "standard", label: "Women's Tee" },
-  { fit: "Men", productId: "hoodie", label: "Men's Hoodie" },
-  { fit: "Women", productId: "hoodie", label: "Women's Hoodie" },
-  { fit: "Kids", productId: "standard", label: "Kids' Tee" },
-];
-
-export function Mockup({ view, setView, color, artwork, fit = "Men", productId = "standard", onVariantChange }: Props) {
+export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
   const [zoom, setZoom] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
@@ -281,16 +239,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", productId =
   }, [artwork, view]);
 
   const reset = () => setZoom(1);
-
-  const currentIndex = useMemo(() => {
-    const idx = VARIANTS.findIndex((v) => v.fit === fit && v.productId === productId);
-    return idx >= 0 ? idx : 0;
-  }, [fit, productId]);
-  const goVariant = (delta: number) => {
-    if (!onVariantChange) return;
-    const next = (currentIndex + delta + VARIANTS.length) % VARIANTS.length;
-    onVariantChange({ fit: VARIANTS[next].fit, productId: VARIANTS[next].productId });
-  };
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -339,30 +287,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", productId =
         {/* Soft studio backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_oklch(1_0_0/0.08),_transparent_60%)]" />
 
-        {onVariantChange && (
-          <>
-            <button
-              type="button"
-              onClick={() => goVariant(-1)}
-              aria-label="Previous style"
-              className="absolute left-3 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground backdrop-blur transition hover:border-primary hover:text-primary"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => goVariant(1)}
-              aria-label="Next style"
-              className="absolute right-3 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground backdrop-blur transition hover:border-primary hover:text-primary"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-            <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground backdrop-blur">
-              {VARIANTS[currentIndex].label}
-            </div>
-          </>
-        )}
-
         {loadingArt && (
           <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] uppercase tracking-wider text-muted-foreground backdrop-blur">
             <Loader2 className="h-3 w-3 animate-spin" /> Applying art
@@ -396,7 +320,6 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", productId =
                 artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
                 fit={fit}
-                productId={productId}
               />
             </Suspense>
 
