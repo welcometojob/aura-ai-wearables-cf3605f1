@@ -129,12 +129,12 @@ function Shirt({
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
 
-  // Body silhouette scale per fit (and slight stretch for hoodies)
+  // Body silhouette scale per fit (oversized for hoodies)
   const targetScale = useMemo(() => {
     let sx = 1, sy = 1, sz = 1;
-    if (fit === "Women") { sx = 0.92; sy = 1.02; sz = 0.95; }
-    else if (fit === "Kids") { sx = 0.82; sy = 0.85; sz = 0.82; }
-    if (isHoodie) { sy *= 1.05; sx *= 1.04; sz *= 1.04; }
+    if (fit === "Women") { sx = 0.86; sy = 1.04; sz = 0.92; }
+    else if (fit === "Kids") { sx = 0.74; sy = 0.78; sz = 0.78; }
+    if (isHoodie) { sx *= 1.12; sy *= 1.08; sz *= 1.1; }
     return new THREE.Vector3(sx, sy, sz);
   }, [fit, isHoodie]);
 
