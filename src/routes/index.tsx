@@ -1239,7 +1239,7 @@ function _CTASection() {
           <div className="absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(ellipse,black,transparent_70%)]" />
           <div className="relative">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Your next favorite shirt is <span className="text-gradient">one prompt away</span>
+              Your Next Favorite Shirt Is <span className="text-gradient">One Prompt Away</span>
             </h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
               Join 50,000+ creators turning ideas into apparel. Start with 2 free credits — no card required.
