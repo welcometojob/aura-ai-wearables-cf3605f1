@@ -302,9 +302,9 @@ function HowItWorks() {
     <section id="how" className="py-24 relative">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="text-primary text-sm font-semibold tracking-widest uppercase">How it works</p>
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">How It Works</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            From idea to apparel in <span className="text-gradient">three steps</span>
+            From Idea To Apparel In <span className="text-gradient">Three Steps</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6 relative">
