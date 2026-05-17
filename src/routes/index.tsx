@@ -844,7 +844,7 @@ function Reviews() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Customer Reviews</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Loved by <span className="text-gradient">creators worldwide</span>
+            Loved By <span className="text-gradient">Creators Worldwide</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Real stories from real customers — wearing their AI-crafted designs every day.
