@@ -1246,7 +1246,7 @@ function _CTASection() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button variant="hero" size="lg" asChild>
-                <Link to="/editor">Start Designing</Link>
+                <Link to="/editor">Start Free Designing</Link>
               </Button>
               <Button variant="ghostNeon" size="lg">View Gallery</Button>
             </div>
