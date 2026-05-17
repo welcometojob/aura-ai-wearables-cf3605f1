@@ -228,7 +228,7 @@ function Hero() {
           <div className="mt-10 flex flex-wrap gap-4">
             <Button variant="hero" size="lg" className="group" asChild>
               <Link to="/editor">
-                Start Designing
+                Start Free Designing
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
