@@ -133,7 +133,7 @@ function Nav() {
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <Button variant="hero" size="sm" asChild>
-              <Link to="/editor">Start Designing</Link>
+              <Link to="/editor">Start Free Designing</Link>
             </Button>
             {user ? (
               <DropdownMenu>
@@ -219,7 +219,7 @@ function Hero() {
           </div>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
             Design Your <br />
-            <span className="text-gradient">Identity with AI</span>
+            <span className="text-gradient">Identity With AI</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-xl">
             Transform your wildest thoughts into premium wearable art in seconds.
@@ -228,7 +228,7 @@ function Hero() {
           <div className="mt-10 flex flex-wrap gap-4">
             <Button variant="hero" size="lg" className="group" asChild>
               <Link to="/editor">
-                Start Designing
+                Start Free Designing
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
@@ -302,13 +302,12 @@ function HowItWorks() {
     <section id="how" className="py-24 relative">
       <div className="mx-auto max-w-7xl px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="text-primary text-sm font-semibold tracking-widest uppercase">How it works</p>
+          <p className="text-primary text-sm font-semibold tracking-widest uppercase">How It Works</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            From idea to apparel in <span className="text-gradient">three steps</span>
+            From Idea To Apparel In <span className="text-gradient">Three Steps</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6 relative">
-          <div className="hidden md:block absolute top-16 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           {steps.map((s, i) => (
             <div key={s.title} className="relative glass rounded-2xl p-8 hover:border-primary/40 transition-all hover:-translate-y-1">
               <div className="flex items-center justify-between mb-6">
@@ -339,7 +338,7 @@ function Features() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Our Features</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Everything you need, <span className="text-gradient">beautifully crafted</span>
+            Everything You Need, <span className="text-gradient">Beautifully Crafted</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Six powerful tools that take you from idea to delivery — without breaking a sweat.
@@ -644,7 +643,7 @@ function Pricing() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Plans & Credits</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Pick the plan that <span className="text-gradient">fits your flow</span>
+            Pick The Plan That <span className="text-gradient">Fits Your Flow</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
@@ -717,7 +716,7 @@ function Shipping() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Shipping</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Worldwide delivery, <span className="text-gradient">on time</span>
+            Worldwide Delivery, <span className="text-gradient">On Time</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             We ship from our partner facilities to over 120 countries. Estimated delivery times below.
@@ -845,7 +844,7 @@ function Reviews() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Customer Reviews</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Loved by <span className="text-gradient">creators worldwide</span>
+            Loved By <span className="text-gradient">Creators Worldwide</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Real stories from real customers — wearing their AI-crafted designs every day.
@@ -1075,7 +1074,7 @@ function OrderTracking() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Order Tracking</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Track your <span className="text-gradient">TommyMeow order</span>
+            Track Your <span className="text-gradient">TommyMeow Order</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Enter your order ID to see real-time shipping progress and estimated delivery.
@@ -1196,7 +1195,7 @@ function FAQ() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">FAQ</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Frequently asked <span className="text-gradient">questions</span>
+            Frequently Asked <span className="text-gradient">Questions</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Everything you need to know before creating your first AI design.
@@ -1240,14 +1239,14 @@ function _CTASection() {
           <div className="absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(ellipse,black,transparent_70%)]" />
           <div className="relative">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Your next favorite shirt is <span className="text-gradient">one prompt away</span>
+              Your Next Favorite Shirt Is <span className="text-gradient">One Prompt Away</span>
             </h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
               Join 50,000+ creators turning ideas into apparel. Start with 2 free credits — no card required.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button variant="hero" size="lg" asChild>
-                <Link to="/editor">Start Designing</Link>
+                <Link to="/editor">Start Free Designing</Link>
               </Button>
               <Button variant="ghostNeon" size="lg">View Gallery</Button>
             </div>
