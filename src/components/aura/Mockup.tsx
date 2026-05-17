@@ -354,6 +354,35 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", setFit, pro
         {/* Soft studio backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_oklch(1_0_0/0.08),_transparent_60%)]" />
 
+        {canCycle && (
+          <>
+            <button
+              type="button"
+              onClick={() => goVariant(-1)}
+              aria-label="Previous style"
+              className="absolute left-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground shadow-sm backdrop-blur transition hover:border-primary hover:text-primary sm:left-3 sm:h-11 sm:w-11"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => goVariant(1)}
+              aria-label="Next style"
+              className="absolute right-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/80 text-muted-foreground shadow-sm backdrop-blur transition hover:border-primary hover:text-primary sm:right-3 sm:h-11 sm:w-11"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            {currentIndex >= 0 && (
+              <div className="pointer-events-none absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+                {variants[currentIndex].label}
+                <span className="ml-2 text-muted-foreground/60">
+                  {currentIndex + 1}/{variants.length}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
         {loadingArt && (
           <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] uppercase tracking-wider text-muted-foreground backdrop-blur">
             <Loader2 className="h-3 w-3 animate-spin" /> Applying art
