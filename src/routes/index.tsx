@@ -643,7 +643,7 @@ function Pricing() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Plans & Credits</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Pick the plan that <span className="text-gradient">fits your flow</span>
+            Pick The Plan That <span className="text-gradient">Fits Your Flow</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
