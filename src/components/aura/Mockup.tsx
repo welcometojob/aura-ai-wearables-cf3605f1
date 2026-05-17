@@ -10,8 +10,8 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { TextureLoader } from "three";
-import { ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
-import type { ColorSwatch, View } from "@/lib/aura-config";
+import { ZoomIn, ZoomOut, RotateCcw, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import type { ColorSwatch, Fit, ProductStyle, View } from "@/lib/aura-config";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 import { Slider } from "@/components/ui/slider";
 
@@ -22,7 +22,11 @@ type Props = {
   artwork: string | null;
   styleName: string;
   fabric: string;
-  fit?: "Men" | "Women" | "Kids";
+  fit?: Fit;
+  setFit?: (f: Fit) => void;
+  product?: ProductStyle;
+  setProduct?: (p: ProductStyle) => void;
+  productStyles?: ProductStyle[];
 };
 
 useGLTF.preload("/models/shirt.glb");
