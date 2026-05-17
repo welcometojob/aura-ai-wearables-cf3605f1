@@ -233,8 +233,36 @@ function CameraRig({ zoom }: { zoom: number }) {
 
 const clamp = (v: number) => Math.max(0.6, Math.min(2.2, v));
 
-export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
+export function Mockup({ view, setView, color, artwork, fit = "Men", setFit, product, setProduct, productStyles }: Props) {
   const [zoom, setZoom] = useState(1);
+  const isHoodie = (product?.name ?? "").toLowerCase().includes("hood");
+
+  // Variant carousel: cycle through (fit × product) combinations.
+  const variants = useMemo(() => {
+    if (!productStyles || productStyles.length === 0) return [] as { fit: Fit; product: ProductStyle; label: string }[];
+    const fits: Fit[] = ["Men", "Women", "Kids"];
+    const list: { fit: Fit; product: ProductStyle; label: string }[] = [];
+    for (const f of fits) {
+      for (const p of productStyles) {
+        list.push({ fit: f, product: p, label: `${f}'s ${p.name}` });
+      }
+    }
+    return list;
+  }, [productStyles]);
+
+  const currentIndex = useMemo(() => {
+    if (!product) return -1;
+    return variants.findIndex((v) => v.fit === fit && v.product.id === product.id);
+  }, [variants, fit, product]);
+
+  const canCycle = variants.length > 1 && setFit && setProduct;
+  const goVariant = (dir: -1 | 1) => {
+    if (!canCycle || currentIndex < 0) return;
+    const next = (currentIndex + dir + variants.length) % variants.length;
+    const v = variants[next];
+    setFit!(v.fit);
+    setProduct!(v.product);
+  };
   const [mounted, setMounted] = useState(false);
   const [frontArt, setFrontArt] = useState<string | null>(null);
   const [backArt, setBackArt] = useState<string | null>(null);
