@@ -1,9 +1,10 @@
-// Standalone Vercel-targeted TanStack Start config (no Lovable wrapper, no Cloudflare).
+// Vercel-targeted TanStack Start config using Nitro (per Vercel docs).
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { nitro } from "nitro/vite";
 import path from "node:path";
 
 export default defineConfig({
@@ -16,7 +17,8 @@ export default defineConfig({
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
-    tanstackStart({ target: "vercel" }),
+    tanstackStart(),
+    nitro(),
     viteReact(),
   ],
 });
