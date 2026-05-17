@@ -219,7 +219,7 @@ function Hero() {
           </div>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05]">
             Design Your <br />
-            <span className="text-gradient">Identity with AI</span>
+            <span className="text-gradient">Identity With AI</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-xl">
             Transform your wildest thoughts into premium wearable art in seconds.
