@@ -387,6 +387,7 @@ export function Mockup({ view, setView, color, artwork, fit = "Men", setFit, pro
                 artworkScale={{ front: frontScale, back: backScale }}
                 view={view}
                 fit={fit}
+                isHoodie={isHoodie}
               />
             </Suspense>
 
