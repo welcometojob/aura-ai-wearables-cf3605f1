@@ -1074,7 +1074,7 @@ function OrderTracking() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Order Tracking</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Track your <span className="text-gradient">TommyMeow order</span>
+            Track Your <span className="text-gradient">TommyMeow Order</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Enter your order ID to see real-time shipping progress and estimated delivery.
