@@ -716,7 +716,7 @@ function Shipping() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Shipping</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Worldwide delivery, <span className="text-gradient">on time</span>
+            Worldwide Delivery, <span className="text-gradient">On Time</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             We ship from our partner facilities to over 120 countries. Estimated delivery times below.
