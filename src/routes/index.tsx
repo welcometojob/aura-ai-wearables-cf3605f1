@@ -1195,7 +1195,7 @@ function FAQ() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">FAQ</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Frequently asked <span className="text-gradient">questions</span>
+            Frequently Asked <span className="text-gradient">Questions</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Everything you need to know before creating your first AI design.
