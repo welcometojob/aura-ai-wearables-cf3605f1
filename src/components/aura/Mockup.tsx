@@ -129,12 +129,12 @@ function Shirt({
   const targetColor = useMemo(() => new THREE.Color(color), [color]);
   const targetRotY = view === "back" ? Math.PI : 0;
 
-  // Body silhouette scale per fit (oversized for hoodies)
+  // Body silhouette scale per fit (and slight stretch for hoodies)
   const targetScale = useMemo(() => {
     let sx = 1, sy = 1, sz = 1;
-    if (fit === "Women") { sx = 0.86; sy = 1.04; sz = 0.92; }
-    else if (fit === "Kids") { sx = 0.74; sy = 0.78; sz = 0.78; }
-    if (isHoodie) { sx *= 1.12; sy *= 1.08; sz *= 1.1; }
+    if (fit === "Women") { sx = 0.92; sy = 1.02; sz = 0.95; }
+    else if (fit === "Kids") { sx = 0.82; sy = 0.85; sz = 0.82; }
+    if (isHoodie) { sy *= 1.05; sx *= 1.04; sz *= 1.04; }
     return new THREE.Vector3(sx, sy, sz);
   }, [fit, isHoodie]);
 
@@ -195,6 +195,28 @@ function Shirt({
             </Suspense>
           )}
         </mesh>
+        {isHoodie && (
+          <>
+            {/* Procedural hood — a flattened sphere sitting on the upper back */}
+            <mesh
+              position={[0, 0.62, -0.08]}
+              scale={[0.42, 0.32, 0.38]}
+              castShadow
+              receiveShadow
+              material={fabricMaterial}
+            >
+              <sphereGeometry args={[1, 32, 24]} />
+            </mesh>
+            {/* Front kangaroo pocket hint */}
+            <mesh
+              position={[0, -0.18, 0.16]}
+              rotation={[0, 0, 0]}
+              material={fabricMaterial}
+            >
+              <boxGeometry args={[0.55, 0.22, 0.02]} />
+            </mesh>
+          </>
+        )}
       </Center>
     </group>
   );
