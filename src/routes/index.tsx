@@ -338,7 +338,7 @@ function Features() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <p className="text-primary text-sm font-semibold tracking-widest uppercase">Our Features</p>
           <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tight">
-            Everything you need, <span className="text-gradient">beautifully crafted</span>
+            Everything You Need, <span className="text-gradient">Beautifully Crafted</span>
           </h2>
           <p className="mt-4 text-muted-foreground">
             Six powerful tools that take you from idea to delivery — without breaking a sweat.
