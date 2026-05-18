@@ -56,6 +56,8 @@ function AdminPage() {
   const [tags, setTags] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +114,8 @@ function AdminPage() {
     setTags("");
     setImageFile(null);
     setImagePreview("");
+    setSeoTitle("");
+    setSeoDescription("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -128,6 +132,8 @@ function AdminPage() {
         category: category.trim(),
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         image_url,
+        seo_title: seoTitle.trim(),
+        seo_description: seoDescription.trim(),
       });
       setProducts((prev) => [created, ...prev]);
       toast.success("Product added");
@@ -279,6 +285,32 @@ function AdminPage() {
                   placeholder="neon, koi, streetwear"
                   className="mt-1.5"
                 />
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/30 p-4 space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-widest text-primary">SEO (optional)</div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">SEO title</label>
+                  <Input
+                    value={seoTitle}
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                    placeholder="Neon Koi T-Shirt — Premium Streetwear | TommyMeow"
+                    className="mt-1.5"
+                    maxLength={70}
+                  />
+                  <div className="text-[10px] text-muted-foreground mt-1">{seoTitle.length}/70 — shown in browser tab & Google results</div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">SEO description</label>
+                  <Textarea
+                    value={seoDescription}
+                    onChange={(e) => setSeoDescription(e.target.value)}
+                    placeholder="Soft cotton tee with a vibrant neon koi print. Free shipping & returns."
+                    className="mt-1.5"
+                    rows={2}
+                    maxLength={160}
+                  />
+                  <div className="text-[10px] text-muted-foreground mt-1">{seoDescription.length}/160 — shown in Google results & link previews</div>
+                </div>
               </div>
               <Button type="submit" variant="hero" className="w-full" disabled={!imageFile || submitting}>
                 {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : "Add product"}
