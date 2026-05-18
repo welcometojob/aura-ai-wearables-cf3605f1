@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,12 +160,15 @@ function AdminPage() {
               <div className="text-xs text-muted-foreground">Gallery products</div>
             </div>
           </div>
-          <Button variant="ghostNeon" size="sm" asChild>
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              Back to site
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="compact" />
+            <Button variant="ghostNeon" size="sm" asChild>
+              <Link to="/">
+                <ArrowLeft className="h-4 w-4" />
+                Back to site
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

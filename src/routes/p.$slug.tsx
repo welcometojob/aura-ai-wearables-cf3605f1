@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { fetchSitePage } from "@/lib/cms";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +43,10 @@ function PageView() {
           <Button variant="ghostNeon" size="sm" asChild>
             <Link to="/"><ArrowLeft className="h-4 w-4" /> Back to home</Link>
           </Button>
-          <div className="text-xs text-muted-foreground">Updated {new Date(page.updatedAt).toLocaleDateString()}</div>
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-muted-foreground">Updated {new Date(page.updatedAt).toLocaleDateString()}</div>
+            <LanguageSwitcher variant="compact" />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 mt-10">
