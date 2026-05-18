@@ -8,6 +8,7 @@ export type AdminProduct = {
   description: string | null;
   category: string | null;
   tags: string[];
+  colors: string[];
   image: string;
   createdAt: string;
   seoTitle: string | null;
@@ -21,6 +22,7 @@ type Row = {
   description: string | null;
   category: string | null;
   tags: string[];
+  colors: string[] | null;
   image_url: string;
   created_at: string;
   seo_title: string | null;
@@ -34,6 +36,7 @@ const toProduct = (r: Row): AdminProduct => ({
   description: r.description,
   category: r.category,
   tags: r.tags ?? [],
+  colors: r.colors ?? [],
   image: r.image_url,
   createdAt: r.created_at,
   seoTitle: r.seo_title,
@@ -43,7 +46,7 @@ const toProduct = (r: Row): AdminProduct => ({
 export async function fetchProducts(): Promise<AdminProduct[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,price,description,category,tags,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data as Row[] | null)?.map(toProduct) ?? [];
@@ -52,7 +55,7 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
 export async function fetchProductById(id: string): Promise<AdminProduct | null> {
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,price,description,category,tags,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -69,6 +72,7 @@ export async function addProduct(input: {
   description?: string;
   category?: string;
   tags: string[];
+  colors: string[];
   image_url: string;
   seo_title?: string;
   seo_description?: string;
@@ -81,11 +85,12 @@ export async function addProduct(input: {
       description: input.description || null,
       category: input.category || null,
       tags: input.tags,
+      colors: input.colors,
       image_url: input.image_url,
       seo_title: input.seo_title || null,
       seo_description: input.seo_description || null,
     })
-    .select("id,name,price,description,category,tags,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
     .single();
   if (error) throw error;
   return toProduct(data as Row);

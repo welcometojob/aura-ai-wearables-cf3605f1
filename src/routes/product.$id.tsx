@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ShoppingCart, Zap, Minus, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { fetchProductById, type AdminProduct } from "@/lib/admin-products";
-import { COLORS, SIZES, type Size } from "@/lib/aura-config";
+import { COLORS, SIZES, type ColorSwatch, type Size } from "@/lib/aura-config";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/use-auth";
@@ -87,7 +87,11 @@ function ProductPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const cart = useCart();
-  const [color, setColor] = useState(COLORS[1]);
+  const availableColors = useMemo<ColorSwatch[]>(
+    () => COLORS.filter((c) => product.colors.includes(c.id)),
+    [product.colors],
+  );
+  const [color, setColor] = useState<ColorSwatch | null>(null);
   const [size, setSize] = useState<Size>("M");
   const [quantity, setQuantity] = useState(1);
   const [cartOpen, setCartOpen] = useState(false);
@@ -97,16 +101,26 @@ function ProductPage() {
 
   useEffect(() => { getShippingRate().then(setShipping).catch(() => setShipping(0)); }, []);
 
+  // Reset color whenever the product (or its admin-selected colors) changes.
+  useEffect(() => { setColor(null); }, [product.id]);
+
   const unitPrice = useMemo(() => parsePrice(product.price), [product.price]);
   const subtotal = unitPrice * quantity;
 
+  const requiresColor = availableColors.length > 0;
+  const colorReady = !requiresColor || color !== null;
+
   const handleAddToCart = () => {
+    if (requiresColor && !color) {
+      toast.info("Please select a color first.");
+      return;
+    }
     cart.add({
       productId: product.id,
       productName: product.name,
       fit: "Unisex",
-      colorName: color.name,
-      colorHex: color.hex,
+      colorName: color?.name ?? "N/A",
+      colorHex: color?.hex ?? "",
       size,
       quantity,
       unitPrice,
@@ -123,13 +137,17 @@ function ProductPage() {
       navigate({ to: "/auth", search: { redirect: `/product/${product.id}`, plan: undefined } });
       return;
     }
+    if (requiresColor && !color) {
+      toast.info("Please select a color first.");
+      return;
+    }
     setBuyNowItem({
-      name: `${product.name} · ${color.name} · ${size}`,
+      name: `${product.name}${color ? ` · ${color.name}` : ""} · ${size}`,
       description: product.description ?? undefined,
       unitPrice,
       quantity,
       image: product.image,
-      colorHex: color.hex,
+      colorHex: color?.hex ?? "",
     });
   };
 
@@ -192,24 +210,27 @@ function ProductPage() {
             </div>
           )}
 
-          <div className="mt-8">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Color</div>
-              <div className="text-xs text-muted-foreground">{color.name}</div>
+          {availableColors.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Color</div>
+                <div className="text-xs text-muted-foreground">{color?.name ?? "Select a color"}</div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {availableColors.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    aria-label={c.name}
+                    aria-pressed={color?.id === c.id}
+                    onClick={() => setColor(c)}
+                    className={`h-8 w-8 rounded-full border-2 transition ${color?.id === c.id ? "border-primary scale-110" : "border-border hover:border-primary/60"}`}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-label={c.name}
-                  onClick={() => setColor(c)}
-                  className={`h-8 w-8 rounded-full border-2 transition ${color.id === c.id ? "border-primary scale-110" : "border-border hover:border-primary/60"}`}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-            </div>
-          </div>
+          )}
 
           <div className="mt-6">
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Size</div>
@@ -246,10 +267,10 @@ function ProductPage() {
           </div>
 
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button variant="outline" size="lg" onClick={handleAddToCart} disabled={unitPrice === 0}>
+            <Button variant="outline" size="lg" onClick={handleAddToCart} disabled={unitPrice === 0 || !colorReady}>
               {added ? <><Check className="h-4 w-4" /> Added</> : <><ShoppingCart className="h-4 w-4" /> Add to cart</>}
             </Button>
-            <Button variant="hero" size="lg" onClick={handleBuyNow} disabled={unitPrice === 0}>
+            <Button variant="hero" size="lg" onClick={handleBuyNow} disabled={unitPrice === 0 || !colorReady}>
               <Zap className="h-4 w-4" /> Buy now
             </Button>
           </div>

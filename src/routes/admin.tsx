@@ -34,6 +34,7 @@ import {
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
 import { getShippingRate, setShippingRate } from "@/lib/site-settings";
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
+import { COLORS } from "@/lib/aura-config";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -56,6 +57,7 @@ function AdminPage() {
   const [tags, setTags] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -114,6 +116,7 @@ function AdminPage() {
     setTags("");
     setImageFile(null);
     setImagePreview("");
+    setSelectedColors([]);
     setSeoTitle("");
     setSeoDescription("");
     if (fileRef.current) fileRef.current.value = "";
@@ -131,6 +134,7 @@ function AdminPage() {
         description: description.trim(),
         category: category.trim(),
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        colors: selectedColors,
         image_url,
         seo_title: seoTitle.trim(),
         seo_description: seoDescription.trim(),
@@ -285,6 +289,30 @@ function AdminPage() {
                   placeholder="neon, koi, streetwear"
                   className="mt-1.5"
                 />
+              </div>
+              <div className="rounded-xl border border-border/60 bg-background/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-primary">Product color variants</div>
+                  <div className="text-[10px] text-muted-foreground">{selectedColors.length} selected</div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Pick which colors customers can choose on this product page. Leave empty to hide the color picker entirely.</p>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map((c) => {
+                    const active = selectedColors.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        aria-label={c.name}
+                        aria-pressed={active}
+                        title={c.name}
+                        onClick={() => setSelectedColors((prev) => active ? prev.filter((x) => x !== c.id) : [...prev, c.id])}
+                        className={`h-8 w-8 rounded-full border-2 transition ${active ? "border-primary scale-110 ring-2 ring-primary/40" : "border-border hover:border-primary/60"}`}
+                        style={{ backgroundColor: c.hex }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
               <div className="rounded-xl border border-border/60 bg-background/30 p-4 space-y-3">
                 <div className="text-xs font-semibold uppercase tracking-widest text-primary">SEO (optional)</div>
