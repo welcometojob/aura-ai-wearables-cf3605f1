@@ -18,14 +18,48 @@ export const Route = createFileRoute("/product/$id")({
     if (!product) throw notFound();
     return { product };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.product.name ?? "Product"} — TommyMeow` },
-      { name: "description", content: (loaderData?.product.description ?? "Premium AI-designed apparel by TommyMeow.").slice(0, 155) },
-      { property: "og:title", content: `${loaderData?.product.name ?? "Product"} — TommyMeow` },
-      { property: "og:image", content: loaderData?.product.image ?? "" },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const p = loaderData?.product;
+    const title = p?.seoTitle?.trim() || `${p?.name ?? "Product"} — TommyMeow`;
+    const description = (p?.seoDescription?.trim() || p?.description?.trim() || "Premium AI-designed apparel by TommyMeow.").slice(0, 160);
+    const url = `https://aura-ai-wearables.lovable.app/product/${params.id}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: p?.image ?? "" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: p?.image ?? "" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p
+        ? [{
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: p.name,
+              description: p.description ?? description,
+              image: p.image,
+              category: p.category ?? undefined,
+              offers: {
+                "@type": "Offer",
+                price: String(p.price).replace(/[^0-9.]/g, ""),
+                priceCurrency: "USD",
+                availability: "https://schema.org/InStock",
+                url,
+              },
+            }),
+          }]
+        : [],
+    };
+  },
   notFoundComponent: () => (
     <div className="min-h-screen grid place-items-center px-6">
       <div className="glass rounded-3xl p-10 max-w-md text-center">
