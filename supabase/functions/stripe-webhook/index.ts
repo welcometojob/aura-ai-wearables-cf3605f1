@@ -135,16 +135,16 @@ serve(async (req) => {
             notes: `Stripe session ${s.id} · total $${((s.amount_total ?? 0) / 100).toFixed(2)}`,
           });
           if (couponCode) {
-            await supabaseAdmin.rpc("noop_count_coupon" as never, {}).catch(() => {});
+            const { data: cRow } = await supabaseAdmin
+              .from("coupons")
+              .select("uses")
+              .eq("code", couponCode)
+              .maybeSingle();
+            const currentUses = (cRow as { uses?: number } | null)?.uses ?? 0;
             await supabaseAdmin
               .from("coupons")
-              .update({ uses: 1 } as never)
-              .eq("code", couponCode)
-              .then(async () => {
-                // increment by 1 atomically via raw SQL fallback
-                await supabaseAdmin.rpc("pg_temp.placeholder" as never, {}).catch(() => {});
-              })
-              .then(() => undefined, () => undefined);
+              .update({ uses: currentUses + 1 })
+              .eq("code", couponCode);
           }
         }
         break;
