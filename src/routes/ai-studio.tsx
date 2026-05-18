@@ -302,7 +302,7 @@ function Editor() {
         onAddToCart={(item) => cart.add(item)}
         onBuyNow={() => {
           setBuyNowItem({
-            name: `${fit}'s ${product.name} · ${color.name} · ${size}`,
+            name: `${fit}'s ${product.name} · ${color.name} · ${size} · ${view === "back" ? "BACK" : "FRONT"} print`,
             description: artwork ? "Includes custom AI artwork" : undefined,
             unitPrice,
             quantity,
@@ -336,7 +336,7 @@ function Editor() {
               onBuyNow={() => {
                 setRightPanelOpen(false);
                 setBuyNowItem({
-                  name: `${fit}'s ${product.name} · ${color.name} · ${size}`,
+                  name: `${fit}'s ${product.name} · ${color.name} · ${size} · ${view === "back" ? "BACK" : "FRONT"} print`,
                   description: artwork ? "Includes custom AI artwork" : undefined,
                   unitPrice,
                   quantity,
