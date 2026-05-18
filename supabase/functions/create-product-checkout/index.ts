@@ -128,7 +128,7 @@ serve(async (req) => {
       shipping_address_collection: { allowed_countries: ["US","CA","GB","AU","DE","FR","NL","SE","NO","DK","ES","IT","IN","BD","SG","JP","BR","MX"] },
       phone_number_collection: { enabled: true },
       success_url: `${origin}/?checkout=success`,
-      cancel_url: `${origin}/editor?checkout=cancelled`,
+      cancel_url: `${origin}/ai-studio?checkout=cancelled`,
       metadata: {
         user_id: user?.id ?? "guest",
         item_summary: items.map((i) => `${i.quantity}x ${i.name}`).join(" | ").slice(0, 480),
