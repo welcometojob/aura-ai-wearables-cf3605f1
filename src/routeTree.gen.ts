@@ -9,21 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EditorRouteImport } from './routes/editor'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AiStudioRouteImport } from './routes/ai-studio'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as OrdersTrackRouteImport } from './routes/orders.track'
 
-const EditorRoute = EditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiStudioRoute = AiStudioRouteImport.update({
+  id: '/ai-studio',
+  path: '/ai-studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -50,16 +50,16 @@ const OrdersTrackRoute = OrdersTrackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-studio': typeof AiStudioRoute
   '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
   '/orders/track': typeof OrdersTrackRoute
   '/p/$slug': typeof PSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-studio': typeof AiStudioRoute
   '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
   '/orders/track': typeof OrdersTrackRoute
   '/p/$slug': typeof PSlugRoute
 }
@@ -67,22 +67,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/ai-studio': typeof AiStudioRoute
   '/auth': typeof AuthRoute
-  '/editor': typeof EditorRoute
   '/orders/track': typeof OrdersTrackRoute
   '/p/$slug': typeof PSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/editor' | '/orders/track' | '/p/$slug'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/ai-studio'
+    | '/auth'
+    | '/orders/track'
+    | '/p/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/editor' | '/orders/track' | '/p/$slug'
+  to: '/' | '/admin' | '/ai-studio' | '/auth' | '/orders/track' | '/p/$slug'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/ai-studio'
     | '/auth'
-    | '/editor'
     | '/orders/track'
     | '/p/$slug'
   fileRoutesById: FileRoutesById
@@ -90,26 +96,26 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AiStudioRoute: typeof AiStudioRoute
   AuthRoute: typeof AuthRoute
-  EditorRoute: typeof EditorRoute
   OrdersTrackRoute: typeof OrdersTrackRoute
   PSlugRoute: typeof PSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/editor': {
-      id: '/editor'
-      path: '/editor'
-      fullPath: '/editor'
-      preLoaderRoute: typeof EditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-studio': {
+      id: '/ai-studio'
+      path: '/ai-studio'
+      fullPath: '/ai-studio'
+      preLoaderRoute: typeof AiStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -146,8 +152,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AiStudioRoute: AiStudioRoute,
   AuthRoute: AuthRoute,
-  EditorRoute: EditorRoute,
   OrdersTrackRoute: OrdersTrackRoute,
   PSlugRoute: PSlugRoute,
 }

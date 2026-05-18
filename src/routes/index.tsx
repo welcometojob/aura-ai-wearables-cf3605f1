@@ -135,7 +135,7 @@ function Nav() {
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <Button variant="hero" size="sm" asChild>
-              <Link to="/editor">Start Free Designing</Link>
+              <Link to="/ai-studio">Start Free Designing</Link>
             </Button>
             {user ? (
               <DropdownMenu>
@@ -225,7 +225,7 @@ function Hero() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Button variant="hero" size="lg" className="group" asChild>
-              <Link to="/editor">
+              <Link to="/ai-studio">
                 Start Free Designing
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
@@ -573,7 +573,7 @@ function Pricing() {
         return;
       }
       toast.success("You're on the Free plan. Start creating!");
-      navigate({ to: "/editor" });
+      navigate({ to: "/ai-studio" });
       return;
     }
     if (!user) {
@@ -1244,7 +1244,7 @@ function _CTASection() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Button variant="hero" size="lg" asChild>
-                <Link to="/editor">Start Free Designing</Link>
+                <Link to="/ai-studio">Start Free Designing</Link>
               </Button>
               <Button variant="ghostNeon" size="lg">View Gallery</Button>
             </div>
@@ -1337,7 +1337,7 @@ function Footer() {
         <div className="lg:col-span-3">
           <div className="text-sm font-semibold mb-4">Useful Links</div>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
-            <li><Link to="/editor" className="hover:text-foreground transition">Our AI generator</Link></li>
+            <li><Link to="/ai-studio" className="hover:text-foreground transition">Our AI generator</Link></li>
             <li><Link to="/orders/track" className="hover:text-foreground transition">Order Tracking</Link></li>
             <li><Link to="/p/$slug" params={{ slug: "returns" }} className="hover:text-foreground transition">Returns Policy</Link></li>
             <li><Link to="/p/$slug" params={{ slug: "shipping" }} className="hover:text-foreground transition">Shipping Policy</Link></li>

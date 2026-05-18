@@ -24,7 +24,7 @@ import { CartDrawer } from "@/components/aura/CartDrawer";
 import { BuyNowDrawer, type BuyNowItem } from "@/components/aura/BuyNowDrawer";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
-export const Route = createFileRoute("/editor")({
+export const Route = createFileRoute("/ai-studio")({
   head: () => ({
     meta: [
       { title: "TommyMeow Studio — AI Design Editor" },
@@ -83,7 +83,7 @@ function Editor() {
     if (!prompt.trim()) return;
     if (!user) {
       toast.error("Please sign in to generate designs.");
-      void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+      void navigate({ to: "/auth", search: { redirect: "/ai-studio", plan: undefined } });
       return;
     }
     if (credits < 1) {
@@ -156,7 +156,7 @@ function Editor() {
             credits={credits}
             onTopUp={async (amount) => {
               if (!user) {
-                void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+                void navigate({ to: "/auth", search: { redirect: "/ai-studio", plan: undefined } });
                 throw new Error("Please sign in first");
               }
               const { data: sessionData } = await supabase.auth.getSession();
@@ -190,7 +190,7 @@ function Editor() {
             type="button"
             onClick={() => {
               if (!user) {
-                void navigate({ to: "/auth", search: { redirect: "/editor", plan: undefined } });
+                void navigate({ to: "/auth", search: { redirect: "/ai-studio", plan: undefined } });
                 return;
               }
               setProfileOpen(true);
