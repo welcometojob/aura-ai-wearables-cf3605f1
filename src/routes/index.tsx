@@ -503,9 +503,11 @@ function Trending() {
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
                 {adminProducts.map((p) => (
-                  <div
+                  <Link
                     key={p.id}
-                    className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500"
+                    to="/product/$id"
+                    params={{ id: p.id }}
+                    className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500 block"
                   >
                     <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
                       <img
@@ -521,8 +523,8 @@ function Trending() {
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
                       <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
-                        <Button variant="hero" size="sm" className="w-full" onClick={() => handleBuy(p.name)}>
-                          {user ? "Buy now" : "Sign in to buy"}
+                        <Button variant="hero" size="sm" className="w-full pointer-events-none">
+                          View details
                         </Button>
                       </div>
                     </div>
@@ -551,7 +553,7 @@ function Trending() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
