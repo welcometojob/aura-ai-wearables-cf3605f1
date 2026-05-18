@@ -9,16 +9,8 @@ export type ProductStyle = {
 };
 
 export const PRODUCT_STYLES: ProductStyle[] = [
-  { id: "standard", name: "Standard Tee", price: 32, description: "Unisex classic fit T-shirt" },
-  { id: "oversized", name: "Oversized Tee", price: 38, description: "Drop-shoulder streetwear fit" },
-  { id: "vneck", name: "V-Neck Tee", price: 34, description: "Soft cotton V-neck" },
-  { id: "longsleeve", name: "Long Sleeve", price: 42, description: "Ribbed cuff long sleeve tee" },
-  { id: "crop", name: "Crop Tee", price: 36, description: "Cropped boxy fit" },
-  { id: "polo", name: "Polo Shirt", price: 44, description: "Pique knit collared polo" },
-  { id: "tank", name: "Tank Top", price: 28, description: "Sleeveless ribbed tank" },
-  { id: "hoodie", name: "Hoodie", price: 58, description: "Fleece-lined premium hoodie" },
-  { id: "zip-hoodie", name: "Zip Hoodie", price: 64, description: "Full-zip heavyweight hoodie" },
-  { id: "sweatshirt", name: "Sweatshirt", price: 52, description: "Crewneck fleece sweatshirt" },
+  { id: "standard", name: "Standard", price: 32, description: "Unisex T-shirt" },
+  { id: "hoodie", name: "Hoodie", price: 58, description: "Fleece-Lined Premium" },
 ];
 
 export type ColorSwatch = {
