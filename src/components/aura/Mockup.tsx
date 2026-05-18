@@ -287,6 +287,15 @@ export function Mockup({ view, setView, color, artwork, fit = "Men" }: Props) {
         {/* Soft studio backdrop */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_oklch(1_0_0/0.08),_transparent_60%)]" />
 
+        <div className={`pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] backdrop-blur ${
+          view === "back"
+            ? "border-amber-500/50 bg-amber-500/15 text-amber-400"
+            : "border-primary/50 bg-primary/15 text-primary"
+        }`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${view === "back" ? "bg-amber-400 animate-pulse" : "bg-primary animate-pulse"}`} />
+          Designing: {view} side
+        </div>
+
         {loadingArt && (
           <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-[10px] uppercase tracking-wider text-muted-foreground backdrop-blur">
             <Loader2 className="h-3 w-3 animate-spin" /> Applying art
