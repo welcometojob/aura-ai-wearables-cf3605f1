@@ -29,11 +29,22 @@ type ShippingInfo = {
   country?: string;
 };
 
+type IncomingCoupon = {
+  code?: string;
+  discount?: number; // USD dollars off the order subtotal
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = await req.json() as { items: IncomingItem[]; shipping?: ShippingInfo; shippingRate?: number };
+    const body = await req.json() as {
+      items: IncomingItem[];
+      shipping?: ShippingInfo;
+      shippingRate?: number;
+      customerNote?: string;
+      coupon?: IncomingCoupon;
+    };
     const items = Array.isArray(body.items) ? body.items : [];
     if (items.length === 0) {
       return new Response(JSON.stringify({ error: "Cart is empty" }), {
@@ -88,11 +99,32 @@ serve(async (req) => {
       });
     }
 
+    // Optional coupon → Stripe one-time amount_off coupon
+    const subtotalCents = items.reduce((sum, it) => sum + Math.round(it.unitPrice * 100) * it.quantity, 0);
+    let discounts: { coupon: string }[] | undefined;
+    let appliedDiscount = 0;
+    let appliedCode: string | null = null;
+    if (body.coupon?.code && typeof body.coupon.discount === "number" && body.coupon.discount > 0) {
+      const amountOff = Math.min(Math.round(body.coupon.discount * 100), subtotalCents);
+      if (amountOff > 0) {
+        const stripeCoupon = await stripe.coupons.create({
+          amount_off: amountOff,
+          currency: "usd",
+          duration: "once",
+          name: body.coupon.code.toUpperCase(),
+        });
+        discounts = [{ coupon: stripeCoupon.id }];
+        appliedDiscount = amountOff / 100;
+        appliedCode = body.coupon.code.toUpperCase();
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: customerEmail,
       client_reference_id: user?.id,
       line_items: lineItems,
+      ...(discounts ? { discounts } : { allow_promotion_codes: false }),
       shipping_address_collection: { allowed_countries: ["US","CA","GB","AU","DE","FR","NL","SE","NO","DK","ES","IT","IN","BD","SG","JP","BR","MX"] },
       phone_number_collection: { enabled: true },
       success_url: `${origin}/?checkout=success`,
@@ -100,6 +132,10 @@ serve(async (req) => {
       metadata: {
         user_id: user?.id ?? "guest",
         item_summary: items.map((i) => `${i.quantity}x ${i.name}`).join(" | ").slice(0, 480),
+        customer_phone: body.shipping?.phone?.slice(0, 50) ?? "",
+        customer_note: body.customerNote?.slice(0, 500) ?? "",
+        coupon_code: appliedCode ?? "",
+        discount_amount: appliedDiscount.toFixed(2),
       },
     });
 

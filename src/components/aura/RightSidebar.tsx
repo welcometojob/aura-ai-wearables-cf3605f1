@@ -82,16 +82,31 @@ export function RightSidebar({
           <div className="mt-2 space-y-2">
             {productStyles.map((p) => {
               const active = product.id === p.id;
+              const comingSoon = p.id !== "standard";
               return (
                 <button
                   key={p.id}
-                  onClick={() => setProduct(p)}
+                  onClick={() => { if (!comingSoon) setProduct(p); }}
+                  disabled={comingSoon}
+                  aria-disabled={comingSoon}
+                  title={comingSoon ? "Coming soon" : undefined}
                   className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition ${
-                    active ? "border-primary bg-primary/10" : "border-border bg-background/40 hover:border-muted-foreground"
+                    comingSoon
+                      ? "cursor-not-allowed border-border bg-background/20 opacity-60"
+                      : active
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-background/40 hover:border-muted-foreground"
                   }`}
                 >
                   <div>
-                    <p className={`text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{p.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className={`text-sm font-semibold ${active ? "text-primary" : "text-foreground"}`}>{p.name}</p>
+                      {comingSoon && (
+                        <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-500">
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-muted-foreground">{p.description}</p>
                   </div>
                   <div className="flex items-center gap-2">
