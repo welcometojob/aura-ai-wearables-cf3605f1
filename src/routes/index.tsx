@@ -447,37 +447,77 @@ function Trending() {
           </Button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {items.map((it) => (
-            <div
-              key={it.name}
-              className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500"
-            >
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-accent/15 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
-              <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
-                <img
-                  src={it.src}
-                  alt={it.name}
-                  loading="lazy"
-                  width={768}
-                  height={896}
-                  className="h-full w-full object-cover group-hover:scale-110 transition duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
-                <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
-                  <Button variant="hero" size="sm" className="w-full" onClick={() => handleBuy(it.name)}>
-                    {user ? "Buy now" : "Sign in to buy"}
-                  </Button>
+          {(adminProducts.length > 0
+            ? adminProducts.slice(0, 4).map((p) => ({
+                id: p.id,
+                src: p.image,
+                name: p.name,
+                price: p.price,
+              }))
+            : items.map((it) => ({ id: null as string | null, src: it.src, name: it.name, price: it.price }))
+          ).map((it) =>
+            it.id ? (
+              <Link
+                key={it.id}
+                to="/product/$id"
+                params={{ id: it.id }}
+                className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500 block"
+              >
+                <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-accent/15 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+                <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
+                  <img
+                    src={it.src}
+                    alt={it.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover group-hover:scale-110 transition duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
+                  <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
+                    <Button variant="hero" size="sm" className="w-full pointer-events-none">
+                      View details
+                    </Button>
+                  </div>
+                </div>
+                <div className="relative p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium group-hover:text-primary transition">{it.name}</div>
+                    <div className="text-xs text-muted-foreground">AI Original</div>
+                  </div>
+                  <div className="text-primary font-semibold">{it.price}</div>
+                </div>
+              </Link>
+            ) : (
+              <div
+                key={it.name}
+                className="group relative glass rounded-2xl overflow-hidden hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)] transition-all duration-500"
+              >
+                <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-accent/15 to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none" />
+                <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
+                  <img
+                    src={it.src}
+                    alt={it.name}
+                    loading="lazy"
+                    width={768}
+                    height={896}
+                    className="h-full w-full object-cover group-hover:scale-110 transition duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition" />
+                  <div className="absolute bottom-3 left-3 right-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition duration-500">
+                    <Button variant="hero" size="sm" className="w-full" onClick={() => handleBuy(it.name)}>
+                      {user ? "Buy now" : "Sign in to buy"}
+                    </Button>
+                  </div>
+                </div>
+                <div className="relative p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium group-hover:text-primary transition">{it.name}</div>
+                    <div className="text-xs text-muted-foreground">AI Original</div>
+                  </div>
+                  <div className="text-primary font-semibold">{it.price}</div>
                 </div>
               </div>
-              <div className="relative p-4 flex items-center justify-between">
-                <div>
-                  <div className="font-medium group-hover:text-primary transition">{it.name}</div>
-                  <div className="text-xs text-muted-foreground">AI Original</div>
-                </div>
-                <div className="text-primary font-semibold">{it.price}</div>
-              </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
         {expanded && (
           <div className="mt-12 animate-fade-up">
