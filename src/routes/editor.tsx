@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LeftSidebar } from "@/components/aura/LeftSidebar";
 import { RightSidebar } from "@/components/aura/RightSidebar";
 const Mockup = lazy(() =>
@@ -150,6 +151,7 @@ function Editor() {
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
+          <LanguageSwitcher variant="compact" />
           <CreditsTopUp
             credits={credits}
             onTopUp={async (amount) => {
