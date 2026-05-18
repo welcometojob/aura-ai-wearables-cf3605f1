@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Search, Loader2, CheckCircle2, Circle } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { lookupOrder, ORDER_STAGES, type Order } from "@/lib/orders";
@@ -45,6 +46,7 @@ function OrderTrackPage() {
           <Button variant="ghostNeon" size="sm" asChild>
             <Link to="/"><ArrowLeft className="h-4 w-4" /> Back to home</Link>
           </Button>
+          <LanguageSwitcher variant="compact" />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 mt-10">
