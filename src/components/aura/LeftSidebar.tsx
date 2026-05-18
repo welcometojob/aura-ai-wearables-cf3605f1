@@ -1,7 +1,7 @@
 import { Sparkles, Upload, Wand2, Scissors, Trash2, X, Loader2, WandSparkles, Shirt, Search, Check, History } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { enhancePrompt } from "@/server/ai.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchReadyDesigns, type ReadyDesign } from "@/lib/ready-designs";
 import type { GenerationItem } from "@/hooks/use-generation-history";
 
@@ -83,8 +83,14 @@ export function LeftSidebar({
     if (!prompt.trim() || enhancing) return;
     setEnhancing(true);
     try {
-      const res = await enhancePrompt({ data: { prompt: prompt.trim(), style: selectedStyle } });
-      setPrompt(res.prompt);
+      const { data, error } = await supabase.functions.invoke("enhance-prompt", {
+        body: { prompt: prompt.trim(), style: selectedStyle },
+      });
+      if (error) throw new Error(error.message);
+      const enhanced = (data as { prompt?: string; error?: string } | null);
+      if (enhanced?.error) throw new Error(enhanced.error);
+      if (!enhanced?.prompt) throw new Error("No enhanced prompt returned");
+      setPrompt(enhanced.prompt);
       toast.success("Prompt enhanced with AI");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to enhance prompt";
