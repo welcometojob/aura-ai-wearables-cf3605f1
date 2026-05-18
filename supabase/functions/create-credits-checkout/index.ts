@@ -54,8 +54,8 @@ serve(async (req) => {
         },
         quantity: 1,
       }],
-      success_url: `${origin}/editor?credits=success`,
-      cancel_url: `${origin}/editor?credits=cancelled`,
+      success_url: `${origin}/ai-studio?credits=success`,
+      cancel_url: `${origin}/ai-studio?credits=cancelled`,
       metadata: {
         kind: "credits",
         user_id: user.id,
