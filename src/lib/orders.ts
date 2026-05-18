@@ -13,6 +13,10 @@ export type Order = {
   orderNumber: string;
   customerName: string | null;
   customerEmail: string | null;
+  customerPhone: string | null;
+  customerNote: string | null;
+  couponCode: string | null;
+  discountAmount: number;
   itemSummary: string | null;
   stage: number;
   notes: string | null;
@@ -25,6 +29,10 @@ type Row = {
   order_number: string;
   customer_name: string | null;
   customer_email: string | null;
+  customer_phone: string | null;
+  customer_note: string | null;
+  coupon_code: string | null;
+  discount_amount: number | string | null;
   item_summary: string | null;
   stage: number;
   notes: string | null;
@@ -37,6 +45,10 @@ const toOrder = (r: Row): Order => ({
   orderNumber: r.order_number,
   customerName: r.customer_name,
   customerEmail: r.customer_email,
+  customerPhone: r.customer_phone,
+  customerNote: r.customer_note,
+  couponCode: r.coupon_code,
+  discountAmount: Number(r.discount_amount ?? 0),
   itemSummary: r.item_summary,
   stage: r.stage,
   notes: r.notes,
