@@ -82,8 +82,8 @@ function Editor() {
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     if (!user) {
-      toast.error("Please sign in to generate designs.");
-      void navigate({ to: "/auth", search: { redirect: "/ai-studio", plan: undefined } });
+      toast.error("Please sign in or pick a plan to generate designs.");
+      void navigate({ to: "/", hash: "pricing" });
       return;
     }
     if (credits < 1) {
