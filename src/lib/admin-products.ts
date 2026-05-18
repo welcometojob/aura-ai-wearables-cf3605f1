@@ -43,6 +43,16 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
   return (data as Row[] | null)?.map(toProduct) ?? [];
 }
 
+export async function fetchProductById(id: string): Promise<AdminProduct | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,name,price,description,category,tags,image_url,created_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toProduct(data as Row) : null;
+}
+
 export async function uploadProductImage(file: File, _userId: string): Promise<string> {
   return uploadToR2(file, "product-images");
 }
