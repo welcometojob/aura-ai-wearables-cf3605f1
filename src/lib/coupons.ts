@@ -118,7 +118,13 @@ export async function updateCoupon(id: string, patch: Partial<{
   maxUses: number | null;
   note: string | null;
 }>): Promise<void> {
-  const payload: Record<string, unknown> = {};
+  const payload: {
+    active?: boolean;
+    value?: number;
+    expires_at?: string | null;
+    max_uses?: number | null;
+    note?: string | null;
+  } = {};
   if (patch.active != null) payload.active = patch.active;
   if (patch.value != null) payload.value = patch.value;
   if (patch.expiresAt !== undefined) payload.expires_at = patch.expiresAt;
