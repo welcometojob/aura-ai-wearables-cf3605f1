@@ -25,7 +25,7 @@ Do NOT add quotes, lists, prefaces, or explanations. Output only the enhanced pr
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "openai/gpt-5-mini",
         messages: [
           { role: "system", content: system },
           { role: "user", content: userMsg },
