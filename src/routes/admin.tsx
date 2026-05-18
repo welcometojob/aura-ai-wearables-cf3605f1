@@ -56,6 +56,8 @@ function AdminPage() {
   const [tags, setTags] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -112,6 +114,8 @@ function AdminPage() {
     setTags("");
     setImageFile(null);
     setImagePreview("");
+    setSeoTitle("");
+    setSeoDescription("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -128,6 +132,8 @@ function AdminPage() {
         category: category.trim(),
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         image_url,
+        seo_title: seoTitle.trim(),
+        seo_description: seoDescription.trim(),
       });
       setProducts((prev) => [created, ...prev]);
       toast.success("Product added");
