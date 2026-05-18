@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useEffect, useState, type ReactNode } from "react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import brandLogo from "@/assets/tommymeow-logo.png";
 import brandMark from "@/assets/tommymeow-mark.png";
 import {
