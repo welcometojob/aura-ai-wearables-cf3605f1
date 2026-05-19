@@ -71,6 +71,7 @@ import { lookupOrder, ORDER_STAGES, type Order } from "@/lib/orders";
 import { SubmitReviewDialog } from "@/components/aura/SubmitReviewDialog";
 import { ImageLightbox } from "@/components/aura/ImageLightbox";
 import { supabase } from "@/integrations/supabase/client";
+import { getSocialLinks, type SocialLinks } from "@/lib/social-links";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1298,6 +1299,14 @@ function _CTASection() {
 }
 
 function Footer() {
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({ instagram: "", facebook: "", youtube: "" });
+
+  useEffect(() => {
+    getSocialLinks()
+      .then(setSocialLinks)
+      .catch(() => setSocialLinks({ instagram: "", facebook: "", youtube: "" }));
+  }, []);
+
   return (
     <footer className="relative mt-24 border-t border-border/60">
       <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
@@ -1339,29 +1348,39 @@ function Footer() {
           <div className="mt-6">
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-3">Follow us</div>
             <div className="flex items-center gap-3">
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="group relative h-11 w-11 grid place-items-center rounded-xl overflow-hidden text-white transition-transform hover:-translate-y-0.5"
-                style={{ background: "linear-gradient(135deg,#feda75 0%,#fa7e1e 25%,#d62976 50%,#962fbf 75%,#4f5bd5 100%)" }}
-              >
-                <Instagram className="h-5 w-5 relative z-10" />
-                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
-              </a>
-              <a
-                href="#"
-                aria-label="YouTube"
-                className="group h-11 w-11 grid place-items-center rounded-xl bg-[#FF0000] text-white shadow-md shadow-red-500/30 transition-transform hover:-translate-y-0.5 hover:bg-[#e60000]"
-              >
-                <Youtube className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="group h-11 w-11 grid place-items-center rounded-xl bg-[#1877F2] text-white shadow-md shadow-blue-500/30 transition-transform hover:-translate-y-0.5 hover:bg-[#1467d4]"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
+              {socialLinks.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="group h-11 w-11 grid place-items-center rounded-xl border border-border bg-background/40 text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {socialLinks.youtube && (
+                <a
+                  href={socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="YouTube"
+                  className="group h-11 w-11 grid place-items-center rounded-xl border border-border bg-background/40 text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary"
+                >
+                  <Youtube className="h-5 w-5" />
+                </a>
+              )}
+              {socialLinks.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="group h-11 w-11 grid place-items-center rounded-xl border border-border bg-background/40 text-muted-foreground transition hover:-translate-y-0.5 hover:border-primary hover:text-primary"
+                >
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -1518,78 +1537,6 @@ function PayBadge({ brand }: { brand: "visa" | "mastercard" | "amex" | "paypal" 
   );
 }
 
-function LiveChatWidget() {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const handler = () => setOpen(true);
-    window.addEventListener("aura:open-chat", handler);
-    return () => window.removeEventListener("aura:open-chat", handler);
-  }, []);
-
-  return (
-    <>
-      <button
-        type="button"
-        aria-label="Open live chat"
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_0_40px_oklch(0.85_0.18_210/0.55)] grid place-items-center hover:scale-110 transition active:scale-95"
-      >
-        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
-        {!open && (
-          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
-        )}
-      </button>
-
-      {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-sm rounded-2xl glass shadow-[0_20px_60px_-10px_oklch(0_0_0/0.6)] overflow-hidden animate-fade-up">
-          <div className="flex items-center gap-3 p-4 border-b border-border/60 bg-gradient-to-r from-primary/15 to-accent/10">
-            <div className="relative">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center">
-                <Sparkles className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm font-semibold">TommyMeow Support</div>
-              <div className="text-[11px] text-muted-foreground">Typically replies in a few minutes</div>
-            </div>
-            <button
-              type="button"
-              aria-label="Close chat"
-              onClick={() => setOpen(false)}
-              className="h-8 w-8 grid place-items-center rounded-lg hover:bg-secondary transition"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
-            <div className="flex gap-2">
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-accent shrink-0" />
-              <div className="rounded-2xl rounded-tl-sm bg-secondary/60 px-3 py-2 text-sm max-w-[80%]">
-                Hey! 👋 How can we help you with your TommyMeow design today?
-              </div>
-            </div>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-            className="p-3 border-t border-border/60 flex items-center gap-2"
-          >
-            <Input
-              placeholder="Type your message…"
-              className="h-10 bg-background/40 border-border/60"
-            />
-            <Button type="submit" size="icon" variant="hero" className="h-10 w-10 rounded-xl">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
-      )}
-    </>
-  );
-}
-
 function Landing() {
   return (
     <div className="min-h-screen">
@@ -1607,7 +1554,6 @@ function Landing() {
         <CTASection />
       </main>
       <Footer />
-      <LiveChatWidget />
     </div>
   );
 }

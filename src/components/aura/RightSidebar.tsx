@@ -204,18 +204,11 @@ export function RightSidebar({
       </div>
 
       <div className="border-t border-border bg-card/80 p-5 backdrop-blur-md">
-        <div className="mb-3 space-y-1.5">
-          <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
-          <Row label="Shipping" value={shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"} />
-        </div>
-        <div className="mb-3 flex items-end justify-between border-t border-border pt-3">
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Estimated Total</p>
-            <p className="mt-0.5 text-3xl font-bold tracking-tight text-foreground">
-              ${total.toFixed(2)}
-            </p>
-          </div>
-          <p className="text-[11px] text-muted-foreground">incl. artwork & shipping</p>
+        <div className="mb-3 flex items-end justify-between">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Estimated Total</p>
+          <p className="text-3xl font-bold tracking-tight text-foreground">
+            ${product.price.toFixed(2)}
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -247,11 +240,3 @@ function Title({ children }: { children: React.ReactNode }) {
   return <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{children}</h3>;
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
-    </div>
-  );
-}

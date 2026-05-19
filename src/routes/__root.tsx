@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { TranslationProvider } from "@/lib/i18n/translator";
+import { LiveChatWidget } from "@/components/LiveChatWidget";
 
 import appCss from "../styles.css?url";
 
@@ -83,6 +84,7 @@ function RootComponent() {
     <AuthProvider>
       <TranslationProvider>
         <Outlet />
+        <LiveChatWidget />
         <Toaster richColors position="top-center" />
       </TranslationProvider>
     </AuthProvider>

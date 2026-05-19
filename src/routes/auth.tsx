@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import brandMark from "@/assets/tommymeow-mark.png";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -81,9 +82,7 @@ function AuthPage() {
 
         <div className="glass rounded-3xl p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent grid place-items-center glow-soft">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={brandMark} alt="TommyMeow" className="h-10 w-10 rounded-xl object-cover glow-soft" />
             <div>
               <h1 className="font-bold tracking-tight text-xl">
                 {mode === "signin" ? "Welcome back" : "Create your account"}
@@ -91,7 +90,7 @@ function AuthPage() {
               <p className="text-xs text-muted-foreground">
                 {mode === "signin"
                   ? "Sign in to continue designing."
-                  : "Get 2 free credits to start designing."}
+                  : "Get 10 free credits to start designing."}
               </p>
             </div>
           </div>

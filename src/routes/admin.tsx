@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   addProduct,
@@ -33,8 +35,10 @@ import {
 } from "@/lib/orders";
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
 import { getShippingRates, setShippingRates } from "@/lib/site-settings";
+import { getSocialLinks, setSocialLinks, type SocialLinks } from "@/lib/social-links";
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 import { COLORS } from "@/lib/aura-config";
+import { LiveChatInbox } from "@/components/admin/LiveChatInbox";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -217,6 +221,9 @@ function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="orders">
               <ClipboardList className="h-4 w-4" /> Orders
+            </TabsTrigger>
+            <TabsTrigger value="chat">
+              <MessageCircle className="h-4 w-4" /> Live Chat
             </TabsTrigger>
             <TabsTrigger value="styles">
               <Shirt className="h-4 w-4" /> Product Styles
@@ -457,6 +464,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersManager />
+          </TabsContent>
+          <TabsContent value="chat">
+            <LiveChatInbox />
           </TabsContent>
           <TabsContent value="styles">
             <ProductStylesManager />
@@ -936,12 +946,17 @@ function SiteSettingsManager() {
   const [rates, setRates] = useState<Record<string, string>>({ US: "4", UK: "5", EU: "7", INTL: "10" });
   const [newCountryCode, setNewCountryCode] = useState("");
   const [newCountryRate, setNewCountryRate] = useState("");
+  const [socialLinks, setSocialLinksState] = useState<SocialLinks>({ instagram: "", facebook: "", youtube: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingSocial, setSavingSocial] = useState(false);
 
   useEffect(() => {
-    getShippingRates()
-      .then((loaded) => setRates(Object.fromEntries(Object.entries(loaded).map(([code, rate]) => [code, String(rate)]))))
+    Promise.all([getShippingRates(), getSocialLinks()])
+      .then(([loadedRates, loadedSocialLinks]) => {
+        setRates(Object.fromEntries(Object.entries(loadedRates).map(([code, rate]) => [code, String(rate)])));
+        setSocialLinksState(loadedSocialLinks);
+      })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -975,10 +990,33 @@ function SiteSettingsManager() {
     finally { setSaving(false); }
   };
 
+  const onSaveSocialLinks = async () => {
+    for (const [platform, value] of Object.entries(socialLinks)) {
+      if (!value.trim()) continue;
+      try {
+        new URL(value);
+      } catch {
+        toast.error(`Enter a valid ${platform} URL`);
+        return;
+      }
+    }
+    setSavingSocial(true);
+    try {
+      await setSocialLinks({
+        instagram: socialLinks.instagram.trim(),
+        facebook: socialLinks.facebook.trim(),
+        youtube: socialLinks.youtube.trim(),
+      });
+      toast.success("Social links updated");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed"); }
+    finally { setSavingSocial(false); }
+  };
+
   if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
 
   return (
-    <div className="max-w-2xl glass rounded-2xl p-6 space-y-5">
+    <div className="max-w-2xl space-y-6">
+      <div className="glass rounded-2xl p-6 space-y-5">
       <h2 className="text-lg font-semibold flex items-center gap-2"><SettingsIcon className="h-4 w-4 text-primary" /> Shipping rates</h2>
       <div className="grid sm:grid-cols-2 gap-4">
         {[
@@ -1017,6 +1055,48 @@ function SiteSettingsManager() {
       <Button variant="hero" onClick={onSave} disabled={saving}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
       </Button>
+      </div>
+
+      <Card className="bg-card/60">
+        <CardHeader>
+          <CardTitle>Social Links</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="instagram-url">Instagram URL</Label>
+            <Input
+              id="instagram-url"
+              value={socialLinks.instagram}
+              onChange={(e) => setSocialLinksState((prev) => ({ ...prev, instagram: e.target.value }))}
+              placeholder="https://instagram.com/yourhandle"
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="facebook-url">Facebook URL</Label>
+            <Input
+              id="facebook-url"
+              value={socialLinks.facebook}
+              onChange={(e) => setSocialLinksState((prev) => ({ ...prev, facebook: e.target.value }))}
+              placeholder="https://facebook.com/yourpage"
+              className="mt-1.5"
+            />
+          </div>
+          <div>
+            <Label htmlFor="youtube-url">YouTube URL</Label>
+            <Input
+              id="youtube-url"
+              value={socialLinks.youtube}
+              onChange={(e) => setSocialLinksState((prev) => ({ ...prev, youtube: e.target.value }))}
+              placeholder="https://youtube.com/@yourchannel"
+              className="mt-1.5"
+            />
+          </div>
+          <Button variant="hero" onClick={onSaveSocialLinks} disabled={savingSocial}>
+            {savingSocial ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
