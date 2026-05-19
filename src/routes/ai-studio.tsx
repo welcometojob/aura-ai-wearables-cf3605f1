@@ -9,7 +9,7 @@ const Mockup = lazy(() =>
 );
 import { COLORS, PRODUCT_STYLES, type Fit, type ProductStyle, type Size, type View } from "@/lib/aura-config";
 import { listProductStyles } from "@/lib/product-styles";
-import { getShippingRate } from "@/lib/site-settings";
+import { getShippingRateForCountry } from "@/lib/site-settings";
 import { ArrowLeft, User, Sun, Moon, Loader2, ShoppingCart, PanelLeft, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
@@ -64,7 +64,7 @@ function Editor() {
         setProduct((curr) => mapped.find((m) => m.id === curr.id) ?? mapped[0]);
       })
       .catch(() => { /* fall back to defaults */ });
-    getShippingRate().then(setShippingRate).catch(() => setShippingRate(0));
+    getShippingRateForCountry("INTL").then(setShippingRate).catch(() => setShippingRate(0));
   }, []);
 
   const [view, setView] = useState<View>("front");

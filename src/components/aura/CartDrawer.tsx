@@ -4,7 +4,9 @@ import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/use-cart";
-import { getShippingRate } from "@/lib/site-settings";
+import { COUNTRIES } from "@/lib/countries";
+import { getShippingRateForCountry } from "@/lib/site-settings";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function CartDrawer({
   open,
@@ -16,10 +18,11 @@ export function CartDrawer({
   const { items, remove, updateQty, totalPrice, clear } = useCart();
   const [loading, setLoading] = useState(false);
   const [shipping, setShipping] = useState(0);
+  const [country, setCountry] = useState("INTL");
 
   useEffect(() => {
-    getShippingRate().then(setShipping).catch(() => setShipping(0));
-  }, []);
+    getShippingRateForCountry(country).then(setShipping).catch(() => setShipping(0));
+  }, [country]);
 
   const grandTotal = totalPrice + (items.length > 0 ? shipping : 0);
 
@@ -37,6 +40,8 @@ export function CartDrawer({
             image: i.artwork ?? undefined,
           })),
           shippingRate: shipping,
+          shippingCountry: country,
+          shippingAmount: shipping,
         },
       });
       if (error) throw error;
@@ -128,6 +133,23 @@ export function CartDrawer({
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${totalPrice.toFixed(2)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
             </div>
+            <label className="mb-3 block">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Shipping country
+              </span>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger className="h-9 bg-background/60 text-xs">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((option) => (
+                    <SelectItem key={option.code} value={option.code}>
+                      {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
             <div className="mb-3 flex items-end justify-between border-t border-border pt-3">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Total</span>
               <span className="text-2xl font-bold">${grandTotal.toFixed(2)}</span>

@@ -179,6 +179,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string
+          images: string[]
           name: string
           price: string
           seo_description: string | null
@@ -194,6 +195,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url: string
+          images?: string[]
           name: string
           price: string
           seo_description?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string
+          images?: string[]
           name?: string
           price?: string
           seo_description?: string | null

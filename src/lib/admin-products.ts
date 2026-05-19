@@ -10,6 +10,7 @@ export type AdminProduct = {
   tags: string[];
   colors: string[];
   image: string;
+  images: string[];
   createdAt: string;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -24,6 +25,7 @@ type Row = {
   tags: string[];
   colors: string[] | null;
   image_url: string;
+  images: string[] | null;
   created_at: string;
   seo_title: string | null;
   seo_description: string | null;
@@ -38,6 +40,7 @@ const toProduct = (r: Row): AdminProduct => ({
   tags: r.tags ?? [],
   colors: r.colors ?? [],
   image: r.image_url,
+  images: r.images ?? (r.image_url ? [r.image_url] : []),
   createdAt: r.created_at,
   seoTitle: r.seo_title,
   seoDescription: r.seo_description,
@@ -46,7 +49,7 @@ const toProduct = (r: Row): AdminProduct => ({
 export async function fetchProducts(): Promise<AdminProduct[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,images,created_at,seo_title,seo_description")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data as Row[] | null)?.map(toProduct) ?? [];
@@ -55,7 +58,7 @@ export async function fetchProducts(): Promise<AdminProduct[]> {
 export async function fetchProductById(id: string): Promise<AdminProduct | null> {
   const { data, error } = await supabase
     .from("products")
-    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,images,created_at,seo_title,seo_description")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -73,7 +76,7 @@ export async function addProduct(input: {
   category?: string;
   tags: string[];
   colors: string[];
-  image_url: string;
+  images: string[];
   seo_title?: string;
   seo_description?: string;
 }): Promise<AdminProduct> {
@@ -86,11 +89,12 @@ export async function addProduct(input: {
       category: input.category || null,
       tags: input.tags,
       colors: input.colors,
-      image_url: input.image_url,
+      image_url: input.images[0],
+      images: input.images,
       seo_title: input.seo_title || null,
       seo_description: input.seo_description || null,
     })
-    .select("id,name,price,description,category,tags,colors,image_url,created_at,seo_title,seo_description")
+    .select("id,name,price,description,category,tags,colors,image_url,images,created_at,seo_title,seo_description")
     .single();
   if (error) throw error;
   return toProduct(data as Row);

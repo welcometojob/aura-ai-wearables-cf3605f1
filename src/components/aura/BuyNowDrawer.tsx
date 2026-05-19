@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { validateCoupon, type ValidatedCoupon } from "@/lib/coupons";
+import { COUNTRIES } from "@/lib/countries";
+import { getShippingRateForCountry } from "@/lib/site-settings";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type BuyNowItem = {
   name: string;
@@ -32,6 +35,7 @@ export function BuyNowDrawer({
   const [validating, setValidating] = useState(false);
   const [applied, setApplied] = useState<ValidatedCoupon | null>(null);
   const [note, setNote] = useState("");
+  const [countryShipping, setCountryShipping] = useState(shipping);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -41,7 +45,7 @@ export function BuyNowDrawer({
     city: "",
     state: "",
     zip: "",
-    country: "",
+    country: "INTL",
   });
 
   useEffect(() => {
@@ -54,11 +58,20 @@ export function BuyNowDrawer({
     }
   }, [open, user, profile]);
 
+  useEffect(() => {
+    setCountryShipping(shipping);
+  }, [shipping]);
+
+  useEffect(() => {
+    if (!open || !form.country) return;
+    getShippingRateForCountry(form.country).then(setCountryShipping).catch(() => setCountryShipping(shipping));
+  }, [form.country, open, shipping]);
+
   if (!item) return null;
 
   const subtotal = item.unitPrice * item.quantity;
   const discount = applied ? Math.min(applied.discount, subtotal) : 0;
-  const total = Math.max(0, subtotal - discount) + shipping;
+  const total = Math.max(0, subtotal - discount) + countryShipping;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || validating) return;
@@ -99,8 +112,10 @@ export function BuyNowDrawer({
               image: item.image ?? undefined,
             },
           ],
-          shippingRate: shipping,
+          shippingRate: countryShipping,
           shipping: form,
+          shippingCountry: form.country,
+          shippingAmount: countryShipping,
           customerNote: note.trim() || undefined,
           coupon: applied
             ? {
@@ -132,8 +147,8 @@ export function BuyNowDrawer({
 
         <div className="mt-2 flex gap-3 rounded-lg border border-border bg-card/40 p-3">
           <div
-            className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-md"
-            style={{ background: item.colorHex || "#222" }}
+            className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-md bg-secondary"
+            style={item.colorHex ? { background: item.colorHex } : undefined}
           >
             {item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" /> : null}
           </div>
@@ -148,7 +163,7 @@ export function BuyNowDrawer({
                   <span>− ${discount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between"><span>Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
+              <div className="flex justify-between"><span>Shipping</span><span>{countryShipping > 0 ? `+ $${countryShipping.toFixed(2)}` : "Free"}</span></div>
               <div className="flex justify-between border-t border-border pt-1 text-sm font-bold text-foreground"><span>Total</span><span>${total.toFixed(2)}</span></div>
             </div>
           </div>
@@ -168,7 +183,23 @@ export function BuyNowDrawer({
           </Row>
           <Row>
             <Field label="ZIP / Postal" value={form.zip} onChange={(v) => setForm({ ...form, zip: v })} />
-            <Field label="Country" value={form.country} onChange={(v) => setForm({ ...form, country: v })} required placeholder="US, BD, IN…" />
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Country <span className="text-primary">*</span>
+              </span>
+              <Select value={form.country} onValueChange={(country) => setForm({ ...form, country })}>
+                <SelectTrigger className="h-8 bg-background/60 text-xs">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
           </Row>
 
           {/* Note */}

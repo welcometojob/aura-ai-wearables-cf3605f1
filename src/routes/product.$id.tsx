@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { CartDrawer } from "@/components/aura/CartDrawer";
 import { BuyNowDrawer, type BuyNowItem } from "@/components/aura/BuyNowDrawer";
-import { getShippingRate } from "@/lib/site-settings";
+import { getShippingRateForCountry } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params }) => {
@@ -96,13 +96,15 @@ function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [cartOpen, setCartOpen] = useState(false);
   const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
+  const [selectedImage, setSelectedImage] = useState(product.images[0] ?? product.image);
   const [shipping, setShipping] = useState(0);
   const [added, setAdded] = useState(false);
 
-  useEffect(() => { getShippingRate().then(setShipping).catch(() => setShipping(0)); }, []);
+  useEffect(() => { getShippingRateForCountry("INTL").then(setShipping).catch(() => setShipping(0)); }, []);
 
   // Reset color whenever the product (or its admin-selected colors) changes.
   useEffect(() => { setColor(null); }, [product.id]);
+  useEffect(() => { setSelectedImage(product.images[0] ?? product.image); }, [product.id, product.image, product.images]);
 
   const unitPrice = useMemo(() => parsePrice(product.price), [product.price]);
   const subtotal = unitPrice * quantity;
@@ -178,37 +180,39 @@ function ProductPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 mt-10 grid lg:grid-cols-2 gap-10">
-        <div className="glass rounded-3xl overflow-hidden">
-          <div className="aspect-[4/5] bg-secondary relative">
-            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-            {product.category && (
-              <span className="absolute top-4 left-4 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-background/70 backdrop-blur border border-primary/30 text-primary">
-                {product.category}
-              </span>
-            )}
+        <div>
+          <div className="glass rounded-3xl overflow-hidden">
+            <div className="aspect-[4/5] bg-secondary relative">
+              <img src={selectedImage} alt={product.name} className="h-full w-full object-cover" />
+              {product.category && (
+                <span className="absolute top-4 left-4 text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full bg-background/70 backdrop-blur border border-primary/30 text-primary">
+                  {product.category}
+                </span>
+              )}
+            </div>
           </div>
+          {product.images.length > 1 && (
+            <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+              {product.images.map((image, index) => (
+                <button
+                  key={`${image}-${index}`}
+                  type="button"
+                  aria-label={`View product image ${index + 1}`}
+                  onClick={() => setSelectedImage(image)}
+                  className={`h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 bg-secondary transition ${selectedImage === image ? "border-primary" : "border-border hover:border-primary/60"}`}
+                >
+                  <img src={image} alt={`${product.name} thumbnail ${index + 1}`} className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{product.name}</h1>
           <div className="mt-3 flex items-baseline gap-3">
             <div className="text-3xl text-primary font-bold">{product.price}</div>
-            <div className="text-xs text-muted-foreground">Free returns · Ships in 3–5 days</div>
           </div>
-
-          {product.description && (
-            <p className="mt-5 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{product.description}</p>
-          )}
-
-          {product.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {product.tags.map((t) => (
-                <span key={t} className="text-[10px] px-2 py-0.5 rounded-full border border-border/60 text-muted-foreground">
-                  #{t}
-                </span>
-              ))}
-            </div>
-          )}
 
           {availableColors.length > 0 && (
             <div className="mt-8">
@@ -280,6 +284,26 @@ function ProductPage() {
           )}
         </div>
       </main>
+
+      {(product.description || product.tags.length > 0) && (
+        <section className="mx-auto max-w-6xl px-6 mt-10">
+          <div className="glass rounded-3xl p-6 md:p-8">
+            {product.description && (
+              <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{product.description}</p>
+            )}
+
+            {product.tags.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {product.tags.map((t) => (
+                  <span key={t} className="text-[10px] px-2 py-0.5 rounded-full border border-border/60 text-muted-foreground">
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
       <BuyNowDrawer

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +32,7 @@ import {
   type Order,
 } from "@/lib/orders";
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
-import { getShippingRate, setShippingRate } from "@/lib/site-settings";
+import { getShippingRates, setShippingRates } from "@/lib/site-settings";
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 import { COLORS } from "@/lib/aura-config";
 
@@ -55,8 +55,8 @@ function AdminPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("T-Shirt");
   const [tags, setTags] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
@@ -101,11 +101,35 @@ function AdminPage() {
     );
   }
 
-  const onFile = (file: File) => {
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(String(reader.result));
-    reader.readAsDataURL(file);
+  const onFiles = (files: FileList | null) => {
+    const nextFiles = Array.from(files ?? []);
+    if (nextFiles.length === 0) return;
+    setImageFiles((prev) => [...prev, ...nextFiles]);
+    nextFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => setImagePreviews((prev) => [...prev, String(reader.result)]);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= imageFiles.length) return;
+    setImageFiles((prev) => {
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+    setImagePreviews((prev) => {
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
   };
 
   const reset = () => {
@@ -114,8 +138,8 @@ function AdminPage() {
     setDescription("");
     setCategory("T-Shirt");
     setTags("");
-    setImageFile(null);
-    setImagePreview("");
+    setImageFiles([]);
+    setImagePreviews([]);
     setSelectedColors([]);
     setSeoTitle("");
     setSeoDescription("");
@@ -124,10 +148,10 @@ function AdminPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !price.trim() || !imageFile || !user) return;
+    if (!name.trim() || !price.trim() || imageFiles.length === 0 || !user) return;
     setSubmitting(true);
     try {
-      const image_url = await uploadProductImage(imageFile, user.id);
+      const images = await Promise.all(imageFiles.map((file) => uploadProductImage(file, user.id)));
       const created = await addProduct({
         name: name.trim(),
         price: price.trim(),
@@ -135,7 +159,7 @@ function AdminPage() {
         category: category.trim(),
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
         colors: selectedColors,
-        image_url,
+        images,
         seo_title: seoTitle.trim(),
         seo_description: seoDescription.trim(),
       });
@@ -213,30 +237,66 @@ function AdminPage() {
             </h2>
             <form onSubmit={onSubmit} className="mt-5 space-y-4">
               <div>
-                <label className="text-xs font-medium text-muted-foreground">Image</label>
+                <label className="text-xs font-medium text-muted-foreground">Images</label>
                 <div
-                  className="mt-1.5 relative rounded-xl border border-dashed border-border/60 bg-background/40 hover:border-primary/60 transition aspect-[4/5] overflow-hidden grid place-items-center cursor-pointer"
+                  className="mt-1.5 relative rounded-xl border border-dashed border-border/60 bg-background/40 hover:border-primary/60 transition min-h-40 overflow-hidden grid place-items-center cursor-pointer p-4"
                   onClick={() => fileRef.current?.click()}
                 >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="preview" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="text-center text-muted-foreground text-sm">
-                      <Upload className="h-6 w-6 mx-auto mb-2" />
-                      Click to upload
-                    </div>
-                  )}
+                  <div className="text-center text-muted-foreground text-sm">
+                    <Upload className="h-6 w-6 mx-auto mb-2" />
+                    Click to upload product images
+                  </div>
                   <input
                     ref={fileRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) onFile(f);
-                    }}
+                    onChange={(e) => onFiles(e.target.files)}
                   />
                 </div>
+                {imagePreviews.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    {imagePreviews.map((src, index) => (
+                      <div key={`${src}-${index}`} className="relative rounded-xl border border-border/60 bg-background/40 overflow-hidden">
+                        <div className="aspect-square">
+                          <img src={src} alt={`Product preview ${index + 1}`} className="h-full w-full object-cover" />
+                        </div>
+                        <div className="absolute top-2 left-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground">
+                          {index + 1}
+                        </div>
+                        <div className="absolute top-2 right-2 flex gap-1">
+                          <button
+                            type="button"
+                            aria-label="Move image up"
+                            onClick={() => moveImage(index, -1)}
+                            disabled={index === 0}
+                            className="grid h-7 w-7 place-items-center rounded-full bg-background/80 text-foreground transition hover:text-primary disabled:opacity-40"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Move image down"
+                            onClick={() => moveImage(index, 1)}
+                            disabled={index === imagePreviews.length - 1}
+                            className="grid h-7 w-7 place-items-center rounded-full bg-background/80 text-foreground transition hover:text-primary disabled:opacity-40"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Remove image"
+                            onClick={() => removeImage(index)}
+                            className="grid h-7 w-7 place-items-center rounded-full bg-background/80 text-foreground transition hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -340,7 +400,7 @@ function AdminPage() {
                   <div className="text-[10px] text-muted-foreground mt-1">{seoDescription.length}/160 — shown in Google results & link previews</div>
                 </div>
               </div>
-              <Button type="submit" variant="hero" className="w-full" disabled={!imageFile || submitting}>
+              <Button type="submit" variant="hero" className="w-full" disabled={imageFiles.length === 0 || submitting}>
                 {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : "Add product"}
               </Button>
             </form>
@@ -873,21 +933,44 @@ function SitePagesManager() {
 }
 
 function SiteSettingsManager() {
-  const [shipping, setShipping] = useState<string>("");
+  const [rates, setRates] = useState<Record<string, string>>({ US: "4", UK: "5", EU: "7", INTL: "10" });
+  const [newCountryCode, setNewCountryCode] = useState("");
+  const [newCountryRate, setNewCountryRate] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    getShippingRate().then((r) => setShipping(String(r))).catch((e) => toast.error(e.message)).finally(() => setLoading(false));
+    getShippingRates()
+      .then((loaded) => setRates(Object.fromEntries(Object.entries(loaded).map(([code, rate]) => [code, String(rate)]))))
+      .catch((e) => toast.error(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
+  const setRateValue = (code: string, value: string) => {
+    setRates((prev) => ({ ...prev, [code]: value }));
+  };
+
+  const addCountry = () => {
+    const code = newCountryCode.trim().toUpperCase();
+    const rate = Number(newCountryRate);
+    if (!/^[A-Z]{2}$/.test(code)) { toast.error("Enter a valid 2-letter country code"); return; }
+    if (!Number.isFinite(rate) || rate < 0) { toast.error("Enter a valid non-negative rate"); return; }
+    setRates((prev) => ({ ...prev, [code]: String(rate) }));
+    setNewCountryCode("");
+    setNewCountryRate("");
+  };
+
   const onSave = async () => {
-    const n = Number(shipping);
-    if (!Number.isFinite(n) || n < 0) { toast.error("Enter a valid non-negative number"); return; }
+    const parsed: Record<string, number> = {};
+    for (const [code, value] of Object.entries(rates)) {
+      const rate = Number(value);
+      if (!Number.isFinite(rate) || rate < 0) { toast.error(`Enter a valid non-negative rate for ${code}`); return; }
+      parsed[code] = rate;
+    }
     setSaving(true);
     try {
-      await setShippingRate(n);
-      toast.success("Shipping rate saved");
+      await setShippingRates(parsed);
+      toast.success("Shipping rates saved");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Save failed"); }
     finally { setSaving(false); }
   };
@@ -895,12 +978,41 @@ function SiteSettingsManager() {
   if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
 
   return (
-    <div className="max-w-md glass rounded-2xl p-6 space-y-4">
-      <h2 className="text-lg font-semibold flex items-center gap-2"><SettingsIcon className="h-4 w-4 text-primary" /> Shipping</h2>
-      <div>
-        <label className="text-xs text-muted-foreground">Flat shipping rate (USD)</label>
-        <Input type="number" step="0.01" min="0" value={shipping} onChange={(e) => setShipping(e.target.value)} className="mt-1.5" />
-        <p className="mt-1 text-[11px] text-muted-foreground">Applied to every order at checkout. Set to 0 for free shipping.</p>
+    <div className="max-w-2xl glass rounded-2xl p-6 space-y-5">
+      <h2 className="text-lg font-semibold flex items-center gap-2"><SettingsIcon className="h-4 w-4 text-primary" /> Shipping rates</h2>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {[
+          ["US", "United States"],
+          ["UK", "United Kingdom"],
+          ["EU", "Europe"],
+          ["INTL", "International / others"],
+        ].map(([code, label]) => (
+          <div key={code}>
+            <label className="text-xs text-muted-foreground">{code} ({label})</label>
+            <Input type="number" step="0.01" min="0" value={rates[code] ?? ""} onChange={(e) => setRateValue(code, e.target.value)} className="mt-1.5" />
+          </div>
+        ))}
+      </div>
+      {Object.keys(rates).filter((code) => !["US", "UK", "EU", "INTL"].includes(code)).length > 0 && (
+        <div className="space-y-3">
+          <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Additional countries</div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {Object.keys(rates).filter((code) => !["US", "UK", "EU", "INTL"].includes(code)).sort().map((code) => (
+              <div key={code}>
+                <label className="text-xs text-muted-foreground">{code}</label>
+                <Input type="number" step="0.01" min="0" value={rates[code] ?? ""} onChange={(e) => setRateValue(code, e.target.value)} className="mt-1.5" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="rounded-xl border border-border/60 bg-background/30 p-4 space-y-3">
+        <div className="text-xs font-semibold uppercase tracking-widest text-primary">Add country</div>
+        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3">
+          <Input value={newCountryCode} onChange={(e) => setNewCountryCode(e.target.value.toUpperCase())} placeholder="CA" maxLength={2} />
+          <Input type="number" step="0.01" min="0" value={newCountryRate} onChange={(e) => setNewCountryRate(e.target.value)} placeholder="8" />
+          <Button type="button" variant="ghostNeon" onClick={addCountry}>Add country</Button>
+        </div>
       </div>
       <Button variant="hero" onClick={onSave} disabled={saving}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
