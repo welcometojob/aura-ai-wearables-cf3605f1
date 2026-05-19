@@ -2,13 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X, MessageCircle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X, MessageCircle, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   addProduct,
   deleteProduct,
@@ -36,6 +38,7 @@ import {
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
 import { getShippingRates, setShippingRates } from "@/lib/site-settings";
 import { getSocialLinks, setSocialLinks, type SocialLinks } from "@/lib/social-links";
+import { createCoupon, deleteCoupon, fetchAllCoupons, updateCoupon, type Coupon } from "@/lib/coupons";
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 import { COLORS } from "@/lib/aura-config";
 import { LiveChatInbox } from "@/components/admin/LiveChatInbox";
@@ -221,6 +224,9 @@ function AdminPage() {
             </TabsTrigger>
             <TabsTrigger value="orders">
               <ClipboardList className="h-4 w-4" /> Orders
+            </TabsTrigger>
+            <TabsTrigger value="coupons">
+              <Tag className="h-4 w-4" /> Coupons
             </TabsTrigger>
             <TabsTrigger value="chat">
               <MessageCircle className="h-4 w-4" /> Live Chat
@@ -464,6 +470,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersManager />
+          </TabsContent>
+          <TabsContent value="coupons">
+            <CouponsManager />
           </TabsContent>
           <TabsContent value="chat">
             <LiveChatInbox />
@@ -938,6 +947,175 @@ function SitePagesManager() {
           <p className="text-[11px] text-muted-foreground">Use <code>#</code> for headings, <code>**bold**</code>, <code>- item</code> for lists. Page lives at <code>/p/{active.slug}</code>.</p>
         </section>
       )}
+    </div>
+  );
+}
+
+function CouponsManager() {
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({
+    code: "",
+    type: "percent" as "percent" | "fixed",
+    value: "",
+    expiresAt: "",
+    maxUses: "",
+    note: "",
+    active: true,
+  });
+
+  const loadCoupons = async () => {
+    setLoading(true);
+    try {
+      setCoupons(await fetchAllCoupons());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load coupons");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadCoupons();
+  }, []);
+
+  const handleCreate = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const value = Number(form.value);
+    const maxUses = form.maxUses.trim() ? Number(form.maxUses) : null;
+    if (!form.code.trim()) { toast.error("Enter a coupon code"); return; }
+    if (!Number.isFinite(value) || value <= 0) { toast.error("Enter a valid coupon value"); return; }
+    if (form.type === "percent" && value > 100) { toast.error("Percent coupon cannot exceed 100"); return; }
+    if (maxUses !== null && (!Number.isFinite(maxUses) || maxUses < 1)) { toast.error("Enter a valid max uses value"); return; }
+    setCreating(true);
+    try {
+      await createCoupon({
+        code: form.code,
+        type: form.type,
+        value,
+        expiresAt: form.expiresAt || null,
+        maxUses,
+        note: form.note || null,
+        active: form.active,
+      });
+      toast.success("Coupon created");
+      setForm({ code: "", type: "percent", value: "", expiresAt: "", maxUses: "", note: "", active: true });
+      await loadCoupons();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create coupon");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const toggleCoupon = async (coupon: Coupon, active: boolean) => {
+    try {
+      await updateCoupon(coupon.id, { active });
+      setCoupons((prev) => prev.map((item) => item.id === coupon.id ? { ...item, active } : item));
+      toast.success(active ? "Coupon activated" : "Coupon deactivated");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update coupon");
+    }
+  };
+
+  const removeCoupon = async (coupon: Coupon) => {
+    try {
+      await deleteCoupon(coupon.id);
+      setCoupons((prev) => prev.filter((item) => item.id !== coupon.id));
+      toast.success("Coupon deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete coupon");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-card/60">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Tag className="h-5 w-5 text-primary" /> Create Coupon</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="coupon-code">Code</Label>
+              <Input id="coupon-code" value={form.code} onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))} placeholder="WELCOME10" className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Type</Label>
+              <Select value={form.type} onValueChange={(type: "percent" | "fixed") => setForm((prev) => ({ ...prev, type }))}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percent">Percent</SelectItem>
+                  <SelectItem value="fixed">Fixed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="coupon-value">Value</Label>
+              <Input id="coupon-value" type="number" min="0" step="0.01" value={form.value} onChange={(e) => setForm((prev) => ({ ...prev, value: e.target.value }))} placeholder={form.type === "percent" ? "10" : "5"} className="mt-1.5" />
+            </div>
+            <div>
+              <Label htmlFor="coupon-expires">Expires At</Label>
+              <Input id="coupon-expires" type="date" value={form.expiresAt} onChange={(e) => setForm((prev) => ({ ...prev, expiresAt: e.target.value }))} className="mt-1.5" />
+            </div>
+            <div>
+              <Label htmlFor="coupon-max-uses">Max Uses</Label>
+              <Input id="coupon-max-uses" type="number" min="1" step="1" value={form.maxUses} onChange={(e) => setForm((prev) => ({ ...prev, maxUses: e.target.value }))} placeholder="Optional" className="mt-1.5" />
+            </div>
+            <div>
+              <Label htmlFor="coupon-note">Note</Label>
+              <Input id="coupon-note" value={form.note} onChange={(e) => setForm((prev) => ({ ...prev, note: e.target.value }))} placeholder="Optional internal note" className="mt-1.5" />
+            </div>
+            <div className="flex items-center gap-3 md:col-span-2">
+              <Switch checked={form.active} onCheckedChange={(active) => setForm((prev) => ({ ...prev, active }))} id="coupon-active" />
+              <Label htmlFor="coupon-active">Active</Label>
+            </div>
+            <div className="md:col-span-2">
+              <Button type="submit" variant="hero" disabled={creating}>
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create Coupon
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card/60">
+        <CardHeader>
+          <CardTitle>Existing Coupons</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          ) : coupons.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No coupons yet.</p>
+          ) : coupons.map((coupon) => (
+            <div key={coupon.id} className="flex flex-col gap-3 rounded-xl border border-border bg-background/40 p-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">{coupon.code}</span>
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{coupon.type}</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {coupon.type === "percent" ? `${coupon.value}% off` : `$${coupon.value.toFixed(2)} off`} · Used {coupon.uses}{coupon.maxUses != null ? `/${coupon.maxUses}` : ""}{coupon.expiresAt ? ` · Expires ${coupon.expiresAt}` : ""}
+                </p>
+                {coupon.note && <p className="mt-1 text-xs text-muted-foreground">{coupon.note}</p>}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch checked={coupon.active} onCheckedChange={(active) => void toggleCoupon(coupon, active)} id={`coupon-active-${coupon.id}`} />
+                  <Label htmlFor={`coupon-active-${coupon.id}`} className="text-xs">Active</Label>
+                </div>
+                <Button type="button" variant="destructive" size="sm" onClick={() => void removeCoupon(coupon)}>
+                  <Trash2 className="h-4 w-4" /> Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }

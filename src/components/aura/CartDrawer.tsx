@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Loader2, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Check, Loader2, Minus, Plus, ShoppingCart, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/use-cart";
 import { COUNTRIES } from "@/lib/countries";
 import { getShippingRateForCountry } from "@/lib/site-settings";
+import { validateCoupon, type ValidatedCoupon } from "@/lib/coupons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function CartDrawer({
@@ -19,12 +20,36 @@ export function CartDrawer({
   const [loading, setLoading] = useState(false);
   const [shipping, setShipping] = useState(0);
   const [country, setCountry] = useState("INTL");
+  const [couponCode, setCouponCode] = useState("");
+  const [validating, setValidating] = useState(false);
+  const [applied, setApplied] = useState<ValidatedCoupon | null>(null);
 
   useEffect(() => {
     getShippingRateForCountry(country).then(setShipping).catch(() => setShipping(0));
   }, [country]);
 
-  const grandTotal = totalPrice + (items.length > 0 ? shipping : 0);
+  const discount = applied ? Math.min(applied.discount, totalPrice) : 0;
+  const grandTotal = Math.max(0, totalPrice - discount) + (items.length > 0 ? shipping : 0);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || validating) return;
+    setValidating(true);
+    try {
+      const result = await validateCoupon(couponCode, totalPrice);
+      setApplied(result);
+      toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
+    } catch (err) {
+      setApplied(null);
+      toast.error(err instanceof Error ? err.message : "Invalid coupon");
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleClearCoupon = () => {
+    setApplied(null);
+    setCouponCode("");
+  };
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -42,6 +67,12 @@ export function CartDrawer({
           shippingRate: shipping,
           shippingCountry: country,
           shippingAmount: shipping,
+          coupon: applied
+            ? {
+                code: applied.coupon.code,
+                discount,
+              }
+            : undefined,
         },
       });
       if (error) throw error;
@@ -131,7 +162,56 @@ export function CartDrawer({
           <div className="border-t border-border pt-3">
             <div className="mb-3 space-y-1 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${totalPrice.toFixed(2)}</span></div>
+              {discount > 0 && (
+                <div className="flex justify-between text-primary">
+                  <span>Discount {applied?.coupon.code ? `(${applied.coupon.code})` : ""}</span>
+                  <span>- ${discount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
+            </div>
+            <div className="mb-3">
+              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Coupon code <span className="text-muted-foreground/60">(optional)</span>
+              </span>
+              {applied ? (
+                <div className="flex items-center justify-between rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1.5 text-xs text-primary">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5" />
+                    <span className="font-semibold">{applied.coupon.code}</span>
+                    <span className="text-primary/80">— ${discount.toFixed(2)} off</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClearCoupon}
+                    aria-label="Remove coupon"
+                    className="text-primary/70 hover:text-primary"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="WELCOME10"
+                      className="w-full rounded-md border border-border bg-background/60 pl-7 pr-2 py-1.5 text-xs uppercase outline-none focus:border-primary"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={!couponCode.trim() || validating}
+                    className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-primary/50 bg-primary/10 px-3 text-[11px] font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {validating ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+              )}
             </div>
             <label className="mb-3 block">
               <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
