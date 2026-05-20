@@ -37,6 +37,8 @@ type IncomingCoupon = {
   discount?: number; // USD dollars off the order subtotal
 };
 
+const cleanArtworkUrl = (url: string) => url.replace(/\s+/g, "").trim();
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -87,7 +89,7 @@ serve(async (req) => {
         product_data: {
           name: it.name,
           description: it.description?.slice(0, 240),
-          images: it.image ? [it.image].filter((u) => /^https?:\/\//.test(u)) : undefined,
+          images: it.image ? [cleanArtworkUrl(it.image)].filter((u) => /^https?:\/\//.test(u)) : undefined,
         },
         unit_amount: Math.round(it.unitPrice * 100),
       },
@@ -145,7 +147,11 @@ serve(async (req) => {
       },
     });
 
-    const artworkUrls = items
+    const cleanItems = items.map((item) => ({
+      ...item,
+      image: item.image ? cleanArtworkUrl(item.image) : item.image,
+    }));
+    const artworkUrls = cleanItems
       .map((item) => item.image)
       .filter((url): url is string => typeof url === "string" && /^https?:\/\//.test(url));
     const totalAmount = Math.max(0, subtotalCents / 100 - appliedDiscount) + shippingRate;
@@ -159,7 +165,7 @@ serve(async (req) => {
       coupon_code: appliedCode,
       discount_amount: appliedDiscount,
       item_summary: itemSummary,
-      item_details: items,
+      item_details: cleanItems,
       artwork_urls: artworkUrls,
       total_amount: totalAmount,
       stripe_session_id: session.id,

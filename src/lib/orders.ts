@@ -20,6 +20,8 @@ export type OrderItemDetail = {
   description?: string;
 };
 
+export const cleanArtworkUrl = (url: string) => url.replace(/\s+/g, "").trim();
+
 export const ORDER_STAGES = [
   "Order placed",
   "In production",
@@ -84,7 +86,7 @@ function toItemDetails(value: unknown): OrderItemDetail[] {
     name: String(item.name ?? "Item"),
     quantity: Number(item.quantity ?? 1),
     unitPrice: Number(item.unitPrice ?? 0),
-    image: typeof item.image === "string" ? item.image : null,
+    image: typeof item.image === "string" ? cleanArtworkUrl(item.image) : null,
     description: typeof item.description === "string" ? item.description : undefined,
   }));
 }
@@ -98,7 +100,7 @@ const toOrder = (r: Row): Order => ({
   customerNote: r.customer_note,
   couponCode: r.coupon_code,
   discountAmount: Number(r.discount_amount ?? 0),
-  artworkUrls: r.artwork_urls ?? [],
+  artworkUrls: (r.artwork_urls ?? []).map(cleanArtworkUrl).filter(Boolean),
   itemDetails: toItemDetails(r.item_details),
   itemSummary: r.item_summary,
   stage: r.stage,

@@ -36,6 +36,7 @@ import {
   type Order,
   type OrderItemDetail,
   type OrderShippingAddress,
+  cleanArtworkUrl,
 } from "@/lib/orders";
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
 import { getShippingRates, setShippingRates } from "@/lib/site-settings";
@@ -44,6 +45,7 @@ import { createCoupon, deleteCoupon, fetchAllCoupons, updateCoupon, type Coupon 
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 import { COLORS } from "@/lib/aura-config";
 import { LiveChatInbox } from "@/components/admin/LiveChatInbox";
+import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -650,7 +652,7 @@ function ReadyDesignsManager({ userId }: { userId: string }) {
 }
 
 function httpsUrls(urls: string[]) {
-  return urls.filter((url) => /^https?:\/\//.test(url));
+  return urls.map(cleanArtworkUrl).filter((url) => /^https?:\/\//.test(url));
 }
 
 function addressLines(address: OrderShippingAddress | null, order: Order) {
@@ -673,17 +675,28 @@ async function copyAddress(address: OrderShippingAddress | null, order: Order) {
 }
 
 async function downloadArtwork(url: string, filename: string) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to download image");
-  const blob = await response.blob();
-  const objectUrl = URL.createObjectURL(blob);
+  const cleanUrl = cleanArtworkUrl(url);
+  let objectUrl = "";
+  try {
+    const response = await fetch(cleanUrl);
+    if (!response.ok) throw new Error("Direct artwork download failed");
+    const blob = await response.blob();
+    objectUrl = URL.createObjectURL(blob);
+  } catch {
+    try {
+      const { dataUri } = await getArtworkDataUri({ data: { url: cleanUrl } });
+      objectUrl = dataUri;
+    } catch {
+      throw new Error("Artwork download failed. Please open the image in a new tab and save it manually.");
+    }
+  }
   const link = document.createElement("a");
   link.href = objectUrl;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(objectUrl);
+  if (objectUrl.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
 }
 
 async function downloadAllArtwork(order: Order, urls: string[]) {

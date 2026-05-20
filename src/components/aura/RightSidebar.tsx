@@ -38,6 +38,7 @@ export function RightSidebar({
   fit, setFit, product, setProduct, productStyles, color, setColor, size, setSize, quantity, setQuantity, total, unitPrice, subtotal, shipping, artwork, onAddToCart, onBuyNow,
 }: Props & { setQuantity: (q: number) => void }) {
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const currentTotal = unitPrice * quantity + shipping;
 
   const handleAddToCart = () => {
     onAddToCart({
@@ -207,7 +208,7 @@ export function RightSidebar({
         <div className="mb-3 flex items-end justify-between">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Estimated Total</p>
           <p className="text-3xl font-bold tracking-tight text-foreground">
-            ${product.price.toFixed(2)}
+            ${currentTotal.toFixed(2)}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2">

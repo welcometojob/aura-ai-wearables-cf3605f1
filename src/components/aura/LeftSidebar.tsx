@@ -151,7 +151,7 @@ export function LeftSidebar({
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="A neon koi swimming through clouds, vintage Japanese woodblock style..."
+            placeholder="Describe your design idea…"
             className="mt-2 h-24 w-full resize-none rounded-lg border border-border bg-background/60 p-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
           <button
