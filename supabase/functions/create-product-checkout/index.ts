@@ -133,8 +133,6 @@ serve(async (req) => {
       client_reference_id: user?.id,
       line_items: lineItems,
       ...(discounts ? { discounts } : { allow_promotion_codes: false }),
-      shipping_address_collection: { allowed_countries: ["US","CA","GB","AU","DE","FR","NL","SE","NO","DK","ES","IT","IN","BD","SG","JP","BR","MX"] },
-      phone_number_collection: { enabled: true },
       success_url: `${origin}/?checkout=success`,
       cancel_url: `${origin}/ai-studio?checkout=cancelled`,
       metadata: {

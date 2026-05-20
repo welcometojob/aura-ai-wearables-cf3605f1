@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X, MessageCircle, Tag } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Upload, Sparkles, Lock, Loader2, Shirt, Package, ClipboardList, Check, FileText, Settings as SettingsIcon, Save, ArrowUp, ArrowDown, X, MessageCircle, Tag, Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,8 @@ import {
   fetchOrders,
   updateOrderStage,
   type Order,
+  type OrderItemDetail,
+  type OrderShippingAddress,
 } from "@/lib/orders";
 import { listSitePages, upsertSitePage, type SitePage } from "@/lib/cms";
 import { getShippingRates, setShippingRates } from "@/lib/site-settings";
@@ -647,42 +649,52 @@ function ReadyDesignsManager({ userId }: { userId: string }) {
   );
 }
 
-type OrderAddress = {
-  name?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  address1?: string | null;
-  address2?: string | null;
-  city?: string | null;
-  state?: string | null;
-  zip?: string | null;
-  country?: string | null;
-};
-
-type OrderItemDetail = {
-  name?: string;
-  quantity?: number;
-  unitPrice?: number;
-  image?: string | null;
-  fit?: string;
-  colorName?: string;
-  size?: string;
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function orderAddress(value: unknown): OrderAddress | null {
-  return isRecord(value) ? value as OrderAddress : null;
-}
-
-function orderItems(value: unknown): OrderItemDetail[] {
-  return Array.isArray(value) ? value.filter(isRecord).map((item) => item as OrderItemDetail) : [];
-}
-
 function httpsUrls(urls: string[]) {
   return urls.filter((url) => /^https?:\/\//.test(url));
+}
+
+function addressLines(address: OrderShippingAddress | null, order: Order) {
+  if (!address) return [];
+  return [
+    address.name || order.customerName || "",
+    address.phone || order.customerPhone || "",
+    address.email || order.customerEmail || "",
+    [address.address1, address.address2].filter(Boolean).join(", "),
+    [address.city, address.state, address.zip].filter(Boolean).join(", "),
+    address.country || "",
+  ].filter(Boolean);
+}
+
+async function copyAddress(address: OrderShippingAddress | null, order: Order) {
+  const text = addressLines(address, order).join("\n");
+  if (!text) return toast.error("No address to copy");
+  await navigator.clipboard.writeText(text);
+  toast.success("Address copied");
+}
+
+async function downloadArtwork(url: string, filename: string) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to download image");
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+async function downloadAllArtwork(order: Order, urls: string[]) {
+  try {
+    for (const [index, url] of urls.entries()) {
+      await downloadArtwork(url, `${order.orderNumber}-design-${index + 1}.png`);
+    }
+    toast.success("Artwork downloads started");
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : "Failed to download artwork");
+  }
 }
 
 function OrdersManager() {
@@ -803,8 +815,8 @@ function OrdersManager() {
         ) : (
           <div className="space-y-4">
             {orders.map((o) => {
-              const address = orderAddress(o.shippingAddress);
-              const items = orderItems(o.itemDetails);
+              const address = o.shippingAddress;
+              const items = o.itemDetails;
               const images = httpsUrls(o.artworkUrls);
               const invalidArtworkCount = o.artworkUrls.length - images.length;
               return (
@@ -832,12 +844,27 @@ function OrdersManager() {
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="mt-4 grid gap-4 rounded-xl border border-border/60 bg-background/30 p-4 text-xs">
+                <details className="mt-4 rounded-xl border border-border/60 bg-card/40 p-4 text-xs">
+                  <summary className="cursor-pointer font-semibold text-foreground">Details</summary>
+                  <div className="mt-4 grid gap-4">
                   <div>
-                    <div className="mb-1 font-semibold text-foreground">Shipping address</div>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="font-semibold text-foreground">Shipping address</div>
+                      <button
+                        type="button"
+                        onClick={() => copyAddress(address, o)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                      >
+                        <Copy className="h-3 w-3" /> Copy address
+                      </button>
+                    </div>
                     {address ? (
                       <div className="space-y-0.5 text-muted-foreground">
-                        <div>{address.name || o.customerName || "—"}{address.phone || o.customerPhone ? ` · ${address.phone || o.customerPhone}` : ""}</div>
+                        <div>{address.name || o.customerName || "—"}</div>
+                        <div>
+                          {(address.phone || o.customerPhone) ? <a className="hover:text-primary" href={`tel:${address.phone || o.customerPhone}`}>{address.phone || o.customerPhone}</a> : "—"}
+                          {(address.email || o.customerEmail) ? <> · <a className="hover:text-primary" href={`mailto:${address.email || o.customerEmail}`}>{address.email || o.customerEmail}</a></> : null}
+                        </div>
                         <div>{[address.address1, address.address2].filter(Boolean).join(", ") || "—"}</div>
                         <div>{[address.city, address.state, address.zip, address.country].filter(Boolean).join(", ") || "—"}</div>
                       </div>
@@ -848,19 +875,48 @@ function OrdersManager() {
                   {items.length > 0 && (
                     <div>
                       <div className="mb-1 font-semibold text-foreground">Items</div>
-                      <div className="space-y-1">
+                      <div className="overflow-x-auto rounded-lg border border-border/60">
+                        <table className="w-full min-w-[420px] text-left">
+                          <thead className="bg-background/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <tr>
+                              <th className="px-3 py-2">Item</th>
+                              <th className="px-3 py-2 text-right">Qty</th>
+                              <th className="px-3 py-2 text-right">Unit</th>
+                              <th className="px-3 py-2 text-right">Line total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
                         {items.map((item, index) => (
-                          <div key={`${item.name ?? "item"}-${index}`} className="flex justify-between gap-3 text-muted-foreground">
-                            <span>{item.quantity ?? 1}x {item.name ?? "Item"}{item.fit || item.colorName || item.size ? ` · ${[item.fit, item.colorName, item.size].filter(Boolean).join(" · ")}` : ""}</span>
-                            <span>${Number(item.unitPrice ?? 0).toFixed(2)}</span>
-                          </div>
+                          <tr key={`${item.name}-${index}`} className="border-t border-border/60 text-muted-foreground">
+                            <td className="px-3 py-2">{item.name}</td>
+                            <td className="px-3 py-2 text-right">{item.quantity}</td>
+                            <td className="px-3 py-2 text-right">${item.unitPrice.toFixed(2)}</td>
+                            <td className="px-3 py-2 text-right">${(item.unitPrice * item.quantity).toFixed(2)}</td>
+                          </tr>
                         ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   )}
+                  <div className="flex items-end justify-between rounded-lg border border-border/60 bg-background/30 p-3">
+                    <span className="text-muted-foreground">Total paid</span>
+                    <span className="text-2xl font-bold text-foreground">${o.totalAmount.toFixed(2)}</span>
+                  </div>
                   {(images.length > 0 || invalidArtworkCount > 0) && (
                     <div>
-                      <div className="mb-2 font-semibold text-foreground">Artwork</div>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="font-semibold text-foreground">Design artwork</div>
+                        {images.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => downloadAllArtwork(o, images)}
+                            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
+                          >
+                            <Download className="h-3 w-3" /> Download all
+                          </button>
+                        )}
+                      </div>
                       {invalidArtworkCount > 0 && (
                         <div className="mb-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-[11px] text-destructive">
                           {invalidArtworkCount} artwork image skipped because it is not a public HTTPS URL.
@@ -872,9 +928,13 @@ function OrdersManager() {
                             <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Open artwork ${index + 1}`}>
                               <img src={url} alt={`Artwork ${index + 1}`} className="h-20 w-full object-cover" />
                             </a>
-                            <a href={url} download className="block border-t border-border px-2 py-1 text-center text-[11px] text-primary hover:bg-primary/10">
+                            <button
+                              type="button"
+                              onClick={() => downloadArtwork(url, `${o.orderNumber}-design-${index + 1}.png`).catch((err) => toast.error(err instanceof Error ? err.message : "Failed to download artwork"))}
+                              className="block w-full border-t border-border px-2 py-1 text-center text-[11px] text-primary hover:bg-primary/10"
+                            >
                               Download
-                            </a>
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -886,7 +946,13 @@ function OrdersManager() {
                       <div className="text-muted-foreground">{o.customerNote}</div>
                     </div>
                   )}
-                </div>
+                  {o.stripeSessionId && (
+                    <div className="break-all border-t border-border/60 pt-3 text-[10px] text-muted-foreground">
+                      Stripe session: {o.stripeSessionId}
+                    </div>
+                  )}
+                  </div>
+                </details>
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {ORDER_STAGES.map((label, i) => {
                     const reached = i <= o.stage;

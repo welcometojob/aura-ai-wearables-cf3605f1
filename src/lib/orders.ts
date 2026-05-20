@@ -1,5 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
+
+export type OrderShippingAddress = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+};
+
+export type OrderItemDetail = {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  image?: string | null;
+  description?: string;
+};
 
 export const ORDER_STAGES = [
   "Order placed",
@@ -19,10 +38,10 @@ export type Order = {
   couponCode: string | null;
   discountAmount: number;
   artworkUrls: string[];
-  itemDetails: Json;
+  itemDetails: OrderItemDetail[];
   itemSummary: string | null;
   stage: number;
-  shippingAddress: Json | null;
+  shippingAddress: OrderShippingAddress | null;
   stripeSessionId: string | null;
   totalAmount: number;
   notes: string | null;
@@ -40,16 +59,35 @@ type Row = {
   coupon_code: string | null;
   discount_amount: number | string | null;
   artwork_urls: string[] | null;
-  item_details: Json | null;
+  item_details: unknown;
   item_summary: string | null;
   stage: number;
-  shipping_address: Json | null;
+  shipping_address: unknown;
   stripe_session_id: string | null;
   total_amount: number | string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function toShippingAddress(value: unknown): OrderShippingAddress | null {
+  return isRecord(value) ? value as OrderShippingAddress : null;
+}
+
+function toItemDetails(value: unknown): OrderItemDetail[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isRecord).map((item) => ({
+    name: String(item.name ?? "Item"),
+    quantity: Number(item.quantity ?? 1),
+    unitPrice: Number(item.unitPrice ?? 0),
+    image: typeof item.image === "string" ? item.image : null,
+    description: typeof item.description === "string" ? item.description : undefined,
+  }));
+}
 
 const toOrder = (r: Row): Order => ({
   id: r.id,
@@ -61,10 +99,10 @@ const toOrder = (r: Row): Order => ({
   couponCode: r.coupon_code,
   discountAmount: Number(r.discount_amount ?? 0),
   artworkUrls: r.artwork_urls ?? [],
-  itemDetails: r.item_details ?? [],
+  itemDetails: toItemDetails(r.item_details),
   itemSummary: r.item_summary,
   stage: r.stage,
-  shippingAddress: r.shipping_address,
+  shippingAddress: toShippingAddress(r.shipping_address),
   stripeSessionId: r.stripe_session_id,
   totalAmount: Number(r.total_amount ?? 0),
   notes: r.notes,
