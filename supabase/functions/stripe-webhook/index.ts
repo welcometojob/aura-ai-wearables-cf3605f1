@@ -114,26 +114,26 @@ serve(async (req) => {
             }
             break;
           }
-          const email = s.customer_details?.email ?? s.customer_email ?? null;
-          const name = s.customer_details?.name ?? null;
-          const orderNumber = `ORD-${(s.id ?? "").slice(-10).toUpperCase()}`;
-          const itemSummary = (s.metadata?.item_summary as string) ?? null;
-          const phone = (s.metadata?.customer_phone as string) || s.customer_details?.phone || null;
-          const customerNote = (s.metadata?.customer_note as string) || null;
           const couponCode = (s.metadata?.coupon_code as string) || null;
-          const discountAmount = parseFloat((s.metadata?.discount_amount as string) ?? "0") || 0;
-          await supabaseAdmin.from("orders").insert({
-            order_number: orderNumber,
-            customer_email: email,
-            customer_name: name,
-            customer_phone: phone,
-            customer_note: customerNote,
-            coupon_code: couponCode,
-            discount_amount: discountAmount,
-            item_summary: itemSummary,
-            stage: 0,
-            notes: `Stripe session ${s.id} · total $${((s.amount_total ?? 0) / 100).toFixed(2)}`,
-          });
+          const shippingAddress = s.shipping_details ? {
+            name: s.shipping_details.name,
+            phone: s.customer_details?.phone ?? null,
+            address1: s.shipping_details.address?.line1 ?? "",
+            address2: s.shipping_details.address?.line2 ?? "",
+            city: s.shipping_details.address?.city ?? "",
+            state: s.shipping_details.address?.state ?? "",
+            zip: s.shipping_details.address?.postal_code ?? "",
+            country: s.shipping_details.address?.country ?? "",
+          } : null;
+          const { error: orderUpdateError } = await supabaseAdmin
+            .from("orders")
+            .update({
+              stage: 1,
+              ...(shippingAddress ? { shipping_address: shippingAddress } : {}),
+              notes: `Stripe session ${s.id} · paid total $${((s.amount_total ?? 0) / 100).toFixed(2)}`,
+            })
+            .eq("stripe_session_id", s.id);
+          if (orderUpdateError) console.error("order paid update failed", orderUpdateError);
           if (couponCode) {
             const { data: cRow } = await supabaseAdmin
               .from("coupons")

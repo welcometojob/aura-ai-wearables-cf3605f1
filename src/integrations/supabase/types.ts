@@ -157,11 +157,16 @@ export type Database = {
           customer_note: string | null
           customer_phone: string | null
           discount_amount: number
+          artwork_urls: string[]
           id: string
+          item_details: Json
           item_summary: string | null
           notes: string | null
           order_number: string
+          shipping_address: Json | null
           stage: number
+          stripe_session_id: string | null
+          total_amount: number
           updated_at: string
         }
         Insert: {
@@ -172,11 +177,16 @@ export type Database = {
           customer_note?: string | null
           customer_phone?: string | null
           discount_amount?: number
+          artwork_urls?: string[]
           id?: string
+          item_details?: Json
           item_summary?: string | null
           notes?: string | null
           order_number: string
+          shipping_address?: Json | null
           stage?: number
+          stripe_session_id?: string | null
+          total_amount?: number
           updated_at?: string
         }
         Update: {
@@ -187,11 +197,16 @@ export type Database = {
           customer_note?: string | null
           customer_phone?: string | null
           discount_amount?: number
+          artwork_urls?: string[]
           id?: string
+          item_details?: Json
           item_summary?: string | null
           notes?: string | null
           order_number?: string
+          shipping_address?: Json | null
           stage?: number
+          stripe_session_id?: string | null
+          total_amount?: number
           updated_at?: string
         }
         Relationships: []

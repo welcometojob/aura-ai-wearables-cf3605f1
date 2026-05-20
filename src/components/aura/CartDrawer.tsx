@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Check, Loader2, Minus, Plus, ShoppingCart, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useCart } from "@/hooks/use-cart";
-import { COUNTRIES } from "@/lib/countries";
-import { getShippingRateForCountry } from "@/lib/site-settings";
-import { validateCoupon, type ValidatedCoupon } from "@/lib/coupons";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { COUNTRIES } from "@/lib/countries";
+import { validateCoupon, type ValidatedCoupon } from "@/lib/coupons";
+import { getShippingRateForCountry } from "@/lib/site-settings";
+import { uploadToR2 } from "@/lib/r2-upload";
+
+async function artworkToPublicUrl(artwork: string | null | undefined, filename: string) {
+  if (!artwork || /^https?:\/\//.test(artwork)) return artwork ?? undefined;
+  if (!artwork.startsWith("data:") && !artwork.startsWith("blob:")) return undefined;
+  const response = await fetch(artwork);
+  const blob = await response.blob();
+  const extension = blob.type.split("/")[1] || "jpg";
+  return uploadToR2(new File([blob], `${filename}.${extension}`, { type: blob.type || "image/jpeg" }), "ready-designs");
+}
 
 export function CartDrawer({
   open,
@@ -16,26 +27,50 @@ export function CartDrawer({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { user, profile } = useAuth();
   const { items, remove, updateQty, totalPrice, clear } = useCart();
   const [loading, setLoading] = useState(false);
   const [shipping, setShipping] = useState(0);
-  const [country, setCountry] = useState("INTL");
   const [couponCode, setCouponCode] = useState("");
   const [validating, setValidating] = useState(false);
   const [applied, setApplied] = useState<ValidatedCoupon | null>(null);
+  const [note, setNote] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "INTL",
+  });
 
   useEffect(() => {
-    getShippingRateForCountry(country).then(setShipping).catch(() => setShipping(0));
-  }, [country]);
+    if (open) {
+      setForm((f) => ({
+        ...f,
+        name: f.name || profile?.display_name || "",
+        email: f.email || user?.email || "",
+      }));
+    }
+  }, [open, user, profile]);
 
-  const discount = applied ? Math.min(applied.discount, totalPrice) : 0;
-  const grandTotal = Math.max(0, totalPrice - discount) + (items.length > 0 ? shipping : 0);
+  useEffect(() => {
+    if (!open || !form.country) return;
+    getShippingRateForCountry(form.country).then(setShipping).catch(() => setShipping(0));
+  }, [form.country, open]);
+
+  const subtotal = totalPrice;
+  const discount = applied ? Math.min(applied.discount, subtotal) : 0;
+  const total = Math.max(0, subtotal - discount) + (items.length > 0 ? shipping : 0);
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim() || validating) return;
     setValidating(true);
     try {
-      const result = await validateCoupon(couponCode, totalPrice);
+      const result = await validateCoupon(couponCode, subtotal);
       setApplied(result);
       toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
     } catch (err) {
@@ -53,24 +88,34 @@ export function CartDrawer({
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
+    if (!form.name || !form.email || !form.phone || !form.address1 || !form.city || !form.country) {
+      toast.error("Please fill in name, email, phone, address, city and country.");
+      return;
+    }
     setLoading(true);
     try {
+      const checkoutItems = await Promise.all(items.map(async (i) => ({
+        name: `${i.fit}'s ${i.productName} · ${i.colorName} · ${i.size}`,
+        description: i.artwork ? "Includes custom AI artwork" : undefined,
+        unitPrice: i.unitPrice,
+        quantity: i.quantity,
+        image: await artworkToPublicUrl(i.artwork, `cart-${i.id}`),
+        fit: i.fit,
+        colorName: i.colorName,
+        size: i.size,
+      })));
       const { data, error } = await supabase.functions.invoke("create-product-checkout", {
         body: {
-          items: items.map((i) => ({
-            name: `${i.fit}'s ${i.productName} · ${i.colorName} · ${i.size}`,
-            description: i.artwork ? "Includes custom AI artwork" : undefined,
-            unitPrice: i.unitPrice,
-            quantity: i.quantity,
-            image: i.artwork ?? undefined,
-          })),
+          items: checkoutItems,
           shippingRate: shipping,
-          shippingCountry: country,
+          shipping: form,
+          shippingCountry: form.country,
           shippingAmount: shipping,
+          customerNote: note.trim() || undefined,
           coupon: applied
             ? {
                 code: applied.coupon.code,
-                discount,
+                discount: applied.discount,
               }
             : undefined,
         },
@@ -88,7 +133,7 @@ export function CartDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
+      <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" /> Your Cart ({items.length})
@@ -161,7 +206,7 @@ export function CartDrawer({
         {items.length > 0 && (
           <div className="border-t border-border pt-3">
             <div className="mb-3 space-y-1 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${totalPrice.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
               {discount > 0 && (
                 <div className="flex justify-between text-primary">
                   <span>Discount {applied?.coupon.code ? `(${applied.coupon.code})` : ""}</span>
@@ -169,6 +214,52 @@ export function CartDrawer({
                 </div>
               )}
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping > 0 ? `+ $${shipping.toFixed(2)}` : "Free"}</span></div>
+            </div>
+            <div className="mb-3 space-y-3">
+              <Row>
+                <Field label="Full name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+                <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} required />
+              </Row>
+              <Field label="Phone" type="tel" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} required placeholder="+1 555 123 4567" />
+              <Field label="Address line 1" value={form.address1} onChange={(v) => setForm({ ...form, address1: v })} required />
+              <Field label="Address line 2" value={form.address2} onChange={(v) => setForm({ ...form, address2: v })} />
+              <Row>
+                <Field label="City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} required />
+                <Field label="State / Province" value={form.state} onChange={(v) => setForm({ ...form, state: v })} />
+              </Row>
+              <Row>
+                <Field label="ZIP / Postal" value={form.zip} onChange={(v) => setForm({ ...form, zip: v })} />
+                <label className="block">
+                  <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Country <span className="text-primary">*</span>
+                  </span>
+                  <Select value={form.country} onValueChange={(country) => setForm({ ...form, country })}>
+                    <SelectTrigger className="h-8 bg-background/60 text-xs">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </label>
+              </Row>
+              <label className="block">
+                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Order note <span className="text-muted-foreground/60">(optional)</span>
+                </span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value.slice(0, 500))}
+                  placeholder="Special instructions, gift message, or anything we should know…"
+                  rows={3}
+                  className="w-full resize-none rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+                />
+                <span className="mt-0.5 block text-right text-[9px] text-muted-foreground">{note.length}/500</span>
+              </label>
             </div>
             <div className="mb-3">
               <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -213,26 +304,9 @@ export function CartDrawer({
                 </div>
               )}
             </div>
-            <label className="mb-3 block">
-              <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Shipping country
-              </span>
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="h-9 bg-background/60 text-xs">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map((option) => (
-                    <SelectItem key={option.code} value={option.code}>
-                      {option.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
             <div className="mb-3 flex items-end justify-between border-t border-border pt-3">
               <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Total</span>
-              <span className="text-2xl font-bold">${grandTotal.toFixed(2)}</span>
+              <span className="text-2xl font-bold">${total.toFixed(2)}</span>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <button
@@ -242,7 +316,7 @@ export function CartDrawer({
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-semibold uppercase tracking-wider text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Checkout
+                Pay ${total.toFixed(2)} & Place Order
               </button>
               <button
                 type="button"
@@ -256,5 +330,41 @@ export function CartDrawer({
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function Row({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-2 gap-2">{children}</div>;
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  required,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  required?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label} {required && <span className="text-destructive">*</span>}
+      </span>
+      <input
+        type={type}
+        value={value}
+        required={required}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+      />
+    </label>
   );
 }

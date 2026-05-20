@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export const ORDER_STAGES = [
   "Order placed",
@@ -17,8 +18,13 @@ export type Order = {
   customerNote: string | null;
   couponCode: string | null;
   discountAmount: number;
+  artworkUrls: string[];
+  itemDetails: Json;
   itemSummary: string | null;
   stage: number;
+  shippingAddress: Json | null;
+  stripeSessionId: string | null;
+  totalAmount: number;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -33,8 +39,13 @@ type Row = {
   customer_note: string | null;
   coupon_code: string | null;
   discount_amount: number | string | null;
+  artwork_urls: string[] | null;
+  item_details: Json | null;
   item_summary: string | null;
   stage: number;
+  shipping_address: Json | null;
+  stripe_session_id: string | null;
+  total_amount: number | string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -49,8 +60,13 @@ const toOrder = (r: Row): Order => ({
   customerNote: r.customer_note,
   couponCode: r.coupon_code,
   discountAmount: Number(r.discount_amount ?? 0),
+  artworkUrls: r.artwork_urls ?? [],
+  itemDetails: r.item_details ?? [],
   itemSummary: r.item_summary,
   stage: r.stage,
+  shippingAddress: r.shipping_address,
+  stripeSessionId: r.stripe_session_id,
+  totalAmount: Number(r.total_amount ?? 0),
   notes: r.notes,
   createdAt: r.created_at,
   updatedAt: r.updated_at,

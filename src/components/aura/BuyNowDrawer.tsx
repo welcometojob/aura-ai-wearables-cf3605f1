@@ -7,7 +7,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { validateCoupon, type ValidatedCoupon } from "@/lib/coupons";
 import { COUNTRIES } from "@/lib/countries";
 import { getShippingRateForCountry } from "@/lib/site-settings";
+import { uploadToR2 } from "@/lib/r2-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+async function artworkToPublicUrl(artwork: string | null | undefined, filename: string) {
+  if (!artwork || /^https?:\/\//.test(artwork)) return artwork ?? undefined;
+  if (!artwork.startsWith("data:") && !artwork.startsWith("blob:")) return undefined;
+  const response = await fetch(artwork);
+  const blob = await response.blob();
+  const extension = blob.type.split("/")[1] || "jpg";
+  return uploadToR2(new File([blob], `${filename}.${extension}`, { type: blob.type || "image/jpeg" }), "ready-designs");
+}
 
 export type BuyNowItem = {
   name: string;
@@ -101,6 +111,7 @@ export function BuyNowDrawer({
     }
     setLoading(true);
     try {
+      const image = await artworkToPublicUrl(item.image, `buy-now-${Date.now()}`);
       const { data, error } = await supabase.functions.invoke("create-product-checkout", {
         body: {
           items: [
@@ -109,7 +120,7 @@ export function BuyNowDrawer({
               description: item.description,
               unitPrice: item.unitPrice,
               quantity: item.quantity,
-              image: item.image ?? undefined,
+              image,
             },
           ],
           shippingRate: countryShipping,
