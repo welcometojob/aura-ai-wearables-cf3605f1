@@ -133,22 +133,23 @@ export function CartDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-md">
-        <SheetHeader>
+      <SheetContent side="right" className="flex w-full flex-col overflow-hidden sm:max-w-md">
+        <SheetHeader className="shrink-0">
           <SheetTitle className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" /> Your Cart ({items.length})
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 space-y-4 overflow-y-auto py-3 pr-1">
           {items.length === 0 ? (
             <p className="rounded-md border border-dashed border-border bg-background/30 p-6 text-center text-xs text-muted-foreground">
               Your cart is empty. Add a design to get started.
             </p>
           ) : (
-            <ul className="space-y-3">
-              {items.map((i) => (
-                <li key={i.id} className="flex gap-3 rounded-lg border border-border bg-card/40 p-3">
+            <>
+              <ul className="space-y-3">
+                {items.map((i) => (
+                  <li key={i.id} className="flex gap-3 rounded-lg border border-border bg-card/40 p-3">
                   <div
                     className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-md"
                     style={{ background: i.colorHex }}
@@ -197,14 +198,10 @@ export function CartDrawer({
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {items.length > 0 && (
-          <div className="border-t border-border pt-3">
+                  </li>
+                ))}
+              </ul>
+              <div className="border-t border-border pt-3">
             <div className="mb-3 space-y-1 text-xs">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
               {discount > 0 && (
@@ -326,8 +323,10 @@ export function CartDrawer({
                 Clear
               </button>
             </div>
-          </div>
-        )}
+              </div>
+            </>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
