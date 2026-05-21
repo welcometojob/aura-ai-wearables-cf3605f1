@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { fetchSitePage } from "@/lib/cms";
 import { Button } from "@/components/ui/button";
+import { markdownComponents } from "@/lib/markdown-components";
 
 export const Route = createFileRoute("/p/$slug")({
   loader: async ({ params }) => {
@@ -50,8 +51,9 @@ function PageView() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 mt-10">
-        <article className="glass rounded-3xl p-8 sm:p-12 prose prose-invert prose-headings:font-bold prose-h1:text-3xl prose-h2:text-xl prose-h2:mt-8 prose-p:leading-relaxed prose-a:text-primary max-w-none">
-          <ReactMarkdown>{page.content}</ReactMarkdown>
+        <article className="glass rounded-3xl p-8 sm:p-12">
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-foreground">{page.title}</h1>
+          <ReactMarkdown components={markdownComponents}>{page.content}</ReactMarkdown>
         </article>
       </main>
     </div>

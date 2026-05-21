@@ -45,6 +45,7 @@ import { createCoupon, deleteCoupon, fetchAllCoupons, updateCoupon, type Coupon 
 import { listProductStyles, updateProductStyle, addProductStyle, deleteProductStyle, type ProductStyleRow } from "@/lib/product-styles";
 import { COLORS } from "@/lib/aura-config";
 import { LiveChatInbox } from "@/components/admin/LiveChatInbox";
+import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
 import { getArtworkDataUri } from "@/lib/artwork-texture.functions";
 
 export const Route = createFileRoute("/admin")({
@@ -1123,10 +1124,13 @@ function SitePagesManager() {
             <Input value={active.title} onChange={(e) => setPages((arr) => arr.map((p) => p.slug === active.slug ? { ...p, title: e.target.value } : p))} className="mt-1.5" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Content (Markdown supported)</label>
-            <Textarea value={active.content} onChange={(e) => setPages((arr) => arr.map((p) => p.slug === active.slug ? { ...p, content: e.target.value } : p))} rows={20} className="mt-1.5 font-mono text-xs" />
+            <label className="mb-2 block text-xs text-muted-foreground">Content</label>
+            <MarkdownEditor
+              value={active.content}
+              onChange={(next) => setPages((arr) => arr.map((p) => p.slug === active.slug ? { ...p, content: next } : p))}
+            />
           </div>
-          <p className="text-[11px] text-muted-foreground">Use <code>#</code> for headings, <code>**bold**</code>, <code>- item</code> for lists. Page lives at <code>/p/{active.slug}</code>.</p>
+          <p className="text-[11px] text-muted-foreground">Page lives at <code className="rounded bg-muted px-1.5 py-0.5">/p/{active.slug}</code>.</p>
         </section>
       )}
     </div>
