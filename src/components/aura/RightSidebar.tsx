@@ -38,7 +38,7 @@ export function RightSidebar({
   fit, setFit, product, setProduct, productStyles, color, setColor, size, setSize, quantity, setQuantity, total, unitPrice, subtotal, shipping, artwork, onAddToCart, onBuyNow,
 }: Props & { setQuantity: (q: number) => void }) {
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  const currentTotal = unitPrice * quantity + shipping;
+  const currentTotal = unitPrice * quantity;
 
   const handleAddToCart = () => {
     onAddToCart({
